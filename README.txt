@@ -1,6 +1,6 @@
 RedDog
 ======
-Microbial Analysis Pipeline: RedDog.py V0.4.5 031213
+Microbial Analysis Pipeline: RedDog.py V0.4.5.1 050314
 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
@@ -105,16 +105,26 @@ V0.4.5      renamed pipeline (DE)
             cleanup of pipeline scripting (amalgamation of repeated stages) (DE)
             converted emboss call to a biopython script (DE)
             add 'check_reads_mapped' variable for multiple replicon runs (DE)
+V0.4.5.1    fix for replicon statistics generation for pangenome runs (DE)
 
 Planned Updates
-V0.4.5.1    add merging of samples for pangenome and phylogenetic mapping
-            update to newer version of parseSNPtable.py (DE)
+V0.4.5.2    early check that replicons all have unique names (DE)
             splitting of getRepAlleleMatrix to improve performance (DE)
-            change getRepAllGeneCover to report all isolates AND 'passed' isolates
-            include .info file for recording those read sets failed (and how)
+
+V0.4.6      add merging of samples for pangenome and phylogenetic mapping (DE)
+            update to newer version of parseSNPtable.py (DE)
+            early checks that include:
+                - name of reference/replicons/isolates won't confuse post-NEXUS analysis (i.e. no '+')
+                - output folder does not exist on commencing merge run, 
+                    target folder has bams/vcfs/stats.txt in right place            
+            change getRepAllGeneCover to report all isolates AND 'passed' isolates (DE)
+
+V0.4.7      include .info file for recording those read sets failed (and how)
                 when not removed by pipeline by testing 
                 (user-merged and user-removed reads)
                 and the other user settings
+            user-defined outgroups
+            further analysis options (ongoing)   
 
 Also To Add:
         early checks that include:

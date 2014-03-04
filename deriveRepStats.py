@@ -8,7 +8,7 @@ example:
 python deriveRepStats.py <isolate>_rep_cover.txt replicon depth_fail cover_fail runType mapped_fail check_reads_mapped
 
 Created:	29042013
-Modified:	29112013
+Modified:	04032014
 author: David Edwards
 '''
 import sys
@@ -89,15 +89,18 @@ runType = sys.argv[5]
 mappedFail = int(sys.argv[6])
 check_reads_mapped = sys.argv[7]
 
-
+line_end = False
 if (depth_test_value < depthFail):
 	output_RepStats += "\tf\n"
+	line_end = True
 elif (cover_test_value < coverFail):
 	output_RepStats += "\tf\n"
+	line_end = True
 elif (check_reads_mapped != "off"):
 	if check_reads_mapped == replicon:
 		if (mapped_test_value < int(mappedFail)):
 			output_RepStats += "\tf\n"
+			line_end = True
 	elif (check_reads_mapped.find(replicon) != -1):
 		found_x = False
 		final_ratio = 1.0
@@ -118,7 +121,9 @@ elif (check_reads_mapped != "off"):
 			if list_of_replicons[i] == replicon:
 				if (mapped_test_value < int(mappedFail)*ratio_of_replicons[i]):
 					output_RepStats += "\tf\n"
-else:
+					line_end = True
+
+if line_end == False:
 	if runType == "phylogeny":
 		output_RepStats += "\n"
 	else:
