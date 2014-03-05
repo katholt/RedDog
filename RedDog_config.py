@@ -1,5 +1,5 @@
 '''
-Configuration file for RedDog.py V0.4.5.1
+Configuration file for RedDog.py V0.4.5.1.1
 -------------------------------
 
 Reference and sequences (from VR0082 shared directory)

@@ -8,15 +8,13 @@ example:
 python deriveAllStats.py <isolate>_rep_cover.txt
 
 Created:	29042013
-Modified:	23072013
+Modified:	05032014
 author: David Edwards
 '''
 import sys
 from pipe_utils import splitPath
 
 output_allStats = ""
-
-
 repCoverFile = sys.argv[1]
 repCover = open(repCoverFile, "r") 
 (prefix, middle, ext) = splitPath(repCoverFile)
@@ -43,6 +41,9 @@ repMapped = open(name + "_samStats.txt")
 percent_A = percent_G = percent_T = percent_C = percent_N = '0'
 insert_mean = ""
 insert_stdev = ""
+length_max = ""
+base_qual_mean = ""
+base_qual_stdev = ""
 for line in repMapped:
 	if line.startswith('reads'):
 		entry = line.split()
@@ -87,10 +88,18 @@ for line in repMapped:
 				if line.startswith(replicon):
 					entry = line.split()
 					replicons_mapped.append([replicon, entry[1]])
+
 if insert_mean == "":
 	insert_mean = "-"
 if insert_stdev == "":
 	insert_stdev = "-"
+if length_max == "":
+	length_max = "_"
+if base_qual_mean == "":
+	base_qual_mean = "_"
+if base_qual_stdev == "":
+	base_qual_stdev = "_"
+
 mapped_core_rep = 0.0
 for replicon in replicon_names:
 	value = ""
