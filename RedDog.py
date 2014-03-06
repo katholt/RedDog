@@ -402,7 +402,7 @@ if mergeReads != "":
         finalMergeWith.append(outName)
 #Phew! Now that's all set up, we can begin...
 #but first, output run conditions to user and get confirmation to run
-print "\nRedDog V0.4.5.1 - " + runType + " run\n"
+print "\nRedDog V0.4.5.1.1 - " + runType + " run\n"
 print "Mapping: " + mapping_out
 if mapping == 'bowtie':
     print "Preset Option: " + bowtie_map_type
