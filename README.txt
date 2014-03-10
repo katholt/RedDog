@@ -1,6 +1,6 @@
 RedDog
 ======
-Microbial Analysis Pipeline: RedDog.py V0.4.5.1.1 050314
+Microbial Analysis Pipeline: RedDog.py V0.4.5.2 100314
 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
@@ -107,10 +107,10 @@ V0.4.5      renamed pipeline (DE)
             add 'check_reads_mapped' variable for multiple replicon runs (DE)
 V0.4.5.1    fix for replicon statistics generation for pangenome runs (DE)
 V0.4.5.1.1  fix for all statistics generation when no reads map (DE)
-
-Planned Updates
 V0.4.5.2    early check that replicons all have unique names (DE)
             splitting of getRepAlleleMatrix to improve performance (DE)
+
+Planned Updates
 
 V0.4.6      add merging of samples for pangenome and phylogenetic mapping (DE)
             update to newer version of parseSNPtable.py (DE)

@@ -1,7 +1,7 @@
 #!/bin/env python
 
 '''
-Microbial Analysis Pipeline: RedDog.py V0.4.5.1.1 050313
+Microbial Analysis Pipeline: RedDog.py V0.4.5.2 100313
 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
@@ -108,10 +108,10 @@ V0.4.5      renamed pipeline (DE)
             add 'check_reads_mapped' variable for multiple replicon runs (DE)
 V0.4.5.1    fix for replicon statistics generation for pangenome runs (DE)
 V0.4.5.1.1  fix for all statistics generation when no reads map (DE)
-
-Planned Updates
 V0.4.5.2    early check that replicons all have unique names (DE)
             splitting of getRepAlleleMatrix to improve performance (DE)
+
+Planned Updates
 
 V0.4.6      add merging of samples for pangenome and phylogenetic mapping (DE)
             update to newer version of parseSNPtable.py (DE)
@@ -173,6 +173,17 @@ else:
     print "\nReference not in GenBank or FASTA format"
     print "Pipeline Stopped: please check your reference\n"
     sys.exit()
+
+if len(replicons)>1:
+    for i in range(len(replicons)-1):
+        for j in range (i, len(replicons)):
+            if replicons[i][0] != replicons[j][0]:
+                pass
+            else:
+                print "\nReference has replicons with non-unique names: " + replicons[i][0]
+                print "Pipeline Stopped: please check your reference\n"
+                sys.exit()
+
 (refPrefix, refName, refExt) = splitPath(reference)
 #add check for replicon names in reference not in name:int-int form
 sequencePatterns = pipeline_options.sequences
