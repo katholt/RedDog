@@ -454,6 +454,15 @@ while start_run == False:
             sys.exit()
         else:
             print "Please enter 'y' (yes) or 'n' (no)"
+
+if outMerge == '':
+    full_sequence_list = sequence_list
+else:
+    full_sequence_list = sequence_list
+    sequence_list_file = open((outMerge + 'sequence_list.txt') , "r")
+    for line in sequence_list_file:
+        full_sequence_list.append(line[:-1])
+
 print "\nStarting pipeline..."
 
 # Create temp and other output subfolders
@@ -1582,6 +1591,10 @@ if outMerge != "":
         @follows(getDifferenceMatrix, makeTree)
         @files(input==None, outMerge + "finish.deleteDir.Success")
         def deleteDir(input, flagFile):
+            sequence_list_file = open((outMerge + 'sequence_list.txt') , "w")
+            for item in full_sequence_list:
+                sequence_list_file.write(item +'\n')
+            sequence_list_file.close()
             runStageCheck('deleteDir', flagFile, outPrefix)
 
     else:
@@ -1589,6 +1602,10 @@ if outMerge != "":
         @follows(parseGeneContent, getDifferenceMatrix, makeTree)
         @files(input==None, outMerge + "finish.deleteDir.Success")
         def deleteDir(input, flagFile):
+            sequence_list_file = open((outMerge + 'sequence_list.txt') , "w")
+            for item in full_sequence_list:
+                sequence_list_file.write(item +'\n')
+            sequence_list_file.close()
             runStageCheck('deleteDir', flagFile, outPrefix)    
 
 else:
@@ -1597,12 +1614,22 @@ else:
         @follows(getDifferenceMatrix, makeTree)
         @files(input==None, outPrefix + "finish.deleteDir.Success")
         def deleteDir(input, flagFile):
+            sequence_list_file = open((outPrefix + 'sequence_list.txt') , "w")
+            for item in full_sequence_list:
+                sequence_list_file.write(item +'\n')
+            sequence_list_file.close()
             runStageCheck('deleteDir', flagFile, outTempPrefix)
     else:
         # delete outTemp directory to finish
         @follows(parseGeneContent, getDifferenceMatrix, makeTree)
         @files(input==None, outPrefix + "finish.deleteDir.Success")
         def deleteDir(input, flagFile):
+            sequence_list_file = open((outPrefix + 'sequence_list.txt') , "w")
+            for item in full_sequence_list:
+                sequence_list_file.write(item +'\n')
+            sequence_list_file.close()
             runStageCheck('deleteDir', flagFile, outTempPrefix)
 
+print "\nRedDog: pipeline has finished"
+print "Remember to clean up the log files...\n"
 #end of pipeline
