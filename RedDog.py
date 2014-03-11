@@ -1,7 +1,7 @@
 #!/bin/env python
 
 '''
-Microbial Analysis Pipeline: RedDog.py V0.4.5.2 100313
+Microbial Analysis Pipeline: RedDog.py V0.4.5.2 110313
 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
@@ -175,11 +175,12 @@ else:
     sys.exit()
 
 if len(replicons)>1:
-    for i in range(len(replicons)-1):
-        for j in range (i, len(replicons)):
+    for i in range(len(replicons)-2):
+        for j in range (i, len(replicons)-1):
             if replicons[i][0] != replicons[j][0]:
                 pass
             else:
+                print replicons[i][0],replicons[j][0]
                 print "\nReference has replicons with non-unique names: " + replicons[i][0]
                 print "Pipeline Stopped: please check your reference\n"
                 sys.exit()
@@ -438,6 +439,23 @@ if outMerge != '':
     print "Remember: this output folder will be deleted at the end of the run\n"
     print "Merge new sets with the following folder ('out_merge_target'):"
     print outMerge
+
+full_sequence_list = []
+if outMerge == '':
+    for item in sequence_list:
+        full_sequence_list.append(item)
+else:
+    for item in sequence_list:
+        full_sequence_list.append(item)
+    try:
+        sequence_list_file = open((outMerge + 'sequence_list.txt') , "r")
+    except:
+        print "\nNo sequence list found"
+        print "Pipeline Stopped: please generate new 'sequence_list.txt' file\n"
+        sys.exit()
+    for line in sequence_list_file:
+        full_sequence_list.append(line[:-1])
+
 start_run = False
 start_count = 0
 while start_run == False:
@@ -455,13 +473,6 @@ while start_run == False:
         else:
             print "Please enter 'y' (yes) or 'n' (no)"
 
-if outMerge == '':
-    full_sequence_list = sequence_list
-else:
-    full_sequence_list = sequence_list
-    sequence_list_file = open((outMerge + 'sequence_list.txt') , "r")
-    for line in sequence_list_file:
-        full_sequence_list.append(line[:-1])
 
 print "\nStarting pipeline..."
 
@@ -1630,6 +1641,4 @@ else:
             sequence_list_file.close()
             runStageCheck('deleteDir', flagFile, outTempPrefix)
 
-print "\nRedDog: pipeline has finished"
-print "Remember to clean up the log files...\n"
 #end of pipeline
