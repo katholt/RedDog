@@ -110,6 +110,7 @@ V0.4.5.1    fix for replicon statistics generation for pangenome runs (DE)
 V0.4.5.1.1  fix for all statistics generation when no reads map (DE)
 V0.4.5.2    early check that replicons all have unique names (DE)
             splitting of getRepAlleleMatrix to improve performance (DE)
+                includes sequence list generation (start of .info file)
 
 Planned Updates
 
@@ -412,9 +413,26 @@ if mergeReads != "":
                 else:
                     outName += " " + outBamPrefix + mergeWith[count][readName] + '.bam'
         finalMergeWith.append(outName)
+
+full_sequence_list = []
+if outMerge == '':
+    for item in sequence_list:
+        full_sequence_list.append(item)
+else:
+    for item in sequence_list:
+        full_sequence_list.append(item)
+    try:
+        sequence_list_file = open((outMerge + 'sequence_list.txt') , "r")
+    except:
+        print "\nNo sequence list found"
+        print "Pipeline Stopped: please generate new 'sequence_list.txt' file\n"
+        sys.exit()
+    for line in sequence_list_file:
+        full_sequence_list.append(line[:-1])
+
 #Phew! Now that's all set up, we can begin...
 #but first, output run conditions to user and get confirmation to run
-print "\nRedDog V0.4.5.1.1 - " + runType + " run\n"
+print "\nRedDog V0.4.5.2 - " + runType + " run\n"
 print "Mapping: " + mapping_out
 if mapping == 'bowtie':
     print "Preset Option: " + bowtie_map_type
@@ -440,22 +458,6 @@ if outMerge != '':
     print "Merge new sets with the following folder ('out_merge_target'):"
     print outMerge
 
-full_sequence_list = []
-if outMerge == '':
-    for item in sequence_list:
-        full_sequence_list.append(item)
-else:
-    for item in sequence_list:
-        full_sequence_list.append(item)
-    try:
-        sequence_list_file = open((outMerge + 'sequence_list.txt') , "r")
-    except:
-        print "\nNo sequence list found"
-        print "Pipeline Stopped: please generate new 'sequence_list.txt' file\n"
-        sys.exit()
-    for line in sequence_list_file:
-        full_sequence_list.append(line[:-1])
-
 start_run = False
 start_count = 0
 while start_run == False:
@@ -472,7 +474,6 @@ while start_run == False:
             sys.exit()
         else:
             print "Please enter 'y' (yes) or 'n' (no)"
-
 
 print "\nStarting pipeline..."
 
