@@ -33,9 +33,7 @@ sequence_list = user_file.readline()
 user_file.close()
 sequences = sequence_list.split()
 output = ''
-print sequences
 for item in range(1, len(sequences)):
-	print sequences[item]
 	output += sequences[item] + '\n'
 
 output_folder_name += 'sequence_list.txt'
