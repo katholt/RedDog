@@ -178,12 +178,11 @@ else:
     sys.exit()
 
 if len(replicons)>1:
-    for i in range(len(replicons)-2):
-        for j in range (i, len(replicons)-1):
+    for i in range(len(replicons)-1):
+        for j in range (i+1, len(replicons)):
             if replicons[i][0] != replicons[j][0]:
                 pass
             else:
-                print replicons[i][0],replicons[j][0]
                 print "\nReference has replicons with non-unique names: " + replicons[i][0]
                 print "Pipeline Stopped: please check your reference\n"
                 sys.exit()
