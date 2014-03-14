@@ -266,7 +266,6 @@ stageDefaults = {
         "python-gcc/2.7.5",
         "bwa-intel/0.6.2",
         "samtools-intel/0.1.19",
-        "bamtools-intel/2.3.0",
         "eautils-gcc/1.1.2",
         "fasttree-intel/2.1.7",
         "bowtie2-intel/2.1.0"
