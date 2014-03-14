@@ -15,8 +15,8 @@ to be generated, enter a fasta format reference instead.
 
 '''
 #Test Sets
-reference = "/vlsci/VR0082/shared/pipeline_test_data/reference/NC_007384.gbk"
-#reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_plasmid.gbk"
+#reference = "/vlsci/VR0082/shared/pipeline_test_data/reference/NC_007384.gbk"
+reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_plasmid.gbk"
 sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/*.fastq.gz"
 #sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/extra/*.fastq.gz"
 
@@ -135,7 +135,7 @@ full path name including final "/"
 
 VR0082 users: Make sure this is to a directory in the shared folder!!!
 '''
-#output = "/vlsci/VR0082/shared/davide/pipe_test_out/mapping/NC_007384/"
+output = "/vlsci/VR0082/shared/davide/pipe_test_out/mapping/NC_007384_phy/"
 
 '''
 Directory to merge output with (out_merge_target):
@@ -170,34 +170,6 @@ eg. replace a set of reads with their qc-ed version
 '''
 replaceReads = ""
 #replaceReads = "'pool8_tag1', 'pool8_tag2'"
-
-'''
-Note: the following does not work yet.
-
-Merge two (or more) bams from different read sets of the same strain
-(with/without new name for merged set)
-(either in new run or merged run)
-eg. mergeReads = "run1_set2 run2_set3"
-or mergeReads = "run1_set2 run2_set3 run2_set4 new_sampleA"
-
-The "new_" prefix will be removed before the combined bam is named.
-If a 'new_' prefix name is not supplied, a compound name will be used.
-i.e. example one above would create the combined-named bam, "run1_set1_run2_set3_merged.bam",
-whilst example two would create the bam, "sampleA_merged.bam".
-
-More than one pair (or more) can be combined, but ONLY IF the 'new_' prefix for naming 
-is used for ALL SETS of reads to be combined. 
-
-e.g. mergeReads = "run1_set2 run2_set3 new_sampleA run2_set1 run2_set2 new_sampleB"
-
-Any read set replaced by a merged bam will be marked as "failed"
-
-Set to empty string for no merging of reads.
-'''
-mergeReads = ""
-#mergeReads = "ParaA0015_1361301 ParaA0015_1531522 new_ParaA0015"
-#mergeReads = "2010-0026 2010-0026-S6-L001 new_2010-0026"
-#mergeReads = "2011-0079 2011-0079-S13-L001 new_2011-0079"
 
 '''
 Minimum depth of reads for variant filtering
@@ -390,9 +362,6 @@ stages = {
         "walltime": "00:10:00",
         "command": "python getVcfStats.py %vcfFile %out"
     },
-    "deriveStats": {
-        "command": "python deriveStats.py %ref %statFile %name %cover %depth %map %out"
-    },
     "deriveRepStats": {
         "walltime": "00:10:00",
         "command": "python deriveRepStats.py %coverFile %replicon %depth %cover %runType %map %check"
@@ -400,10 +369,6 @@ stages = {
     "deriveAllStats": {
         "walltime": "00:10:00",
         "command": "python deriveAllStats.py %coverFile"
-    },
-    "collateStats": {
-        "walltime": "00:10:00",
-        "command": "python collateStats.py %in %depth %multiplier %out"
     },
     "collateRepStats": {
         "walltime": "00:10:00",
@@ -416,24 +381,12 @@ stages = {
     "mergeOutputs": {
         "command": "cp %inputBam %outDirBam && cp %inputIndex %outDirBam && cp %inputVcf %outDirVcf"
     },
-    "mergeStats": {
-        "command": "python mergeStats.py %newStats %multiplier %replace %mergeDir"
-    },
     "mergeAllStats": {
         "command": "python mergeAllStats.py %newStats %mergeDir"
     },
     "mergeRepStats": {
         "command": "python mergeRepStats.py %newStats %multiplier %replace %mergeDir %runType"
     },
-    "mergeBams": {
-        "command": "samtools merge %output %inputBam %otherBams"
-    },
-    "collateMergeStats": {
-        "command": "python collateMergeStats.py %stats %multiplier %replace %statsDir"
-    },
-    "getSNPList": {
-        "command": "python getSNPList.py %in %out"
-    }, 
     "getRepSNPList": {
         "command": "python getRepSNPList.py %in %replicon %out"
     }, 
@@ -464,12 +417,6 @@ stages = {
 # large data sets
 #        "walltime": "01:00:00",
         "command": "python parseGeneContent.py -g %input -o %out -s %out2"
-    },
-    "getAlleleMatrix": {
-# large data sets
-#        "walltime": "06:00:00",
-#        "memInGB": 24,
-        "command": "python getAlleleMatrix.py %in %out %ref"
     },
     "getRepAlleleMatrix": {
 # large data sets

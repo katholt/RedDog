@@ -1,6 +1,6 @@
 RedDog
 ======
-Microbial Analysis Pipeline: RedDog.py V0.4.5.2 120314
+Microbial Analysis Pipeline: RedDog.py V0.4.5.2 140314
 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
@@ -115,31 +115,28 @@ V0.4.5.2    check that replicons all have unique names (DE)
 
 Planned Updates
 
-V0.4.6      add merging of samples for pangenome and phylogenetic mapping (DE)
-            update to newer version of parseSNPtable.py (DE)
-            early checks that include:
+V0.4.6      update to newer version of parseSNPtable.py (DE)
+            further early checks that include:
                 - name of reference/replicons/isolates won't confuse post-NEXUS analysis (i.e. no '+')
-                - output folder does not exist on commencing merge run, 
-                    target folder has bams/vcfs/stats.txt in right place            
+                - output folder does not exist on commencing merge run,
+                    target folder has bams/vcfs/stats.txt in right place           
             change getRepAllGeneCover to report all isolates AND 'passed' isolates (DE)
 
-V0.4.7      include .info file for recording those read sets failed (and how)
-                when not removed by pipeline by testing 
+planned beyond V0.4.6 before release
+            include .info file for recording those read sets failed (and how)
+                when not removed by pipeline by testing
                 (user-merged and user-removed reads)
                 and the other user settings
             user-defined outgroups
-            further analysis options (ongoing)   
-
+            further analysis options 
+            reanalysis without mapping
+                (with/without a GenBank file,
+                 restore of read sets removed by user,
+                 merging of prior runs,
+                 recalculated/user-edited 'stats.txt' option) 
 Also To Add:
-        early checks that include:
-            - name of reference won't confuse post-NEXUS analysis
-            - isolates all have unique names (no repeats of same name - should stop merging same isolate twice)
-            - output folder is empty on merge run, target folder has bams/vcfs/stats.txt in right place
-        user-defined outgroups
-        reanalysis without mapping
-            (with/without a GenBank file, restore of read sets removed by user, 
-            merging of bams, merging of prior runs, recalculated/user-edited 'stats.txt' option)  
-        further analysis options (ongoing)   
+            add merging of samples for pangenome and phylogenetic mapping (DE)
+            reanalysis without mapping - merging of bams
 
     NOTE: with a workaround, some reanalysis without mapping IS possible. Email me for details (DE)
 
