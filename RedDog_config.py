@@ -146,8 +146,8 @@ Otherwise set to the directory you want to merge with.
  
 You can only merge a prior run with a new run (not two prior runs)
 This merge target folder must have the bams and indexes in one sub-folder (/bam)
-and the vcfs in another (/vcf) - i.e. V0.3.5.1+ format - and 
-the "_stats.txt" file must be present.
+and the vcfs in another (/vcf). 
+There also must be a sequence_list.txt file - i.e. V0.4.5.2+ format.
  
 The 'output' folder (see above) for a merge run should NOT exist prior to the run,
 and will be deleted at completion of the pipeline.
@@ -158,11 +158,9 @@ Note: the pipeline can no longer merge 'single' run types (those that use 'stats
 If you really need to do so, make use of v0.4.4.4 of the pipeline... 
 '''
 out_merge_target = ""
-#out_merge_target = "/vlsci/VR0082/shared/davide/pipe_test_out/mapping/test_1/"
+#out_merge_target = "/vlsci/VR0082/shared/davide/pipe_test_out/mapping/NC_007384_phy/"
 
 '''
-Note: the following does not work yet.
-
 You can also "replace" any reads: these will be marked as "failed"
 This only works during a "merge run"
 eg. replace a set of reads with their qc-ed version
@@ -389,12 +387,6 @@ stages = {
     "getRepSNPList": {
         "command": "python getRepSNPList.py %in %replicon %out"
     }, 
-    "getAllGeneCover": {
-        "walltime": "03:00:00",
-# large data sets
-#        "walltime": "18:00:00",
-        "command": "python getAllGeneCover.py %inDir %outDir %genbank"
-    },
     "deriveAllRepGeneCover": {
        "walltime": "00:15:00",
        "command": "python deriveAllRepGeneCover.py %outDir %genbank %in"
