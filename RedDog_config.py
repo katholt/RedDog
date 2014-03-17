@@ -56,8 +56,8 @@ the pipeline will default to a standard (single reference) run. The run types ar
 more detail in the instructions.
 
 '''
-runType = ""
-#runType = "pangenome"
+#runType = ""
+runType = "pangenome"
 #runType = "phylogeny"
 
 '''
@@ -135,7 +135,7 @@ full path name including final "/"
 
 VR0082 users: Make sure this is to a directory in the shared folder!!!
 '''
-output = "/vlsci/VR0082/shared/davide/pipe_test_out/mapping/NC_007384_phy/"
+output = "/vlsci/VR0082/shared/davide/pipe_test_out/mapping/NC_007384_pan/"
 
 '''
 Directory to merge output with (out_merge_target):
@@ -409,11 +409,25 @@ stages = {
 #        "walltime": "01:00:00",
         "command": "python parseGeneContent.py -g %input -o %out -s %out2"
     },
+#replacing this step
     "getRepAlleleMatrix": {
 # large data sets
 #        "walltime": "02:00:00",
 #        "memInGB": 8,
         "command": "python getRepAlleleMatrix.py %in %out %ref %replicon"
+    },
+#with these next two
+    "deriveRepAlleleMatrix": {
+# large data sets
+#        "walltime": "02:00:00",
+#        "memInGB": 8,
+        "command": "python deriveRepAlleleMatrix.py %in %out %ref %replicon %consensus %repStats"
+    },
+    "collateRepAlleleMatrix": {
+# large data sets
+#        "walltime": "02:00:00",
+#        "memInGB": 8,
+        "command": "python collateRepAlleleMatrix.py %in %out %length"
     },
     "getDifferenceMatrix": {
         "walltime": "00:10:00",

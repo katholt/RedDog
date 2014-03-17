@@ -452,7 +452,6 @@ else: # mapping = 'BWA'
         output, flagFile = outputs
         runStageCheck('alignSequence', flagFile, reference, sequence, output)
 
-
     if readType == "PE":
         #align reads with BWA to sorted bam
         input = r'(.*)\/(.+)_1\.sai'
@@ -539,7 +538,6 @@ else: # mapping = 'BWA'
             (prefix, name, ext) = splitPath(output)
             out = prefix + '/' + name
             runStageCheck('filterUnmapped', flagFile, bamFile, out)
-
 
 # Index sorted BAM alignments using samtools
 @transform(filterUnmapped, regex(r"(.*)\/(.+).bam"), [r'\1/\2.bam.bai', outSuccessPrefix + r'\2.indexFilteredBam.Success'])
@@ -881,20 +879,22 @@ if refGenbank == True:
             runStageCheck('getConsensus', flagFile, reference, input, output)
 
         if runType == 'pangenome':
-            # generate the allele matrix for each replicon
-            def matrixByCoreRep():
-                for repliconName in core_replicons:
-                    input = outTempPrefix + refName + '_' + repliconName + '_SNPList.txt'
-                    output  = outMerge + refName + '_' + repliconName + '_alleles.csv'
-                    flagFile = outSuccessPrefix + refName + '_' + repliconName + '.getRepAlleleMatrix.Success'
-                    replicon = repliconName
-                    yield([input, output, replicon, flagFile])
+            # generate the allele matrix entry for each isolate for each replicon
+            def matrixEntryByCoreRep():
+                for isolate in full_sequence_list:
+                    for repliconName in core_replicons:
+                        input = outTempPrefix + refName + '_' + repliconName + '_SNPList.txt'
+                        output  = outTempPrefix + refName + '_' + repliconName + '_' + isolate + '_alleles.txt'
+                        flagFile = outSuccessPrefix + refName + '_' + repliconName + '_' + isolate + '.deriveRepAlleleMatrix.Success'
+                        replicon = repliconName 
+                        repliconStats = outMerge + refName + '_' + repliconName + '_RepStats.txt'
+                        yield([input, output, replicon, consensus,repliconStats, flagFile])
 
             @follows(getConsensus, getMergeConsensus)
             @follows(getRepSNPList)
-            @files(matrixByCoreRep)
-            def getRepAlleleMatrix(input, output, replicon, flagFile):
-                runStageCheck('getRepAlleleMatrix', flagFile, input, output, reference, replicon)
+            @files(matrixEntryByCoreRep)
+            def deriveRepAlleleMatrix(input, output, replicon, consensus, repliconStats, flagFile):
+                runStageCheck('deriveRepAlleleMatrix', flagFile, input, output, reference, replicon, consensus, repliconStats)
 
         else: #runType == 'phylogeny'
             # generate the allele matrix for each replicon
@@ -962,20 +962,36 @@ if refGenbank == True:
             runStageCheck('parseGeneContent', flagFile, input, output, output2)
 
         if runType == 'pangenome':
-            # generate the allele matrix for each replicon
-            def matrixByCoreRep():
-                for repliconName in core_replicons:
-                    input = outTempPrefix + refName + '_' + repliconName + '_SNPList.txt'
-                    output  = outPrefix + refName + '_' + repliconName + '_alleles.csv'
-                    flagFile = outSuccessPrefix + refName + '_' + repliconName + '.getRepAlleleMatrix.Success'
-                    replicon = repliconName
-                    yield([input, output, replicon, flagFile])
+            # generate the allele matrix entry for each isolate for each replicon
+            def matrixEntryByCoreRep():
+                for isolate in full_sequence_list:
+                    for repliconName in core_replicons:
+                        input = outTempPrefix + refName + '_' + repliconName + '_SNPList.txt'
+                        output  = outTempPrefix + refName + '_' + repliconName + '_' + isolate + '_alleles.txt'
+                        flagFile = outSuccessPrefix + refName + '_' + repliconName + '_' + isolate + '.deriveRepAlleleMatrix.Success'
+                        replicon = repliconName
+                        consensus =  outTempPrefix + isolate + '_cns.fq'
+                        repliconStats = outPrefix + refName + '_' + repliconName + '_RepStats.txt'
+                        yield([input, output, replicon, consensus,repliconStats, flagFile])
 
             @follows(getConsensus)
             @follows(getRepSNPList)
+            @files(matrixEntryByCoreRep)
+            def deriveRepAlleleMatrix(input, output, replicon, consensus, repliconStats, flagFile):
+                runStageCheck('deriveRepAlleleMatrix', flagFile, input, output, reference, replicon, consensus, repliconStats)
+
+            def matrixByCoreRep():
+                for repliconName in core_replicons:
+                    input = outTempPrefix + refName + '_' + repliconName + '_'+full_sequence_list[0]+'_alleles.txt'
+                    length_to_remove = len(full_sequence_list[0])+8
+                    output  = outPrefix + refName + '_' + repliconName + '_alleles.csv'
+                    flagFile = outSuccessPrefix + refName + '_' + repliconName + '.collateRepAlleleMatrix.Success'
+                    yield([input, output, length_to_remove, flagFile])
+
+            @follows(deriveRepAlleleMatrix)
             @files(matrixByCoreRep)
-            def getRepAlleleMatrix(input, output, replicon, flagFile):
-                runStageCheck('getRepAlleleMatrix', flagFile, input, output, reference, replicon)
+            def collateRepAlleleMatrix(input, output, length_to_remove, flagFile):
+                runStageCheck('collateRepAlleleMatrix', flagFile, input, output, length_to_remove)
 
         else: #runType == 'phylogeny'
             # generate the allele matrix for each replicon
@@ -994,13 +1010,13 @@ if refGenbank == True:
                 runStageCheck('getRepAlleleMatrix', flagFile, input, output, reference, replicon)
 
         # create distance matrices based on pair-wise differences in SNPs
-        @transform(getRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outPrefix + r"\2_SNP_diff.nxs", outSuccessPrefix + r"\2_alleles.getDifferenceMatrix.Success"])        
+        @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outPrefix + r"\2_SNP_diff.nxs", outSuccessPrefix + r"\2_alleles.getDifferenceMatrix.Success"])        
         def getDifferenceMatrix(input, outputs):
             output, flagFile = outputs
             runStageCheck('getDifferenceMatrix', flagFile, input)        
 
         # parse SNP table to create alignment for tree
-        @transform(getRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outPrefix + r"\2_alleles.mfasta", outSuccessPrefix + r"\2_alleles.parseSNPsNoGBK.Success"])
+        @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outPrefix + r"\2_alleles.mfasta", outSuccessPrefix + r"\2_alleles.parseSNPsNoGBK.Success"])
         def parseSNPsNoGBK(input, outputs):
             output, flagFile = outputs
             runStageCheck('parseSNPsNoGBK', flagFile, outPrefix, input)

@@ -2,13 +2,13 @@
 deriveRepAlleleMatrix.py
 
 takes the SNP list for a replicon and the consensus sequence 
-of an Isolate and generates an colummn in the allele matrix
+of an Isolate and generates a colummn in the allele matrix
 with regard to the reference for that Isolate
 
 outputs matrix to user-defined file
 
 example:
-python deriveRepAlleleMatrix.py <SNPList> <output> <reference.fa> <replicon> <isolate_consensus_seq>
+python deriveRepAlleleMatrix.py <SNPList> <output> <reference.fa> <replicon> <isolate_consensus_seq> <replicon_RepStats.txt>
 
 Created:	26/2/2014
 Modified:	
@@ -25,12 +25,10 @@ outputFile_name = sys.argv[2]
 reference_name = sys.argv[3]
 replicon = sys.argv[4]
 consensus_in = sys.argv[5]
+stats = sys.argv[6]
 
 snpList = open(snpList_name)
 header = 'Pos,Ref'
-(prefix, name, ext) = splitPath(outputFile_name)
-
-stats = prefix + '/' + name[:-8] + '_RepStats.txt'
 
 #make a SNP list
 SNP = []
