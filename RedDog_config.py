@@ -16,7 +16,8 @@ to be generated, enter a fasta format reference instead.
 '''
 #Test Sets
 #reference = "/vlsci/VR0082/shared/pipeline_test_data/reference/NC_007384.gbk"
-reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_plasmid.gbk"
+#reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_plasmid.gbk"
+reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_plasmid.fasta"
 sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/*.fastq.gz"
 #sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/extra/*.fastq.gz"
 
@@ -51,13 +52,12 @@ the run type:
     1 - 100 replicons (e.g. reference genome + plasmids + phage)   - phylogeny run type
     > 100 replicons (e.g. multifasta pangenome)                    - pangenome run type
 
-The user can override the run type, by setting it below. If there is only one replicon,
-the pipeline will default to a standard (single reference) run. The run types are described in 
+The user can override the run type, by setting it below. The run types are described in 
 more detail in the instructions.
 
 '''
-#runType = ""
-runType = "pangenome"
+runType = ""
+#runType = "pangenome"
 #runType = "phylogeny"
 
 '''
@@ -65,9 +65,12 @@ For a pangenome run, the SNPs will only be called for the largest replicon - thi
 the core genome is in this replicon. The user can define an alternative replicon
 (or replicons) for the SNP calling.
 
-Set to null string to get the largest contig, or for any other run type
+Note: there must be a space after any comma
+Set to null string to get the largest contig, 
+or for phylogeny run type
 '''
 core_replicon = ""
+#core_replicon = "NC_007384, NC_007385"
 #core_replicon = "AM412236_4_168118-212711"
 #core_replicon = "AM412236_4_168118-212711, ParatyphiA_AKU1"
 #Salmonella Typhimurium STm135
@@ -134,8 +137,12 @@ Output directory:
 full path name including final "/"
 
 VR0082 users: Make sure this is to a directory in the shared folder!!!
+
+For large data sets run the output to the scratch disk area and save the final output to
+your shared directory (or contagion if you have access) 
+e.g. output = "/scratch/VR0082/<ref>_<version>_<date>/"
 '''
-output = "/vlsci/VR0082/shared/davide/pipe_test_out/mapping/NC_007384_pan/"
+output = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
 
 '''
 Directory to merge output with (out_merge_target):
@@ -155,10 +162,10 @@ and will be deleted at completion of the pipeline.
 Set to empty string for no merging (i.e. new run).
 
 Note: the pipeline can no longer merge 'single' run types (those that use 'stats.tab).
-If you really need to do so, make use of v0.4.4.4 of the pipeline... 
+If you really need to do so, make use of v0.4.4.4 of the pipeline.
 '''
 out_merge_target = ""
-#out_merge_target = "/vlsci/VR0082/shared/davide/pipe_test_out/mapping/NC_007384_phy/"
+#out_merge_target = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
 
 '''
 You can also "replace" any reads: these will be marked as "failed"
@@ -208,7 +215,7 @@ check_reads_mapped = "rep_1,rep_2,rep_3,x,0.45,0.3"
 i.e. rep1 is 45% of the total genome, rep2 is 30% of the total genome,
 and rep3 is 25% of the total genome (by default). 
 
-Note: there must be no spaces in the list... 
+Note: there must be no spaces in the list.
 '''
 check_reads_mapped = ""
 #check_reads_mapped = "off"
@@ -393,7 +400,7 @@ stages = {
     },
     "collateAllRepGeneCover": {
         "walltime": "00:10:00",
-# large data sets
+# large data sets (more than 150 samples)
 #        "walltime": "03:00:00",
         "command": "python collateAllRepGeneCover.py %inDir %outDir %refName"
     },
@@ -409,38 +416,24 @@ stages = {
 #        "walltime": "01:00:00",
         "command": "python parseGeneContent.py -g %input -o %out -s %out2"
     },
-#replacing this step
-    "getRepAlleleMatrix": {
-# large data sets
-#        "walltime": "02:00:00",
-#        "memInGB": 8,
-        "command": "python getRepAlleleMatrix.py %in %out %ref %replicon"
-    },
-#with these next two
     "deriveRepAlleleMatrix": {
-# large data sets
-#        "walltime": "02:00:00",
-#        "memInGB": 8,
         "command": "python deriveRepAlleleMatrix.py %in %out %ref %replicon %consensus %repStats"
     },
     "collateRepAlleleMatrix": {
-# large data sets
-#        "walltime": "02:00:00",
-#        "memInGB": 8,
         "command": "python collateRepAlleleMatrix.py %in %out %length"
     },
     "getDifferenceMatrix": {
         "walltime": "00:10:00",
 # large data sets
-#        "walltime": "12:00:00",
+#        "walltime": "06:00:00",
         "command": "python make_distance_matrix.py %in"
     },
-    "parseSNPs": {
+#    "parseSNPs": {
 # large data sets
 #        "walltime": "3:00:00:00",
 #        "memInGB": 16,
-        "command": "wDir=\\\"`pwd`\\\" && cd %dir && python $wDir/parseSNPtable.py -m aln,coding -r %genbank -s %input"
-    },
+#        "command": "wDir=\\\"`pwd`\\\" && cd %dir && python $wDir/parseSNPtable.py -m aln,coding -r %genbank -s %input"
+#    },
     "parseSNPsNoGBK": {
         "walltime": "00:10:00",
 # large data sets
@@ -451,7 +444,7 @@ stages = {
     "makeTree": {
         "walltime": "00:15:00",
 # large data sets
-#        "walltime": "18:00:00",
+#        "walltime": "12:00:00",
 #        "memInGB": 16,
         "command": "FastTree -gtr -gamma -nt %input > %output"
     },

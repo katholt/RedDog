@@ -8,8 +8,8 @@ outputs matrix to user-defined file
 example:
 python collateRepAlleleMatrix.py <input> <output> length_to_remove 
 
-Created:	27/2/2013
-Modified:	17/3/2014
+Created:	27/2/2014
+Modified:	18/3/2014
 author: David Edwards
 '''
 from Bio import SeqIO
@@ -51,7 +51,8 @@ for entry_file in glob.glob(input_files):
                 count += 1
     matrix_entry_file.close()
 
-
+if header == '':
+    header = 'Pos,Ref'
 header = header + "\n"
 output = ""
 for i in range(len(SNPmatrix)):

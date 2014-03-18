@@ -1,6 +1,6 @@
 RedDog
 ======
-Microbial Analysis Pipeline: RedDog.py V0.4.5.2 140314
+Microbial Analysis Pipeline: RedDog.py V0.4.5.2 180314
 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
