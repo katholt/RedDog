@@ -1,5 +1,5 @@
 '''
-Configuration file for RedDog.py V0.4.5.1.1
+Configuration file for RedDog.py V0.4.5.2
 -------------------------------
 
 Reference and sequences (from VR0082 shared directory)
@@ -15,8 +15,9 @@ to be generated, enter a fasta format reference instead.
 
 '''
 #Test Sets
-reference = "/vlsci/VR0082/shared/pipeline_test_data/reference/NC_007384.gbk"
+#reference = "/vlsci/VR0082/shared/pipeline_test_data/reference/NC_007384.gbk"
 #reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_plasmid.gbk"
+reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_plasmid.fasta"
 sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/*.fastq.gz"
 #sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/extra/*.fastq.gz"
 
@@ -51,8 +52,7 @@ the run type:
     1 - 100 replicons (e.g. reference genome + plasmids + phage)   - phylogeny run type
     > 100 replicons (e.g. multifasta pangenome)                    - pangenome run type
 
-The user can override the run type, by setting it below. If there is only one replicon,
-the pipeline will default to a standard (single reference) run. The run types are described in 
+The user can override the run type, by setting it below. The run types are described in 
 more detail in the instructions.
 
 '''
@@ -65,9 +65,12 @@ For a pangenome run, the SNPs will only be called for the largest replicon - thi
 the core genome is in this replicon. The user can define an alternative replicon
 (or replicons) for the SNP calling.
 
-Set to null string to get the largest contig, or for any other run type
+Note: there must be a space after any comma
+Set to null string to get the largest contig, 
+or for phylogeny run type
 '''
 core_replicon = ""
+#core_replicon = "NC_007384, NC_007385"
 #core_replicon = "AM412236_4_168118-212711"
 #core_replicon = "AM412236_4_168118-212711, ParatyphiA_AKU1"
 #Salmonella Typhimurium STm135
@@ -134,8 +137,12 @@ Output directory:
 full path name including final "/"
 
 VR0082 users: Make sure this is to a directory in the shared folder!!!
+
+For large data sets run the output to the scratch disk area and save the final output to
+your shared directory (or contagion if you have access) 
+e.g. output = "/scratch/VR0082/<ref>_<version>_<date>/"
 '''
-#output = "/vlsci/VR0082/shared/davide/pipe_test_out/mapping/NC_007384/"
+output = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
 
 '''
 Directory to merge output with (out_merge_target):
@@ -146,8 +153,8 @@ Otherwise set to the directory you want to merge with.
  
 You can only merge a prior run with a new run (not two prior runs)
 This merge target folder must have the bams and indexes in one sub-folder (/bam)
-and the vcfs in another (/vcf) - i.e. V0.3.5.1+ format - and 
-the "_stats.txt" file must be present.
+and the vcfs in another (/vcf). 
+There also must be a sequence_list.txt file - i.e. V0.4.5.2+ format.
  
 The 'output' folder (see above) for a merge run should NOT exist prior to the run,
 and will be deleted at completion of the pipeline.
@@ -155,14 +162,12 @@ and will be deleted at completion of the pipeline.
 Set to empty string for no merging (i.e. new run).
 
 Note: the pipeline can no longer merge 'single' run types (those that use 'stats.tab).
-If you really need to do so, make use of v0.4.4.4 of the pipeline... 
+If you really need to do so, make use of v0.4.4.4 of the pipeline.
 '''
 out_merge_target = ""
-#out_merge_target = "/vlsci/VR0082/shared/davide/pipe_test_out/mapping/test_1/"
+#out_merge_target = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
 
 '''
-Note: the following does not work yet.
-
 You can also "replace" any reads: these will be marked as "failed"
 This only works during a "merge run"
 eg. replace a set of reads with their qc-ed version
@@ -170,34 +175,6 @@ eg. replace a set of reads with their qc-ed version
 '''
 replaceReads = ""
 #replaceReads = "'pool8_tag1', 'pool8_tag2'"
-
-'''
-Note: the following does not work yet.
-
-Merge two (or more) bams from different read sets of the same strain
-(with/without new name for merged set)
-(either in new run or merged run)
-eg. mergeReads = "run1_set2 run2_set3"
-or mergeReads = "run1_set2 run2_set3 run2_set4 new_sampleA"
-
-The "new_" prefix will be removed before the combined bam is named.
-If a 'new_' prefix name is not supplied, a compound name will be used.
-i.e. example one above would create the combined-named bam, "run1_set1_run2_set3_merged.bam",
-whilst example two would create the bam, "sampleA_merged.bam".
-
-More than one pair (or more) can be combined, but ONLY IF the 'new_' prefix for naming 
-is used for ALL SETS of reads to be combined. 
-
-e.g. mergeReads = "run1_set2 run2_set3 new_sampleA run2_set1 run2_set2 new_sampleB"
-
-Any read set replaced by a merged bam will be marked as "failed"
-
-Set to empty string for no merging of reads.
-'''
-mergeReads = ""
-#mergeReads = "ParaA0015_1361301 ParaA0015_1531522 new_ParaA0015"
-#mergeReads = "2010-0026 2010-0026-S6-L001 new_2010-0026"
-#mergeReads = "2011-0079 2011-0079-S13-L001 new_2011-0079"
 
 '''
 Minimum depth of reads for variant filtering
@@ -238,7 +215,7 @@ check_reads_mapped = "rep_1,rep_2,rep_3,x,0.45,0.3"
 i.e. rep1 is 45% of the total genome, rep2 is 30% of the total genome,
 and rep3 is 25% of the total genome (by default). 
 
-Note: there must be no spaces in the list... 
+Note: there must be no spaces in the list.
 '''
 check_reads_mapped = ""
 #check_reads_mapped = "off"
@@ -294,7 +271,6 @@ stageDefaults = {
         "python-gcc/2.7.5",
         "bwa-intel/0.6.2",
         "samtools-intel/0.1.19",
-        "bamtools-intel/2.3.0",
         "eautils-gcc/1.1.2",
         "fasttree-intel/2.1.7",
         "bowtie2-intel/2.1.0"
@@ -390,9 +366,6 @@ stages = {
         "walltime": "00:10:00",
         "command": "python getVcfStats.py %vcfFile %out"
     },
-    "deriveStats": {
-        "command": "python deriveStats.py %ref %statFile %name %cover %depth %map %out"
-    },
     "deriveRepStats": {
         "walltime": "00:10:00",
         "command": "python deriveRepStats.py %coverFile %replicon %depth %cover %runType %map %check"
@@ -400,10 +373,6 @@ stages = {
     "deriveAllStats": {
         "walltime": "00:10:00",
         "command": "python deriveAllStats.py %coverFile"
-    },
-    "collateStats": {
-        "walltime": "00:10:00",
-        "command": "python collateStats.py %in %depth %multiplier %out"
     },
     "collateRepStats": {
         "walltime": "00:10:00",
@@ -416,40 +385,22 @@ stages = {
     "mergeOutputs": {
         "command": "cp %inputBam %outDirBam && cp %inputIndex %outDirBam && cp %inputVcf %outDirVcf"
     },
-    "mergeStats": {
-        "command": "python mergeStats.py %newStats %multiplier %replace %mergeDir"
-    },
     "mergeAllStats": {
         "command": "python mergeAllStats.py %newStats %mergeDir"
     },
     "mergeRepStats": {
         "command": "python mergeRepStats.py %newStats %multiplier %replace %mergeDir %runType"
     },
-    "mergeBams": {
-        "command": "samtools merge %output %inputBam %otherBams"
-    },
-    "collateMergeStats": {
-        "command": "python collateMergeStats.py %stats %multiplier %replace %statsDir"
-    },
-    "getSNPList": {
-        "command": "python getSNPList.py %in %out"
-    }, 
     "getRepSNPList": {
         "command": "python getRepSNPList.py %in %replicon %out"
     }, 
-    "getAllGeneCover": {
-        "walltime": "03:00:00",
-# large data sets
-#        "walltime": "18:00:00",
-        "command": "python getAllGeneCover.py %inDir %outDir %genbank"
-    },
     "deriveAllRepGeneCover": {
        "walltime": "00:15:00",
        "command": "python deriveAllRepGeneCover.py %outDir %genbank %in"
     },
     "collateAllRepGeneCover": {
         "walltime": "00:10:00",
-# large data sets
+# large data sets (more than 150 samples)
 #        "walltime": "03:00:00",
         "command": "python collateAllRepGeneCover.py %inDir %outDir %refName"
     },
@@ -465,30 +416,24 @@ stages = {
 #        "walltime": "01:00:00",
         "command": "python parseGeneContent.py -g %input -o %out -s %out2"
     },
-    "getAlleleMatrix": {
-# large data sets
-#        "walltime": "06:00:00",
-#        "memInGB": 24,
-        "command": "python getAlleleMatrix.py %in %out %ref"
+    "deriveRepAlleleMatrix": {
+        "command": "python deriveRepAlleleMatrix.py %in %out %ref %replicon %consensus %repStats"
     },
-    "getRepAlleleMatrix": {
-# large data sets
-#        "walltime": "02:00:00",
-#        "memInGB": 8,
-        "command": "python getRepAlleleMatrix.py %in %out %ref %replicon"
+    "collateRepAlleleMatrix": {
+        "command": "python collateRepAlleleMatrix.py %in %out %length"
     },
     "getDifferenceMatrix": {
         "walltime": "00:10:00",
 # large data sets
-#        "walltime": "12:00:00",
+#        "walltime": "06:00:00",
         "command": "python make_distance_matrix.py %in"
     },
-    "parseSNPs": {
+#    "parseSNPs": {
 # large data sets
 #        "walltime": "3:00:00:00",
 #        "memInGB": 16,
-        "command": "wDir=\\\"`pwd`\\\" && cd %dir && python $wDir/parseSNPtable.py -m aln,coding -r %genbank -s %input"
-    },
+#        "command": "wDir=\\\"`pwd`\\\" && cd %dir && python $wDir/parseSNPtable.py -m aln,coding -r %genbank -s %input"
+#    },
     "parseSNPsNoGBK": {
         "walltime": "00:10:00",
 # large data sets
@@ -499,7 +444,7 @@ stages = {
     "makeTree": {
         "walltime": "00:15:00",
 # large data sets
-#        "walltime": "18:00:00",
+#        "walltime": "12:00:00",
 #        "memInGB": 16,
         "command": "FastTree -gtr -gamma -nt %input > %output"
     },
