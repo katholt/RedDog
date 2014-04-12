@@ -1,8 +1,8 @@
 #!/bin/env python
 
 '''
-Microbial Analysis Pipeline: RedDog.py V0.4.5.2 180313
-
+RedDog V0.4.6 110414
+====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
 Description: 

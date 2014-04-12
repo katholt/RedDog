@@ -1,11 +1,8 @@
-RedDog
-======
-Microbial Analysis Pipeline: RedDog.py V0.4.5.2 180314
-
+RedDog V0.4.6 110414
+====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
 Description: 
-
 This program implements a workflow pipeline for short read length
 sequencing analysis, including the read mapping task, through to variant
 detection, followed by analyses (SNPs only).
@@ -113,30 +110,35 @@ V0.4.5.2    check that replicons all have unique names (DE)
             splitting of getRepAlleleMatrix to improve performance (DE)
                 includes sequence list generation (start of .info file)
 
-Planned Updates
-
 V0.4.6      update to newer version of parseSNPtable.py (DE)
+                - generation of variable and conserved SNP tables (DE)
+                - includes of additional option of setting conservation level (DE)
             further early checks that include:
                 - name of reference/replicons/isolates won't confuse post-NEXUS analysis (i.e. no '+')
                 - output folder does not exist on commencing merge run,
                     target folder has bams/vcfs/stats.txt in right place           
             change getRepAllGeneCover to report all isolates AND 'passed' isolates (DE)
+            fix for when a replicon consensus fasta is missing (rare error) (DE)
+                includes new 'warning' file (DE)
+            change behaviour of outgroups - reported (also in outgroups.txt fle) but not removed (DE)
+            Editing and reorder options in config file (DE)
 
-planned beyond V0.4.6 before release
-            include .info file for recording those read sets failed (and how)
+Planned Update(s)
+
+V0.5            include .info file for recording those read sets failed (and how)
                 when not removed by pipeline by testing
                 (user-merged and user-removed reads)
                 and the other user settings
-            user-defined outgroups
-            further analysis options 
+                also provides settings for reanalysis/merge runs (continuity checks)
             reanalysis without mapping
                 (with/without a GenBank file,
                  restore of read sets removed by user,
                  merging of prior runs,
                  recalculated/user-edited 'stats.txt' option) 
-Also To Add:
-            add merging of samples for pangenome and phylogenetic mapping (DE)
+Also To Add (Post-release):
+            add merging of samples for both pangenome and phylogenetic mapping
             reanalysis without mapping - merging of bams
+            further analysis options 
 
     NOTE: with a workaround, some reanalysis without mapping IS possible. Email me for details (DE)
 
