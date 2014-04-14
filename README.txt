@@ -1,4 +1,4 @@
-RedDog V0.4.6 110414
+RedDog V0.4.6 140414
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
@@ -115,13 +115,11 @@ V0.4.6      update to newer version of parseSNPtable.py (DE)
                 - includes of additional option of setting conservation level (DE)
             further early checks that include:
                 - name of reference/replicons/isolates won't confuse post-NEXUS analysis (i.e. no '+')
-                - output folder does not exist on commencing merge run,
-                    target folder has bams/vcfs/stats.txt in right place           
             change getRepAllGeneCover to report all isolates AND 'passed' isolates (DE)
             fix for when a replicon consensus fasta is missing (rare error) (DE)
                 includes new 'warning' file (DE)
             change behaviour of outgroups - reported (also in outgroups.txt fle) but not removed (DE)
-            Editing and reorder options in config file (DE)
+            Editing and reorder of options in config file (DE)
 
 Planned Update(s)
 

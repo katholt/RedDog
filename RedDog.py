@@ -82,7 +82,7 @@ if len(replicons)>1:
 # check that replicon names in reference do not in contain ":" or "+"
 for i in range(len(replicons)):
     if replicons[i][0].find(":") != -1 or replicons[i][0].find("+") != -1:
-        print "\nReference has replicon with an illegal character (':' or '+') " + replicons[i][0]
+        print "\nReference has replicon with an illegal character (':' or '+'): " + replicons[i][0]
         print "Pipeline Stopped: please change the name of the replicon in the reference\n"
         sys.exit()
 
@@ -142,6 +142,13 @@ if sequences == []:
         print "\nNo matching sequences found"
         print "Pipeline Stopped: please check 'sequences' in options\n"
         sys.exit()
+
+for sequence in sequences:
+    if sequence.find(":") != -1 or sequence.find("+") != -1:
+        print "\nA read set has an illegal character (':' or '+'): " + sequence
+        print "Pipeline Stopped: please change the name of the read set\n"
+        sys.exit()
+
 
 readType = pipeline_options.readType
 if readType == 'IT' or readType == 'PE' or readType == 'SE':
