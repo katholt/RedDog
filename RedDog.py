@@ -1,7 +1,7 @@
 #!/bin/env python
 
 '''
-RedDog V0.4.6 110414
+RedDog V0.4.6 140414
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
@@ -38,6 +38,19 @@ from rubra.utils import (runStageCheck, zeroFile, splitPath)
 # list of sequence files, and list of chromosmes.
 reference = pipeline_options.reference
 
+#check that a reference has been given in the options file
+if reference == "":
+    print "\nNo Reference supplied"
+    print "Pipeline Stopped: please supply a reference\n"
+    sys.exit()    
+
+#check whether reference file exists
+if not os.path.exists(reference):
+    print "\nReference supplied does not exist"
+    print "Pipeline Stopped: please check supplied reference\n"
+    sys.exit()    
+
+#check whether reference is in FASTA or GenBank format
 if isFasta(reference):
     refGenbank = False
     replicons = chromInfoFasta(reference)
@@ -49,6 +62,13 @@ else:
     print "Pipeline Stopped: please check your reference\n"
     sys.exit()
 
+# check that reference name does not in contain "+"
+if reference.find("+") != -1:
+    print "\nReference has an illegal character in the name ('+') "
+    print "Pipeline Stopped: please change the name of the reference\n"
+    sys.exit()
+
+# check that replicons in reference have non-unique names
 if len(replicons)>1:
     for i in range(len(replicons)-1):
         for j in range (i+1, len(replicons)):
@@ -59,12 +79,20 @@ if len(replicons)>1:
                 print "Pipeline Stopped: please check your reference\n"
                 sys.exit()
 
+# check that replicon names in reference do not in contain ":" or "+"
+for i in range(len(replicons)):
+    if replicons[i][0].find(":") != -1 or replicons[i][0].find("+") != -1:
+        print "\nReference has replicon with an illegal character (':' or '+') " + replicons[i][0]
+        print "Pipeline Stopped: please change the name of the replicon in the reference\n"
+        sys.exit()
+
 (refPrefix, refName, refExt) = splitPath(reference)
-#add check for replicon names in reference not in name:int-int form
+
 sequencePatterns = pipeline_options.sequences
 runType = pipeline_options.runType
 core_replicon = pipeline_options.core_replicon
 
+#check that a 'known' runType has been supplied
 if runType != "":
     if runType == "pangenome" or runType == "phylogeny":
         pass
@@ -72,6 +100,8 @@ if runType != "":
         print "\nUnrecognised run type"
         print "Pipeline Stopped: please check 'runType' in the options file\n"
         sys.exit()
+
+# if no runType entered, work out default runType on number of replicons in reference
 if runType == "":
     if len(replicons) > 100:
         runType = "pangenome"
@@ -167,23 +197,24 @@ if readType == 'PE':
         print "Pipeline Stopped: please fix sequence pairs\n"
         sys.exit()
 
-if pipeline_options.bowtie_map_type == "":
-    bowtie_map_type = '--sensitive-local'
-else:
-    bowtie_map_type = pipeline_options.bowtie_map_type
-if (bowtie_map_type == "--very-fast" or
-    bowtie_map_type == "--fast" or
-    bowtie_map_type == "--sensitive" or
-    bowtie_map_type == "--very-sensitive" or
-    bowtie_map_type == "--very-fast-local" or
-    bowtie_map_type == "--fast-local" or
-    bowtie_map_type == "--sensitive-local" or
-    bowtie_map_type == "--very-sensitive-local"):
-    pass        
-else:
-    print "\nUnrecogised Bowtie2 mapping option"
-    print "Pipeline Stopped: please check 'bowtie_map_type' in the options file\n"
-    sys.exit()
+if mapping == 'bowtie':
+    if pipeline_options.bowtie_map_type == "":
+        bowtie_map_type = '--sensitive-local'
+    else:
+        bowtie_map_type = pipeline_options.bowtie_map_type
+    if (bowtie_map_type == "--very-fast" or
+        bowtie_map_type == "--fast" or
+        bowtie_map_type == "--sensitive" or
+        bowtie_map_type == "--very-sensitive" or
+        bowtie_map_type == "--very-fast-local" or
+        bowtie_map_type == "--fast-local" or
+        bowtie_map_type == "--sensitive-local" or
+        bowtie_map_type == "--very-sensitive-local"):
+        pass        
+    else:
+        print "\nUnrecogised Bowtie2 mapping option"
+        print "Pipeline Stopped: please check 'bowtie_map_type' in the options file\n"
+        sys.exit()
 
 minDepth = pipeline_options.minimum_depth
 coverFail = pipeline_options.cover_fail 
@@ -200,8 +231,9 @@ if check_reads_mapped == "":
 outPrefix = pipeline_options.output
 if outPrefix == "":
     print "\nNo Output folder given"
-    print "Pipeline Stopped: please check 'output' the options file\n"
+    print "Pipeline Stopped: please check 'output' in the options file\n"
     sys.exit()
+
 if outPrefix[-1] != '/':
     outPrefix += '/'
 
