@@ -3,7 +3,10 @@ deriveRepAlleleMatrix.py
 
 takes the SNP list for a replicon and the consensus sequence 
 of an Isolate and generates a colummn in the allele matrix
-with regard to the reference for that Isolate
+with regard to the reference for that Isolate 
+- if consensus sequence is not available (rare samtools error)
+the read set is 'failed' for that allele matrix and a warning
+message produced
 
 outputs matrix to user-defined file
 
@@ -11,7 +14,7 @@ example:
 python deriveRepAlleleMatrix.py <SNPList> <output> <reference.fa> <replicon> <isolate_consensus_seq> <replicon_RepStats.txt>
 
 Created:	26/2/2014
-Modified:	
+Modified:	15/4/2014
 author: David Edwards
 '''
 from Bio import SeqIO
@@ -20,6 +23,7 @@ from Bio.SeqRecord import SeqRecord
 from Bio.Alphabet import IUPAC
 import sys, glob
 from pipe_utils import splitPath
+
 snpList_name = sys.argv[1]
 outputFile_name = sys.argv[2]
 reference_name = sys.argv[3]
@@ -48,16 +52,19 @@ for reference in references:
 
 # call bases for each SNP from consensus file of the strain
 (prefix, name, ext) = splitPath(consensus_in)
+warning_file = prefix[:-4] + replicon +'_'+name +'_warning.txt'
 name = name[:-4]   
 consensus = SeqIO.parse(consensus_in, "fastq")
 statsFile = open(stats)
 for sample in statsFile:
     if sample.startswith("Isolate") != True:
         splitSample = sample.split("\t")
+        record_found = False
         if (name == splitSample[0]) and (splitSample[-1].startswith("f") != True):
             header = header + ',' + name
             for record in consensus:
-                if record.name == replicon:                        #
+                if record.name == replicon:
+                    record_found = True
                     for call in range(len(SNP)):
                         if int(SNP[call][0]) <= len(record.seq):
                             base = record.seq[int(SNP[call][0])-1]
@@ -70,6 +77,14 @@ for sample in statsFile:
                             SNP[call].append('-')
         if (name == splitSample[0]) and (splitSample[-1].startswith("f") == True):
             header = "fail"
+            record_found = True
+        if name == splitSample[0] and not record_found:
+            header = "fail"
+            warningFile = open(warning_file, "w")
+            warningFile.write('No consensus sequence of replicon ' + replicon + ' for isolate ' + name)
+            warningFile.write(name + ' removed from further allelic analysis')
+            warningFile.close()
+
 statsFile.close()
 
 header = header + "\n"
