@@ -16,7 +16,7 @@
 # This version also handles multiple sequence genbank files for coding entries. The sequence in the genbank relevant to the SNP table must be specified (-q queryseq).  
 # It is also quicker generating coding consequences. 
 
-# NOTE this script submits fasttree or RAxML jobs to SLURM
+# NOTE this script does not submit fasttree or RAxML jobs to SLURM
 #
 # Authors - Kat holt (kholt@unimelb.edu.au)
 #         - David Edwards (d.edwards2@student.unimelb.edu.au) 
@@ -51,9 +51,10 @@ def main():
 
 
 	parser.add_option("-p", "--prefix", action="store", dest="prefix", help="prefix to add to output files (default none)", default="")
+	parser.add_option("-d", "--directory", action="store", dest="directory", help="directory to send output files (default none)", default="")
 	
 	# modules to run
-	parser.add_option("-m", "--modules", action="store", dest="modules", help="modules to run, comma separated list in order (aln,fasttree,filter,cons,aln,fasttree,rax,coding)", default="aln,fasttree,filter,cons,aln,fasttree,rax,coding")
+	parser.add_option("-m", "--modules", action="store", dest="modules", help="modules to run, comma separated list in order (filter,cons,aln,coding)", default="filter,cons,aln,coding")
 
 	# snp filtering
 	parser.add_option("-s", "--snptable", action="store", dest="snptable", help="SNP table (CSV)", default="")
@@ -71,12 +72,6 @@ def main():
 	parser.add_option("-e", "--excludefeatures", action="store", dest="excludefeatures", help="feature types to exclude (default gene,misc_feature)", default="gene,misc_feature")
 	parser.add_option("-i", "--identifier", action="store", dest="identifier", help="unique identifier for features (locus_tag)", default="locus_tag")
 
-	# rax parameters
-	parser.add_option("-t", "--walltime", action="store", dest="walltime", help="walltime for raxml jobs (default 5-12:0, ie 5.5. days)", default="5-12:0")
-	parser.add_option("-M", "--memory", action="store", dest="memory", help="memory for raxml jobs (24576)", default="24576")
-	parser.add_option("-T", "--threads", action="store", dest="threads", help="number of threads per raxml job (8)", default="8")
-	parser.add_option("-N", "--N", action="store", dest="N", help="number of raxml bootstraps (100)", default="100")
-	parser.add_option("-n", "--numrax", action="store", dest="numrax", help="number of raxml jobs (5)", default="5")
 
 	return parser.parse_args()
 
@@ -381,62 +376,6 @@ if __name__ == "__main__":
 				print "... coding consequences written to file " + pre + "_consequences.txt"
 				print "... SNP loci annotated in genbank file " + pre + ".gbk"
 
-
-
-	def runFasttree(pre, snptable, strains):
-		aln = pre + ".mfasta"
-		if not os.path.exists(aln):
-			printFasta(snptable, strains, aln) # make alignment first
-		jobscript = pre + "_FastTree.sh"
-		o = file(jobscript, "w")
-		print "\nRunning fasttree on " + aln + ", using job script: " + jobscript
-		o.write("#!/bin/bash\n#SBATCH -p main\n##SBATCH --job-name='ft" + pre)
-		o.write("'\n#SBATCH --time=0-24:0")
-		o.write("\n#SBATCH --mem-per-cpu=24576")
-		o.write("\n#SBATCH --ntasks=1")
-		o.write("\ncd " + os.getcwd())
-		o.write("\nmodule load fasttree-intel\n")
-		o.write("FastTree -gtr -gamma -nt " + aln + " > " + pre + ".tree\n")
-		o.close()
-		os.system('sbatch ' + jobscript)
-		print "\n... output tree will be in " + pre + ".tree"
-		
-	def runRax(pre, options, snptable, strains):
-		aln = pre + ".mfasta"
-		if not os.path.exists(aln):
-			printFasta(snptable, strains, aln) # make alignment first
-		for rep in range(0,int(options.numrax)):
-			# get random seeds
-			seed = random.randint(10000,1000000)
-			if seed % 2 == 0:
-				seed += 1
-			p = random.randint(10000,1000000)
-			if p % 2 == 0:
-				p += 1	
-			# prepare job script
-			jobscript = pre + "_rax_" + str(rep) + ".sh"
-			o = file(jobscript, "w")
-			print "\nRunning RAxML 7.7.2 (PTHREADS) on " + aln + ", using job script: " + jobscript
-			rax_pre = pre + "_" + str(rep)
-			if os.path.exists("RAxML_info."+rax_pre):
-				rax_pre = pre + "_" + str(rep) + "_" + str(seed) # make sure output is unique
-			o.write("#!/bin/bash")
-			o.write("\n#SBATCH -p main")
-			o.write("\n#SBATCH --job-name=rax" + pre + str(rep))
-			o.write("\n#SBATCH --time=" + options.walltime)
-			o.write("\n#SBATCH --mem=" + options.memory)
-			o.write("\n#SBATCH --ntasks=" + options.threads)
-			o.write("\n#SBATCH --nodes=1")
-			o.write("\n#SBATCH --exclusive")
-			o.write("\ncd " + os.getcwd())
-			o.write("\nmodule load raxml-intel/7.7.2\n")
-			#o.write("raxmlHPC -s " + aln)
-			o.write("raxmlHPC-PTHREADS -T " + options.threads + " -s " + aln)
-			o.write(" -n " + rax_pre + " -f a -m GTRGAMMA -x " + str(seed) )
-			o.write(" -N " + options.N + " -p " + str(p) + "\n")
-			o.close()
-			os.system('sbatch ' + jobscript)
-			print "\n... output will be in RAxML*" + rax_pre
 			
 	def filter(snptable, strainlist, pre, options):	
 		# parse genomic regions
@@ -519,9 +458,13 @@ if __name__ == "__main__":
 			o.write(",".join(["Pos"] + strainlist) + "\n") # write header
 			n = len(strainlist) # total strains
 			to_remove = [] # list of snps to remove
-			snpcount = 0
+			snp_list_ordered = []
 			for snp in snptable:
-				alleles = snptable[snp] # dictionary
+				snp_list_ordered.append(int(snp))
+			snp_list_ordered.sort()		
+			snpcount = 0
+			for snp in snp_list_ordered:
+				alleles = snptable[str(snp)] # dictionary
 				if len(outgroups) == 0:
 					allele_list = alleles.values() # all alleles
 				else:
@@ -532,7 +475,7 @@ if __name__ == "__main__":
 				numgaps = allele_list.count(options.gapchar) # number of gaps at this position, excluding outgroups
 				callrate = 1 - float(numgaps) / n
 				if callrate >= float(options.conservation):
-					o.write(snp)
+					o.write(str(snp))
 					for strain in strainlist:
 						o.write(","+alleles[strain])
 					o.write("\n")
@@ -542,7 +485,7 @@ if __name__ == "__main__":
 			o.close()
 			print "\n... " + str(snpcount) + " SNPs passed filter; printed to " + pre + ".csv"
 			for snp in to_remove:
-				del snptable[snp]
+				del snptable[str(snp)]
 		except:
 			print "\nCouldn't filter SNPs based on missing alleles, couldn't understand the proportion given: -c " + options.conservation
 		return pre, snptable
@@ -555,12 +498,8 @@ if __name__ == "__main__":
 			printFasta(snptable, strains, pre + ".mfasta")
 		elif m == "cons":
 			pre, snptable = filterCons(snptable, strains, pre, options, outgroups)
-		elif m == "fasttree":
-			runFasttree(pre, snptable, strains)
 		elif m == "filter":
 			pre, snptable = filter(snptable, strains, pre, options) # return filtered snp table
-		elif m == "rax":
-			runRax(pre, options, snptable, strains)
 		elif m == "coding":
 			runCoding(pre, snptable, options, complement)
 		return pre, snptable
@@ -574,6 +513,11 @@ if __name__ == "__main__":
 	(pre,ext) = os.path.splitext(filename) # pre = current file prefix, updated if file is filtered to exclude SNPs
 	
 	pre = options.prefix + pre # add user specified prefix
+	if options.directory != "":
+		if options.directory[:-1] != '/':		
+			pre = options.directory + '/' + pre
+		else:
+			pre = options.directory + pre
 
 	outgroups = [] # list of outgroups provided
 	if options.outgroup != "":
