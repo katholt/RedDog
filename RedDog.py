@@ -36,7 +36,12 @@ from rubra.utils import (runStageCheck, zeroFile, splitPath)
 
 # determine the reference file,
 # list of sequence files, and list of chromosmes.
-reference = pipeline_options.reference
+try:
+    reference = pipeline_options.reference
+except:
+    print "\nNo Reference supplied"
+    print "Pipeline Stopped: please supply a reference\n"
+    sys.exit()    
 
 #check that a reference has been given in the options file
 if reference == "":
@@ -88,9 +93,22 @@ for i in range(len(replicons)):
 
 (refPrefix, refName, refExt) = splitPath(reference)
 
-sequencePatterns = pipeline_options.sequences
-runType = pipeline_options.runType
-core_replicon = pipeline_options.core_replicon
+try:
+    sequencePatterns = pipeline_options.sequences
+except:
+    print "\nNo Sequences option supplied"
+    print "Pipeline Stopped: please include 'sequences' in the config file\n"
+    sys.exit()    
+
+try:
+    runType = pipeline_options.runType
+except:
+    runType = ""
+
+try:
+    core_replicon = pipeline_options.core_replicon
+except:
+    core_replicon = ""
 
 #check that a 'known' runType has been supplied
 if runType != "":
@@ -150,7 +168,13 @@ for sequence in sequences:
         sys.exit()
 
 
-readType = pipeline_options.readType
+try:
+    readType = pipeline_options.readType
+except:
+    print "\nNo readType supplied"
+    print "Pipeline Stopped: please supply a readType in the config file\n"
+    sys.exit()    
+
 if readType == 'IT' or readType == 'PE' or readType == 'SE':
     pass
 else:
@@ -159,10 +183,13 @@ else:
     sys.exit()
 
 mapping_out = ""
-if pipeline_options.mapping == "":
-    mapping = 'bowtie'
-else:
+try:
     mapping = pipeline_options.mapping
+except:
+    mapping = 'bowtie'
+
+if mapping == "":
+    mapping = 'bowtie'
 
 if mapping == 'bwa' and readType == 'SE':
     mapping_out = 'BWA V0.6.2 samse'
@@ -205,10 +232,12 @@ if readType == 'PE':
         sys.exit()
 
 if mapping == 'bowtie':
-    if pipeline_options.bowtie_map_type == "":
-        bowtie_map_type = '--sensitive-local'
-    else:
+    try:
         bowtie_map_type = pipeline_options.bowtie_map_type
+    except:
+        bowtie_map_type = '--sensitive-local'
+    if bowtie_map_type == "":
+        bowtie_map_type = '--sensitive-local'
     if (bowtie_map_type == "--very-fast" or
         bowtie_map_type == "--fast" or
         bowtie_map_type == "--sensitive" or
@@ -223,19 +252,46 @@ if mapping == 'bowtie':
         print "Pipeline Stopped: please check 'bowtie_map_type' in the options file\n"
         sys.exit()
 
-minDepth = pipeline_options.minimum_depth
-coverFail = pipeline_options.cover_fail 
-depthFail = pipeline_options.depth_fail 
-mappedFail = pipeline_options.mapped_fail
-sdOutgroupMultiplier = pipeline_options.sd_out
+try:
+    minDepth = pipeline_options.minimum_depth
+except:
+    minDepth = 5
 
-check_reads_mapped = pipeline_options.check_reads_mapped
+try:
+    coverFail = pipeline_options.cover_fail
+except:
+    coverFail = 50
+
+try:
+    depthFail = pipeline_options.depth_fail
+except:
+    depthFail = 10
+
+try:
+    mappedFail = pipeline_options.mapped_fail
+except:
+    mappedFail = 50
+
+try:
+    sdOutgroupMultiplier = pipeline_options.sd_out
+except:
+    sdOutgroupMultiplier = 2
+
+try:
+    check_reads_mapped = pipeline_options.check_reads_mapped
+except:
+    check_reads_mapped = ""
+
 if check_reads_mapped == "":
     for repliconName, repliconLength in replicons:
         if int(repliconLength) == longest_replicon_length:
             check_reads_mapped = repliconName
 
-outPrefix = pipeline_options.output
+try:
+    outPrefix = pipeline_options.output
+except:
+    outPrefix = ""
+
 if outPrefix == "":
     print "\nNo Output folder given"
     print "Pipeline Stopped: please check 'output' in the options file\n"
@@ -244,7 +300,13 @@ if outPrefix == "":
 if outPrefix[-1] != '/':
     outPrefix += '/'
 
-outMerge = pipeline_options.out_merge_target
+try:
+    outMerge = pipeline_options.out_merge_target
+except:
+    print "\n'out_merge_target' not set"
+    print "Pipeline Stopped: please set 'out_merge_target'\n"
+    sys.exit()    
+
 if outMerge != '':
     if outMerge[-1] != '/':
         outMerge += '/'
@@ -253,7 +315,11 @@ if outPrefix == outMerge:
     print "Pipeline Stopped: please check 'output' and 'out_merge_target' in the options file\n"
     sys.exit()
 
-replaceReads = pipeline_options.replaceReads
+try:
+    replaceReads = pipeline_options.replaceReads
+except:
+    replaceReads = ""
+
 replaceReads = '"'+replaceReads+'"'
 outTempPrefix = outPrefix + 'temp/'
 outSuccessPrefix = outTempPrefix + 'success/'
