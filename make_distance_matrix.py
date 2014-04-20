@@ -14,15 +14,23 @@ python make_distance_matrix.py <allele matrix>
 python make_distance_matrix.py *_alleles.csv
 
 Created:	10/02/2013
-Modified:	25/02/2013
+Modified:	20/04/2014
 author: David Edwards
 '''
 import sys, glob
 from pipe_utils import splitPath
 inputName = sys.argv[1]
+#inputName = inputName[1:-1]
 inputFile = open(inputName)
 (prefix, name, ext) = splitPath(inputName)
-refName = name[:-8]
+split_name = name.split('_')
+split = 0
+refName = split_name[split]
+split += 1
+while split_name[split] != 'alleles':
+	refName += '_' + split_name[split]
+	split += 1 
+
 strains = []
 strains.append(refName)
 outName = prefix + '/' + refName + '_SNP_diff.nxs'

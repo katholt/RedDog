@@ -8,7 +8,9 @@ example:
 python mergeRepStats.py <new_replicon_RepStats.tab> sdOutgroupMutiplier [reads_to_replace] <mergeDirectory> runType 
 
 Created:	23/10/2012
-Modified:	28/10/2013 to mergeRepStats from mergeStats 
+Modified:	28/10/2013 to mergeRepStats from mergeStats
+            15/04/2013 changed to produce outgroup.txt file if there are any outgroups to report
+
 author: David Edwards
 '''
 import sys, glob
@@ -20,6 +22,8 @@ sdOutgroupMutiplier = int(sys.argv[2])
 mergeFileName = sys.argv[4] + inName + inExt
 replace = sys.argv[3]
 runType = sys.argv[5]
+outgroup_outfile_name = sys.argv[4] + inName[:-9] +  '_outgroups.txt'
+outgroups = []
 
 average = 0
 sd = 0
@@ -84,6 +88,7 @@ for line in output.split("\n"):
             number = float(items[6]) / (float(items[1])/100)
 #            if number < (average - (sd * sdOutgroupMutiplier)) or number > (average + (sd * sdOutgroupMutiplier)):
             if number > (average + (sd * sdOutgroupMutiplier)):
+                outgroups.append(stats[0])
                 if items[-1] != "o":
                     finalOutput += line[:-1] + "o\n"
                 else:
@@ -98,6 +103,12 @@ for line in output.split("\n"):
                 finalOutput += line[:-1] + "i\n"
             else:
                 finalOutput += line + "\n"
+
+if outgroups != []:
+    outgroup_outfile = open(outgroup_outfile_name,"w")
+    for outgroup in outgroups:
+        outgroup_outfile.writeline(outgroup+'\n')
+    outgroup_outfile.close()
 
 mergeFile = open(mergeFileName, "w")
 mergeFile.writelines(finalOutput)

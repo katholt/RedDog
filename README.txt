@@ -1,4 +1,4 @@
-RedDog V0.4.6 140414
+RedDog V0.4.6 200414
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 

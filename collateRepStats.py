@@ -74,7 +74,7 @@ else:
 if outgroups != []:
 	outgroup_outfile = open(outgroup_outfile_name,"w")
 	for outgroup in outgroups:
-		outgroup_outfile.write(outgroup)
+		outgroup_outfile.write(outgroup+'\n')
 	outgroup_outfile.close()
 
 outfile_RepStats = open(outfile_RepStats_name,"w")

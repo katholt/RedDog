@@ -1,7 +1,7 @@
 #!/bin/env python
 
 '''
-RedDog V0.4.6 140414
+RedDog V0.4.6 200414
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
@@ -167,7 +167,6 @@ for sequence in sequences:
         print "Pipeline Stopped: please change the name of the read set\n"
         sys.exit()
 
-
 try:
     readType = pipeline_options.readType
 except:
@@ -329,6 +328,16 @@ if outMerge != "":
     outMergeBam = outMerge + 'bam/'
     outMergeVcf = outMerge + 'vcf/'
 
+try:
+    conservation = float(pipeline_options.conservation)
+except:
+    conservation = 1.0
+
+if conservation > 1.0 or conservation < 0.0:
+    print "\n'conservation' set to value outside parameters"
+    print "Pipeline Stopped: please change 'conservation' to a value between 0 and 1\n"
+    sys.exit()
+
 full_sequence_list = []
 if outMerge == '':
     for item in sequence_list:
@@ -344,6 +353,7 @@ else:
         sys.exit()
     for line in sequence_list_file:
         full_sequence_list.append(line[:-1])
+    sequence_list_file.close()
 
 #Phew! Now that's all set up, we can begin...
 #but first, output run conditions to user and get confirmation to run
@@ -1263,23 +1273,40 @@ else: # refGenbank == False
             def collateRepAlleleMatrix(input, output, length_to_remove, flagFile):
                 runStageCheck('collateRepAlleleMatrix', flagFile, input, output, length_to_remove)
 
-        # create distance matrices based on pair-wise differences in SNPs
-        @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outMerge + r"\2_SNP_diff.nxs", outSuccessPrefix + r"\2_alleles.getDifferenceMatrix.Success"])        
-        def getDifferenceMatrix(input, outputs):
-            output, flagFile = outputs
-            runStageCheck('getDifferenceMatrix', flagFile, input)         
-
         # parse SNP table to create alignment for tree
-        @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outMerge + r"\2_alleles.mfasta", outSuccessPrefix + r"\2_alleles.parseSNPsNoGBK.Success"])
+        @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outMerge + r"\2_alleles_var_cons"+str(conservation)+".csv", outSuccessPrefix + r"\2_alleles.parseSNPsNoGBK.Success"])
         def parseSNPsNoGBK(input, outputs):
             output, flagFile = outputs
-            runStageCheck('parseSNPsNoGBK', flagFile, outMerge, input)
+            runStageCheck('parseSNPsNoGBK', flagFile, outMerge, input, str(conservation))
 
-        # generate tree - eventually more than one option
-        @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles.mfasta"), [outMerge + r"\2_alleles.tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+        if conservation != 1.0:
+            @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outMerge + r"\2_alleles_var_cons1.0.csv", outSuccessPrefix + r"\2_alleles.parseSNPsNoGBK_100.Success"])
+            def parseSNPsNoGBK_100(input, outputs):
+                output, flagFile = outputs
+                conservation_temp = 1.0
+                runStageCheck('parseSNPsNoGBK', flagFile, outMerge, input, str(conservation_temp))
+            
+            # create distance matrices based on pair-wise differences in SNPs
+            @follows(parseSNPsNoGBK_100)
+            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_SNP_diff.nxs", outSuccessPrefix + r"\2_alleles.getDifferenceMatrix.Success"])        
+            def getDifferenceMatrix(inputs, outputs):
+                output, flagFile = outputs
+                input, _success = inputs
+                runStageCheck('getDifferenceMatrix', flagFile, input)
+        else:        
+            # create distance matrices based on pair-wise differences in SNPs
+            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_SNP_diff.nxs", outSuccessPrefix + r"\2_alleles.getDifferenceMatrix.Success"])        
+            def getDifferenceMatrix(inputs, outputs):
+                output, flagFile = outputs
+                input, _success = inputs
+                runStageCheck('getDifferenceMatrix', flagFile, input)
+
+        # generate tree
+        @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
         def makeTree(inputs, outputs):
             output, flagFile = outputs
             input, _success = inputs
+            input = input[:-4] + ".mfasta"
             runStageCheck('makeTree', flagFile, input, output)
 
     else: #refGenbank == False and outMerge == ''
@@ -1307,7 +1334,7 @@ else: # refGenbank == False
                 for repliconName in core_replicons:
                     input = outTempPrefix + refName + '_' + repliconName + '_'+full_sequence_list[0]+'_alleles.txt'
                     length_to_remove = len(full_sequence_list[0])+8
-                    output  = outPrefix + refName + '_' + repliconName + '_alleles.csv'
+                    output  = outTempPrefix + refName + '_' + repliconName + '_alleles.csv'
                     flagFile = outSuccessPrefix + refName + '_' + repliconName + '.collateRepAlleleMatrix.Success'
                     yield([input, output, length_to_remove, flagFile])
 
@@ -1339,7 +1366,7 @@ else: # refGenbank == False
                 for repliconName in replicons:
                     input = outTempPrefix + refName + '_' + repliconName[0] + '_'+full_sequence_list[0]+'_alleles.txt'
                     length_to_remove = len(full_sequence_list[0])+8
-                    output  = outPrefix + refName + '_' + repliconName[0] + '_alleles.csv'
+                    output  = outTempPrefix + refName + '_' + repliconName[0] + '_alleles.csv'
                     flagFile = outSuccessPrefix + refName + '_' + repliconName[0] + '.collateRepAlleleMatrix.Success'
                     yield([input, output, length_to_remove, flagFile])
 
@@ -1348,23 +1375,40 @@ else: # refGenbank == False
             def collateRepAlleleMatrix(input, output, length_to_remove, flagFile):
                 runStageCheck('collateRepAlleleMatrix', flagFile, input, output, length_to_remove)
 
-        # create distance matrices based on pair-wise differences in SNPs
-        @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outPrefix + r"\2_SNP_diff.nxs", outSuccessPrefix + r"\2_alleles.getDifferenceMatrix.Success"])        
-        def getDifferenceMatrix(input, outputs):
-            output, flagFile = outputs
-            runStageCheck('getDifferenceMatrix', flagFile, input)        
-
         # parse SNP table to create alignment for tree
-        @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outPrefix + r"\2_alleles.mfasta", outSuccessPrefix + r"\2_alleles.parseSNPsNoGBK.Success"])
+        @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outPrefix + r"\2_alleles_var_cons"+str(conservation)+".csv", outSuccessPrefix + r"\2_alleles.parseSNPsNoGBK.Success"])
         def parseSNPsNoGBK(input, outputs):
             output, flagFile = outputs
-            runStageCheck('parseSNPsNoGBK', flagFile, outPrefix, input)
+            runStageCheck('parseSNPsNoGBK', flagFile, outPrefix, input, str(conservation))
 
-        # generate tree - eventually more than one option
-        @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles.mfasta"), [outPrefix + r"\2_alleles.tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+        if conservation != 1.0:
+            @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outPrefix + r"\2_alleles_var_cons1.0.csv", outSuccessPrefix + r"\2_alleles.parseSNPsNoGBK_100.Success"])
+            def parseSNPsNoGBK_100(input, outputs):
+                output, flagFile = outputs
+                conservation_temp = 1.0
+                runStageCheck('parseSNPsNoGBK', flagFile, outPrefix, input, str(conservation_temp))
+            
+            # create distance matrices based on pair-wise differences in SNPs
+            @follows(parseSNPsNoGBK_100)
+            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_SNP_diff.nxs", outSuccessPrefix + r"\2_alleles.getDifferenceMatrix.Success"])        
+            def getDifferenceMatrix(inputs, outputs):
+                output, flagFile = outputs
+                input, _success = inputs
+                runStageCheck('getDifferenceMatrix', flagFile, input)
+        else:        
+            # create distance matrices based on pair-wise differences in SNPs
+            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_SNP_diff.nxs", outSuccessPrefix + r"\2_alleles.getDifferenceMatrix.Success"])        
+            def getDifferenceMatrix(inputs, outputs):
+                output, flagFile = outputs
+                input, _success = inputs
+                runStageCheck('getDifferenceMatrix', flagFile, input)        
+
+        # generate tree
+        @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
         def makeTree(inputs, outputs):
             output, flagFile = outputs
             input, _success = inputs
+            input = input[:-4] + ".mfasta"
             runStageCheck('makeTree', flagFile, input, output)
 
 # *** Clean up *** 
