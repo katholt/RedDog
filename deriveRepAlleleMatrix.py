@@ -81,8 +81,8 @@ for sample in statsFile:
         if name == splitSample[0] and not record_found:
             header = "fail"
             warningFile = open(warning_file, "w")
-            warningFile.write('No consensus sequence of replicon ' + replicon + ' for isolate ' + name)
-            warningFile.write(name + ' removed from further allelic analysis')
+            warningFile.write('No consensus sequence of replicon ' + replicon + ' for isolate ' + name+'\n')
+            warningFile.write(name + ' removed from further allelic analysis'+'\n')
             warningFile.close()
 
 statsFile.close()

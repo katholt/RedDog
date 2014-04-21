@@ -357,7 +357,7 @@ else:
 
 #Phew! Now that's all set up, we can begin...
 #but first, output run conditions to user and get confirmation to run
-print "\nRedDog V0.4.5.2 - " + runType + " run\n"
+print "\nRedDog V0.4.6 - " + runType + " run\n"
 print "Mapping: " + mapping_out
 if mapping == 'bowtie':
     print "Preset Option: " + bowtie_map_type
