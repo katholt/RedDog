@@ -1,7 +1,7 @@
 #!/bin/env python
 
 '''
-RedDog V0.4.6 220414
+RedDog V0.4.6 230414
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
@@ -18,7 +18,7 @@ It supports parallel evaluation of independent pipeline stages,
 and can run stages on a cluster environment.
 
 Note: for Illumina paired-end or single reads, or Ion Torrent single reads.
-IMPORTANT: See pipeline_config.py for input options/requirements
+IMPORTANT: See config file/instructions for input options/requirements
 
 Version History: See ReadMe.txt
 

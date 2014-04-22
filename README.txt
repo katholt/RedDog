@@ -1,4 +1,4 @@
-RedDog V0.4.6 220414
+RedDog V0.4.6 230414
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
@@ -14,8 +14,20 @@ It supports parallel evaluation of independent pipeline stages,
 and can run stages on a cluster environment.
 
 Note: for Illumina paired-end or single reads, or Ion Torrent single reads.
-IMPORTANT: See pipeline_config.py for input options/requirements
+IMPORTANT: See config file/instructions for input options/requirements
 
+current version:
+V0.4.6      update to newer version of parseSNPtable.py (DE)
+                - generation of variable and conserved SNP tables (DE)
+                - includes of additional option of setting conservation level (DE)
+            further early checks that include:
+                - name of reference/replicons/isolates won't confuse post-NEXUS analysis (i.e. no '+')
+            fix for when a replicon consensus fasta is missing (rare error) (DE)
+                includes new 'warning' file (DE)
+            change behaviour of outgroups - reported (also in outgroups.txt fle) but not removed (DE)
+            Editing and reorder of options in config file (DE)
+
+previous versions:
 V0.1        converted to vcf output via mpileup instead of depreciated pileup (DE)
 ..
 V0.2        tested version V0.1.1 (DE)
@@ -108,37 +120,30 @@ V0.4.5.2    check that replicons all have unique names (DE)
             check that output and out_merge_target folders are different (DE)
             check that output folder is not empty string (DE)
             splitting of getRepAlleleMatrix to improve performance (DE)
-                includes sequence list generation (start of .info file)
+                includes sequence list generation (start of post-run report)
 
-V0.4.6      update to newer version of parseSNPtable.py (DE)
-                - generation of variable and conserved SNP tables (DE)
-                - includes of additional option of setting conservation level (DE)
-            further early checks that include:
-                - name of reference/replicons/isolates won't confuse post-NEXUS analysis (i.e. no '+')
-            change getRepAllGeneCover to report all isolates AND 'passed' isolates (DE)
-            fix for when a replicon consensus fasta is missing (rare error) (DE)
-                includes new 'warning' file (DE)
-            change behaviour of outgroups - reported (also in outgroups.txt fle) but not removed (DE)
-            Editing and reorder of options in config file (DE)
-
-Planned Update(s)
-
-V0.5            include .info file for recording those read sets failed (and how)
+planned update(s)
+V0.4.7      include post-run report file for: 
+                recording those read sets failed (and how)
                 when not removed by pipeline by testing
                 (user-merged and user-removed reads)
                 and the other user settings
                 also provides settings for reanalysis/merge runs (continuity checks)
+            change getRepAllGeneCover to report all isolates AND 'passed' isolates (DE)
+
+V0.4.8 (? - post release ?)  
             reanalysis without mapping
                 (with/without a GenBank file,
-                 restore of read sets removed by user,
-                 merging of prior runs,
-                 recalculated/user-edited 'stats.txt' option) 
+                restore of read sets removed by user,
+                merging of prior runs,
+                recalculated/user-edited 'stats.txt' option) 
+
 Also To Add (Post-release):
-            add merging of samples for both pangenome and phylogenetic mapping
+            add merging of bams for both pangenome and phylogenetic mapping
             reanalysis without mapping - merging of bams
             further analysis options 
 
-    NOTE: with a workaround, some reanalysis without mapping IS possible. Email me for details (DE)
+NOTE: with a workaround, some reanalysis without mapping IS possible. Email me for details (DE)
 
 If you wish to see other options added, email me (DE) with suggestions:
 (I'm not making any promises...)

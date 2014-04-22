@@ -3,25 +3,13 @@ Configuration file for RedDog.py V0.4.6
 -------------------------------
 Essential pipeline variables.
 '''
-#reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_plasmid.fasta"
-#reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384.fasta"
 reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_plasmid.gbk"
 
 sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/*.fastq.gz"
-#sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/extra/*.fastq.gz"
 
-#output = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
-output = "/scratch/VR0082/testing_RedDog_output/coding_test_v046_200414/"
+output = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
 
 out_merge_target = ""
-#out_merge_target = "/scratch/VR0082/testing_RedDog_output/NC_007384_v046_200414/"
-
-#reference = "/vlsci/VR0082/shared/davide/o104/ref/NC_018658.gbk"
-#sequences = "/vlsci/VR0082/shared/davide/o104/fastq/*.fastq.gz"
-
-#output = "/scratch/VR0082/testing_RedDog_output/st258_test_v046_210414/"
-#reference = "/vlsci/VR0082/shared/klebsiella/st258/fastq_210314/NJST258_1.fasta"
-#sequences = "/vlsci/VR0082/shared/klebsiella/st258/Fastqs/5*.fastq.gz"
 
 '''
 Notes:
@@ -78,8 +66,9 @@ and will be deleted at completion of the pipeline.
 
 Set to empty string for no merging (i.e. new run).
 
-Note: the pipeline can no longer merge 'single' run types (those that use 'stats.tab).
+Note: the pipeline can no longer merge 'single' run types (those that use 'stats.tab').
 If you really need to do so, make use of v0.4.4.4 of the pipeline.
+
 '''
 #out_merge_target = ""
 #out_merge_target = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
@@ -198,6 +187,7 @@ You can also "remove" any reads: these will be marked as "failed"
 This only works during a "merge run"
 eg. replace a set of reads with their qc-ed version
     replaceReads ="'read_set_2', 'read_set_3'"
+
 '''
 replaceReads = ""
 #replaceReads = "'pool8_tag1', 'pool8_tag2'"
@@ -206,6 +196,7 @@ replaceReads = ""
 Minimum depth of reads for variant filtering
 Default value:
         minimum_depth = 5
+
 '''
 minimum_depth = 5
 
@@ -233,17 +224,14 @@ If set to "off", there will be no check for percentage of reads mapped.
 Otherwise, give list of the n replicons to be checked, followed by an 'x'
 followed by the ratio of the first n-1 replicons
 For a single replicon, just put the replicon.
-e.g. 
-check_reads_mapped = "rep_1"
-
-or
-
-check_reads_mapped = "rep_1,rep_2,rep_3,x,0.45,0.3"
+e.g. check_reads_mapped = "rep_1"
+or   check_reads_mapped = "rep_1,rep_2,rep_3,x,0.45,0.3"
 
 i.e. rep1 is 45% of the total genome, rep2 is 30% of the total genome,
 and rep3 is 25% of the total genome (by default). 
 
 Note: there must be no spaces in the list.
+
 '''
 check_reads_mapped = ""
 #check_reads_mapped = "off"
@@ -266,13 +254,8 @@ and downsteam analysis carried out on this matrix.
 '''
 conservation = 1.0
 
-#To be added: an option for the user defining the outgroups in a set
-#eg. outgroups = "pool1_tag4", "pool10_tag6"
-#outgroups = ""
-# Not Yet Implemented - don't set!
-
 '''
-Rubra variables:
+Rubra pipeline variables (do not delete!):
 - logDir: the directory where batch queue scripts, stdout and sterr dumps are stored.
 - logFile: the file used to log all jobs that are run.
 - style: the default style, one of 'flowchart', 'print', 'run', 'touchfiles'. Can be 
