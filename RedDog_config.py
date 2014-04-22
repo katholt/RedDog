@@ -3,15 +3,25 @@ Configuration file for RedDog.py V0.4.6
 -------------------------------
 Essential pipeline variables.
 '''
-reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_plasmid.fasta"
+#reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_plasmid.fasta"
 #reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384.fasta"
+reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_plasmid.gbk"
 
 sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/*.fastq.gz"
+#sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/extra/*.fastq.gz"
 
 #output = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
-output = "/scratch/VR0082/testing_RedDog_output/NC_007384_with_plasmid_v046_200414/"
+output = "/scratch/VR0082/testing_RedDog_output/coding_test_v046_200414/"
 
 out_merge_target = ""
+#out_merge_target = "/scratch/VR0082/testing_RedDog_output/NC_007384_v046_200414/"
+
+#reference = "/vlsci/VR0082/shared/davide/o104/ref/NC_018658.gbk"
+#sequences = "/vlsci/VR0082/shared/davide/o104/fastq/*.fastq.gz"
+
+#output = "/scratch/VR0082/testing_RedDog_output/st258_test_v046_210414/"
+#reference = "/vlsci/VR0082/shared/klebsiella/st258/fastq_210314/NJST258_1.fasta"
+#sequences = "/vlsci/VR0082/shared/klebsiella/st258/Fastqs/5*.fastq.gz"
 
 '''
 Notes:
@@ -463,7 +473,7 @@ stages = {
 # large data sets
 #        "walltime": "3:00:00:00",
 #        "memInGB": 16,
-        "command": "wDir=\\\"`pwd`\\\" && cd %dir && python $wDir/parseSNPtable.py -m cons,aln,coding -r %genbank -q %replicon -s %input -c %conservation"
+        "command": "wDir=\\\"`pwd`\\\" && cd %dir && python $wDir/parseSNPtable.py -m cons,aln,coding -s %input -c %conservation -r %genbank -q %replicon"
     },
     "parseSNPsNoGBK": {
         "walltime": "00:10:00",
@@ -484,3 +494,4 @@ stages = {
         "command": "rm -rf %directory"
     }
 }
+    
