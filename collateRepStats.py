@@ -2,7 +2,6 @@
 collateRepStats.py
 for mapping_pipe.py
 
-
 collates the general statistics for set of reads that have gone through
 the pipeline during a pangenome or phylogeny run for a particular replicon
 
@@ -11,6 +10,7 @@ python collateRepStats.py reference_name <example>_rep_cover.txt replicon sd_mul
 
 Created:	29042013
 Modified:	28102013 changed to mean + SD * sd_multiplier only
+            15042013 changed to produce outgroup.txt file if there are any outgroups to report
 author: David Edwards
 '''
 import sys, glob
@@ -24,6 +24,8 @@ runType = sys.argv[5]
 
 (prefix, middle, ext) = splitPath(example_rep_cover_File)
 outfile_RepStats_name = prefix[:-4] + reference_name + '_' + replicon +  '_RepStats.txt'
+outgroup_outfile_name = prefix[:-4] + reference_name + '_' + replicon +  '_outgroups.txt'
+outgroups = []
 
 output_RepStats = ''
 header_RepStats = 'Isolate\tCover%_' + replicon + '\tDepth_' + replicon + '\tMapped%_' + replicon + '\tMapped%_Total\tTotal_Reads\tSNPs\tHets_Removed\tIndels\tIngroup/Fail\n'
@@ -62,11 +64,18 @@ else:
 #	            if number < (average - (sd * sd_multiplier)) or number > (average + (sd * sd_multiplier)):
 	            if number > (average + (sd * sd_multiplier)):
 	                output_RepStats += "\to\n"
+	                outgroups.append(stats[0])
 	            else:
 	                output_RepStats += "\ti\n"
 	        else:
 	            output_RepStats += "\n"
 	    statsFile.close()
+
+if outgroups != []:
+	outgroup_outfile = open(outgroup_outfile_name,"w")
+	for outgroup in outgroups:
+		outgroup_outfile.write(outgroup+'\n')
+	outgroup_outfile.close()
 
 outfile_RepStats = open(outfile_RepStats_name,"w")
 outfile_RepStats.write(header_RepStats)

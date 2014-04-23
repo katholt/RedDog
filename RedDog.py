@@ -1,8 +1,8 @@
 #!/bin/env python
 
 '''
-Microbial Analysis Pipeline: RedDog.py V0.4.5.2 180313
-
+RedDog V0.4.6 230414
+====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
 Description: 
@@ -18,7 +18,7 @@ It supports parallel evaluation of independent pipeline stages,
 and can run stages on a cluster environment.
 
 Note: for Illumina paired-end or single reads, or Ion Torrent single reads.
-IMPORTANT: See pipeline_config.py for input options/requirements
+IMPORTANT: See config file/instructions for input options/requirements
 
 Version History: See ReadMe.txt
 
@@ -36,8 +36,26 @@ from rubra.utils import (runStageCheck, zeroFile, splitPath)
 
 # determine the reference file,
 # list of sequence files, and list of chromosmes.
-reference = pipeline_options.reference
+try:
+    reference = pipeline_options.reference
+except:
+    print "\nNo Reference supplied"
+    print "Pipeline Stopped: please supply a reference\n"
+    sys.exit()    
 
+#check that a reference has been given in the options file
+if reference == "":
+    print "\nNo Reference supplied"
+    print "Pipeline Stopped: please supply a reference\n"
+    sys.exit()    
+
+#check whether reference file exists
+if not os.path.exists(reference):
+    print "\nReference supplied does not exist"
+    print "Pipeline Stopped: please check supplied reference\n"
+    sys.exit()    
+
+#check whether reference is in FASTA or GenBank format
 if isFasta(reference):
     refGenbank = False
     replicons = chromInfoFasta(reference)
@@ -49,6 +67,13 @@ else:
     print "Pipeline Stopped: please check your reference\n"
     sys.exit()
 
+# check that reference name does not in contain "+"
+if reference.find("+") != -1:
+    print "\nReference has an illegal character in the name ('+') "
+    print "Pipeline Stopped: please change the name of the reference\n"
+    sys.exit()
+
+# check that replicons in reference have non-unique names
 if len(replicons)>1:
     for i in range(len(replicons)-1):
         for j in range (i+1, len(replicons)):
@@ -59,12 +84,33 @@ if len(replicons)>1:
                 print "Pipeline Stopped: please check your reference\n"
                 sys.exit()
 
-(refPrefix, refName, refExt) = splitPath(reference)
-#add check for replicon names in reference not in name:int-int form
-sequencePatterns = pipeline_options.sequences
-runType = pipeline_options.runType
-core_replicon = pipeline_options.core_replicon
+# check that replicon names in reference do not in contain ":" or "+"
+for i in range(len(replicons)):
+    if replicons[i][0].find(":") != -1 or replicons[i][0].find("+") != -1:
+        print "\nReference has replicon with an illegal character (':' or '+'): " + replicons[i][0]
+        print "Pipeline Stopped: please change the name of the replicon in the reference\n"
+        sys.exit()
 
+(refPrefix, refName, refExt) = splitPath(reference)
+
+try:
+    sequencePatterns = pipeline_options.sequences
+except:
+    print "\nNo Sequences option supplied"
+    print "Pipeline Stopped: please include 'sequences' in the config file\n"
+    sys.exit()    
+
+try:
+    runType = pipeline_options.runType
+except:
+    runType = ""
+
+try:
+    core_replicon = pipeline_options.core_replicon
+except:
+    core_replicon = ""
+
+#check that a 'known' runType has been supplied
 if runType != "":
     if runType == "pangenome" or runType == "phylogeny":
         pass
@@ -72,6 +118,8 @@ if runType != "":
         print "\nUnrecognised run type"
         print "Pipeline Stopped: please check 'runType' in the options file\n"
         sys.exit()
+
+# if no runType entered, work out default runType on number of replicons in reference
 if runType == "":
     if len(replicons) > 100:
         runType = "pangenome"
@@ -113,7 +161,19 @@ if sequences == []:
         print "Pipeline Stopped: please check 'sequences' in options\n"
         sys.exit()
 
-readType = pipeline_options.readType
+for sequence in sequences:
+    if sequence.find(":") != -1 or sequence.find("+") != -1:
+        print "\nA read set has an illegal character (':' or '+'): " + sequence
+        print "Pipeline Stopped: please change the name of the read set\n"
+        sys.exit()
+
+try:
+    readType = pipeline_options.readType
+except:
+    print "\nNo readType supplied"
+    print "Pipeline Stopped: please supply a readType in the config file\n"
+    sys.exit()    
+
 if readType == 'IT' or readType == 'PE' or readType == 'SE':
     pass
 else:
@@ -122,10 +182,13 @@ else:
     sys.exit()
 
 mapping_out = ""
-if pipeline_options.mapping == "":
-    mapping = 'bowtie'
-else:
+try:
     mapping = pipeline_options.mapping
+except:
+    mapping = 'bowtie'
+
+if mapping == "":
+    mapping = 'bowtie'
 
 if mapping == 'bwa' and readType == 'SE':
     mapping_out = 'BWA V0.6.2 samse'
@@ -167,45 +230,82 @@ if readType == 'PE':
         print "Pipeline Stopped: please fix sequence pairs\n"
         sys.exit()
 
-if pipeline_options.bowtie_map_type == "":
-    bowtie_map_type = '--sensitive-local'
-else:
-    bowtie_map_type = pipeline_options.bowtie_map_type
-if (bowtie_map_type == "--very-fast" or
-    bowtie_map_type == "--fast" or
-    bowtie_map_type == "--sensitive" or
-    bowtie_map_type == "--very-sensitive" or
-    bowtie_map_type == "--very-fast-local" or
-    bowtie_map_type == "--fast-local" or
-    bowtie_map_type == "--sensitive-local" or
-    bowtie_map_type == "--very-sensitive-local"):
-    pass        
-else:
-    print "\nUnrecogised Bowtie2 mapping option"
-    print "Pipeline Stopped: please check 'bowtie_map_type' in the options file\n"
-    sys.exit()
+if mapping == 'bowtie':
+    try:
+        bowtie_map_type = pipeline_options.bowtie_map_type
+    except:
+        bowtie_map_type = '--sensitive-local'
+    if bowtie_map_type == "":
+        bowtie_map_type = '--sensitive-local'
+    if (bowtie_map_type == "--very-fast" or
+        bowtie_map_type == "--fast" or
+        bowtie_map_type == "--sensitive" or
+        bowtie_map_type == "--very-sensitive" or
+        bowtie_map_type == "--very-fast-local" or
+        bowtie_map_type == "--fast-local" or
+        bowtie_map_type == "--sensitive-local" or
+        bowtie_map_type == "--very-sensitive-local"):
+        pass        
+    else:
+        print "\nUnrecogised Bowtie2 mapping option"
+        print "Pipeline Stopped: please check 'bowtie_map_type' in the options file\n"
+        sys.exit()
 
-minDepth = pipeline_options.minimum_depth
-coverFail = pipeline_options.cover_fail 
-depthFail = pipeline_options.depth_fail 
-mappedFail = pipeline_options.mapped_fail
-sdOutgroupMultiplier = pipeline_options.sd_out
+try:
+    minDepth = pipeline_options.minimum_depth
+except:
+    minDepth = 5
 
-check_reads_mapped = pipeline_options.check_reads_mapped
+try:
+    coverFail = pipeline_options.cover_fail
+except:
+    coverFail = 50
+
+try:
+    depthFail = pipeline_options.depth_fail
+except:
+    depthFail = 10
+
+try:
+    mappedFail = pipeline_options.mapped_fail
+except:
+    mappedFail = 50
+
+try:
+    sdOutgroupMultiplier = pipeline_options.sd_out
+except:
+    sdOutgroupMultiplier = 2
+
+try:
+    check_reads_mapped = pipeline_options.check_reads_mapped
+except:
+    check_reads_mapped = ""
+
 if check_reads_mapped == "":
     for repliconName, repliconLength in replicons:
         if int(repliconLength) == longest_replicon_length:
             check_reads_mapped = repliconName
 
-outPrefix = pipeline_options.output
+try:
+    outPrefix = pipeline_options.output
+except:
+    outPrefix = ""
+
 if outPrefix == "":
     print "\nNo Output folder given"
-    print "Pipeline Stopped: please check 'output' the options file\n"
+    print "Pipeline Stopped: please check 'output' in the options file\n"
     sys.exit()
+
 if outPrefix[-1] != '/':
     outPrefix += '/'
 
-outMerge = pipeline_options.out_merge_target
+try:
+    outMerge = pipeline_options.out_merge_target
+except:
+    print "\n'out_merge_target' not set"
+    print "Pipeline Stopped: please set 'out_merge_target'\n"
+    sys.exit()    
+
 if outMerge != '':
     if outMerge[-1] != '/':
         outMerge += '/'
@@ -214,7 +314,11 @@ if outPrefix == outMerge:
     print "Pipeline Stopped: please check 'output' and 'out_merge_target' in the options file\n"
     sys.exit()
 
-replaceReads = pipeline_options.replaceReads
+try:
+    replaceReads = pipeline_options.replaceReads
+except:
+    replaceReads = ""
+
 replaceReads = '"'+replaceReads+'"'
 outTempPrefix = outPrefix + 'temp/'
 outSuccessPrefix = outTempPrefix + 'success/'
@@ -223,6 +327,16 @@ outVcfPrefix = outPrefix + 'vcf/'
 if outMerge != "":
     outMergeBam = outMerge + 'bam/'
     outMergeVcf = outMerge + 'vcf/'
+
+try:
+    conservation = float(pipeline_options.conservation)
+except:
+    conservation = 1.0
+
+if conservation > 1.0 or conservation < 0.0:
+    print "\n'conservation' set to value outside parameters"
+    print "Pipeline Stopped: please change 'conservation' to a value between 0 and 1\n"
+    sys.exit()
 
 full_sequence_list = []
 if outMerge == '':
@@ -239,10 +353,11 @@ else:
         sys.exit()
     for line in sequence_list_file:
         full_sequence_list.append(line[:-1])
+    sequence_list_file.close()
 
 #Phew! Now that's all set up, we can begin...
 #but first, output run conditions to user and get confirmation to run
-print "\nRedDog V0.4.5.2 - " + runType + " run\n"
+print "\nRedDog V0.4.6 - " + runType + " run\n"
 print "Mapping: " + mapping_out
 if mapping == 'bowtie':
     print "Preset Option: " + bowtie_map_type
@@ -905,7 +1020,7 @@ if refGenbank == True:
                 for repliconName in core_replicons:
                     input = outTempPrefix + refName + '_' + repliconName + '_'+full_sequence_list[0]+'_alleles.txt'
                     length_to_remove = len(full_sequence_list[0])+8
-                    output  = outMerge + refName + '_' + repliconName + '_alleles.csv'
+                    output  = outTempPrefix + refName + '_' + repliconName + '_alleles.csv'
                     flagFile = outSuccessPrefix + refName + '_' + repliconName + '.collateRepAlleleMatrix.Success'
                     yield([input, output, length_to_remove, flagFile])
 
@@ -937,7 +1052,7 @@ if refGenbank == True:
                 for repliconName in replicons:
                     input = outTempPrefix + refName + '_' + repliconName[0] + '_'+full_sequence_list[0]+'_alleles.txt'
                     length_to_remove = len(full_sequence_list[0])+8
-                    output  = outMerge + refName + '_' + repliconName[0] + '_alleles.csv'
+                    output  = outTempPrefix + refName + '_' + repliconName[0] + '_alleles.csv'
                     flagFile = outSuccessPrefix + refName + '_' + repliconName[0] + '.collateRepAlleleMatrix.Success'
                     yield([input, output, length_to_remove, flagFile])
 
@@ -946,30 +1061,44 @@ if refGenbank == True:
             def collateRepAlleleMatrix(input, output, length_to_remove, flagFile):
                 runStageCheck('collateRepAlleleMatrix', flagFile, input, output, length_to_remove)
 
-        # create distance matrices based on pair-wise differences in SNPs
-        @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outMerge + r"\2_SNP_diff.nxs", outSuccessPrefix + r"\2_alleles.getDifferenceMatrix.Success"])        
-        def getDifferenceMatrix(input, outputs):
+        # parse SNP table to create alignment for tree and get coding consequences for snps
+        @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outMerge + r"\2_alleles_var_cons"+str(conservation)+".csv", outSuccessPrefix + r"\2_alleles.parseSNPs.Success"])
+        def parseSNPs(input, outputs):
             output, flagFile = outputs
-            runStageCheck('getDifferenceMatrix', flagFile, input)        
+            (prefix, name, ext) = splitPath(input)
+            replicon = name[len(refName)+1:-8]
+            runStageCheck('parseSNPs', flagFile, outMerge, input, str(conservation), genbank, replicon)
 
-        # parse SNP table to create alignment for tree and SNP consequences (tab-delimited file)
-        # @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outMerge + r"\2_alleles.mfasta", outSuccessPrefix + r"\2_alleles.parseSNPs.Success"])
-        # def parseSNPs(inputs, outputs):
-        #     output, flagFile = outputs
-        #     input, _success = inputs
-        #     runStageCheck('parseSNPs', flagFile, outMerge, genbank, input)
+        if conservation != 1.0:
+            @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outMerge + r"\2_alleles_var_cons1.0.csv", outSuccessPrefix + r"\2_alleles.parseSNPs_100.Success"])
+            def parseSNPs_100(input, outputs):
+                output, flagFile = outputs
+                (prefix, name, ext) = splitPath(input)
+                replicon = name[len(refName)+1:-8]
+                conservation_temp = 1.0
+                runStageCheck('parseSNPs', flagFile, outMerge, input, str(conservation_temp), genbank, replicon)
+            
+            # create distance matrices based on pair-wise differences in SNPs
+            @follows(parseSNPs_100)
+            @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_SNP_diff.nxs", outSuccessPrefix + r"\2_alleles.getDifferenceMatrix.Success"])        
+            def getDifferenceMatrix(inputs, outputs):
+                output, flagFile = outputs
+                input, _success = inputs
+                runStageCheck('getDifferenceMatrix', flagFile, input)
+        else:        
+            # create distance matrices based on pair-wise differences in SNPs
+            @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_SNP_diff.nxs", outSuccessPrefix + r"\2_alleles.getDifferenceMatrix.Success"])        
+            def getDifferenceMatrix(inputs, outputs):
+                output, flagFile = outputs
+                input, _success = inputs
+                runStageCheck('getDifferenceMatrix', flagFile, input)        
 
-        # parse SNP table to create alignment for tree
-        @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outMerge + r"\2_alleles.mfasta", outSuccessPrefix + r"\2_alleles.parseSNPsNoGBK.Success"])
-        def parseSNPsNoGBK(input, outputs):
-            output, flagFile = outputs
-            runStageCheck('parseSNPsNoGBK', flagFile, outPrefix, input)
-    
-        # generate tree - eventually more than one option
-        @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles.mfasta"), [outMerge + r"\2_alleles.tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+        # generate tree
+        @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
         def makeTree(inputs, outputs):
             output, flagFile = outputs
             input, _success = inputs
+            input = input[:-4] + ".mfasta"
             runStageCheck('makeTree', flagFile, input, output)
 
     else: #ie. mergeReads == "" and refGenbank == True
@@ -1018,7 +1147,7 @@ if refGenbank == True:
                 for repliconName in core_replicons:
                     input = outTempPrefix + refName + '_' + repliconName + '_'+full_sequence_list[0]+'_alleles.txt'
                     length_to_remove = len(full_sequence_list[0])+8
-                    output  = outPrefix + refName + '_' + repliconName + '_alleles.csv'
+                    output  = outTempPrefix + refName + '_' + repliconName + '_alleles.csv'
                     flagFile = outSuccessPrefix + refName + '_' + repliconName + '.collateRepAlleleMatrix.Success'
                     yield([input, output, length_to_remove, flagFile])
 
@@ -1050,7 +1179,7 @@ if refGenbank == True:
                 for repliconName in replicons:
                     input = outTempPrefix + refName + '_' + repliconName[0] + '_'+full_sequence_list[0]+'_alleles.txt'
                     length_to_remove = len(full_sequence_list[0])+8
-                    output  = outPrefix + refName + '_' + repliconName[0] + '_alleles.csv'
+                    output  = outTempPrefix + refName + '_' + repliconName[0] + '_alleles.csv'
                     flagFile = outSuccessPrefix + refName + '_' + repliconName[0] + '.collateRepAlleleMatrix.Success'
                     yield([input, output, length_to_remove, flagFile])
 
@@ -1059,25 +1188,46 @@ if refGenbank == True:
             def collateRepAlleleMatrix(input, output, length_to_remove, flagFile):
                 runStageCheck('collateRepAlleleMatrix', flagFile, input, output, length_to_remove)
 
-        # create distance matrices based on pair-wise differences in SNPs
-        @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outPrefix + r"\2_SNP_diff.nxs", outSuccessPrefix + r"\2_alleles.getDifferenceMatrix.Success"])        
-        def getDifferenceMatrix(input, outputs):
+        # parse SNP table to create alignment for tree and get coding consequences for snps
+        @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outPrefix + r"\2_alleles_var_cons"+str(conservation)+".csv", outSuccessPrefix + r"\2_alleles.parseSNPs.Success"])
+        def parseSNPs(input, outputs):
             output, flagFile = outputs
-            runStageCheck('getDifferenceMatrix', flagFile, input)        
+            (prefix, name, ext) = splitPath(input)
+            replicon = name[len(refName)+1:-8]
+            runStageCheck('parseSNPs', flagFile, outPrefix, input, str(conservation), genbank, replicon)
 
-        # parse SNP table to create alignment for tree
-        @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outPrefix + r"\2_alleles.mfasta", outSuccessPrefix + r"\2_alleles.parseSNPsNoGBK.Success"])
-        def parseSNPsNoGBK(input, outputs):
-            output, flagFile = outputs
-            runStageCheck('parseSNPsNoGBK', flagFile, outPrefix, input)
+        if conservation != 1.0:
+            @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outPrefix + r"\2_alleles_var_cons1.0.csv", outSuccessPrefix + r"\2_alleles.parseSNPs_100.Success"])
+            def parseSNPs_100(input, outputs):
+                output, flagFile = outputs
+                (prefix, name, ext) = splitPath(input)
+                replicon = name[len(refName)+1:-8]
+                conservation_temp = 1.0
+                runStageCheck('parseSNPs', flagFile, outPrefix, input, str(conservation_temp), genbank, replicon)
+            
+            # create distance matrices based on pair-wise differences in SNPs
+            @follows(parseSNPs_100)
+            @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_SNP_diff.nxs", outSuccessPrefix + r"\2_alleles.getDifferenceMatrix.Success"])        
+            def getDifferenceMatrix(inputs, outputs):
+                output, flagFile = outputs
+                input, _success = inputs
+                runStageCheck('getDifferenceMatrix', flagFile, input)
+        else:        
+            # create distance matrices based on pair-wise differences in SNPs
+            @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_SNP_diff.nxs", outSuccessPrefix + r"\2_alleles.getDifferenceMatrix.Success"])        
+            def getDifferenceMatrix(inputs, outputs):
+                output, flagFile = outputs
+                input, _success = inputs
+                runStageCheck('getDifferenceMatrix', flagFile, input)        
 
-        # generate tree - eventually more than one option
-        @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles.mfasta"), [outPrefix + r"\2_alleles.tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+        # generate tree
+        @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
         def makeTree(inputs, outputs):
             output, flagFile = outputs
             input, _success = inputs
+            input = input[:-4] + ".mfasta"
             runStageCheck('makeTree', flagFile, input, output)
-  
+
 else: # refGenbank == False
     if outMerge != "":
         # get consensus sequence for merged set
@@ -1117,7 +1267,7 @@ else: # refGenbank == False
                 for repliconName in core_replicons:
                     input = outTempPrefix + refName + '_' + repliconName + '_'+full_sequence_list[0]+'_alleles.txt'
                     length_to_remove = len(full_sequence_list[0])+8
-                    output  = outMerge + refName + '_' + repliconName + '_alleles.csv'
+                    output  = outTempPrefix + refName + '_' + repliconName + '_alleles.csv'
                     flagFile = outSuccessPrefix + refName + '_' + repliconName + '.collateRepAlleleMatrix.Success'
                     yield([input, output, length_to_remove, flagFile])
 
@@ -1149,7 +1299,7 @@ else: # refGenbank == False
                 for repliconName in replicons:
                     input = outTempPrefix + refName + '_' + repliconName[0] + '_'+full_sequence_list[0]+'_alleles.txt'
                     length_to_remove = len(full_sequence_list[0])+8
-                    output  = outMerge + refName + '_' + repliconName[0] + '_alleles.csv'
+                    output  = outTempPrefix + refName + '_' + repliconName[0] + '_alleles.csv'
                     flagFile = outSuccessPrefix + refName + '_' + repliconName[0] + '.collateRepAlleleMatrix.Success'
                     yield([input, output, length_to_remove, flagFile])
 
@@ -1158,23 +1308,40 @@ else: # refGenbank == False
             def collateRepAlleleMatrix(input, output, length_to_remove, flagFile):
                 runStageCheck('collateRepAlleleMatrix', flagFile, input, output, length_to_remove)
 
-        # create distance matrices based on pair-wise differences in SNPs
-        @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outMerge + r"\2_SNP_diff.nxs", outSuccessPrefix + r"\2_alleles.getDifferenceMatrix.Success"])        
-        def getDifferenceMatrix(input, outputs):
-            output, flagFile = outputs
-            runStageCheck('getDifferenceMatrix', flagFile, input)         
-
         # parse SNP table to create alignment for tree
-        @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outMerge + r"\2_alleles.mfasta", outSuccessPrefix + r"\2_alleles.parseSNPsNoGBK.Success"])
+        @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outMerge + r"\2_alleles_var_cons"+str(conservation)+".csv", outSuccessPrefix + r"\2_alleles.parseSNPsNoGBK.Success"])
         def parseSNPsNoGBK(input, outputs):
             output, flagFile = outputs
-            runStageCheck('parseSNPsNoGBK', flagFile, outMerge, input)
+            runStageCheck('parseSNPsNoGBK', flagFile, outMerge, input, str(conservation))
 
-        # generate tree - eventually more than one option
-        @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles.mfasta"), [outMerge + r"\2_alleles.tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+        if conservation != 1.0:
+            @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outMerge + r"\2_alleles_var_cons1.0.csv", outSuccessPrefix + r"\2_alleles.parseSNPsNoGBK_100.Success"])
+            def parseSNPsNoGBK_100(input, outputs):
+                output, flagFile = outputs
+                conservation_temp = 1.0
+                runStageCheck('parseSNPsNoGBK', flagFile, outMerge, input, str(conservation_temp))
+            
+            # create distance matrices based on pair-wise differences in SNPs
+            @follows(parseSNPsNoGBK_100)
+            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_SNP_diff.nxs", outSuccessPrefix + r"\2_alleles.getDifferenceMatrix.Success"])        
+            def getDifferenceMatrix(inputs, outputs):
+                output, flagFile = outputs
+                input, _success = inputs
+                runStageCheck('getDifferenceMatrix', flagFile, input)
+        else:        
+            # create distance matrices based on pair-wise differences in SNPs
+            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_SNP_diff.nxs", outSuccessPrefix + r"\2_alleles.getDifferenceMatrix.Success"])        
+            def getDifferenceMatrix(inputs, outputs):
+                output, flagFile = outputs
+                input, _success = inputs
+                runStageCheck('getDifferenceMatrix', flagFile, input)
+
+        # generate tree
+        @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
         def makeTree(inputs, outputs):
             output, flagFile = outputs
             input, _success = inputs
+            input = input[:-4] + ".mfasta"
             runStageCheck('makeTree', flagFile, input, output)
 
     else: #refGenbank == False and outMerge == ''
@@ -1202,7 +1369,7 @@ else: # refGenbank == False
                 for repliconName in core_replicons:
                     input = outTempPrefix + refName + '_' + repliconName + '_'+full_sequence_list[0]+'_alleles.txt'
                     length_to_remove = len(full_sequence_list[0])+8
-                    output  = outPrefix + refName + '_' + repliconName + '_alleles.csv'
+                    output  = outTempPrefix + refName + '_' + repliconName + '_alleles.csv'
                     flagFile = outSuccessPrefix + refName + '_' + repliconName + '.collateRepAlleleMatrix.Success'
                     yield([input, output, length_to_remove, flagFile])
 
@@ -1234,7 +1401,7 @@ else: # refGenbank == False
                 for repliconName in replicons:
                     input = outTempPrefix + refName + '_' + repliconName[0] + '_'+full_sequence_list[0]+'_alleles.txt'
                     length_to_remove = len(full_sequence_list[0])+8
-                    output  = outPrefix + refName + '_' + repliconName[0] + '_alleles.csv'
+                    output  = outTempPrefix + refName + '_' + repliconName[0] + '_alleles.csv'
                     flagFile = outSuccessPrefix + refName + '_' + repliconName[0] + '.collateRepAlleleMatrix.Success'
                     yield([input, output, length_to_remove, flagFile])
 
@@ -1243,23 +1410,40 @@ else: # refGenbank == False
             def collateRepAlleleMatrix(input, output, length_to_remove, flagFile):
                 runStageCheck('collateRepAlleleMatrix', flagFile, input, output, length_to_remove)
 
-        # create distance matrices based on pair-wise differences in SNPs
-        @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outPrefix + r"\2_SNP_diff.nxs", outSuccessPrefix + r"\2_alleles.getDifferenceMatrix.Success"])        
-        def getDifferenceMatrix(input, outputs):
-            output, flagFile = outputs
-            runStageCheck('getDifferenceMatrix', flagFile, input)        
-
         # parse SNP table to create alignment for tree
-        @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outPrefix + r"\2_alleles.mfasta", outSuccessPrefix + r"\2_alleles.parseSNPsNoGBK.Success"])
+        @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outPrefix + r"\2_alleles_var_cons"+str(conservation)+".csv", outSuccessPrefix + r"\2_alleles.parseSNPsNoGBK.Success"])
         def parseSNPsNoGBK(input, outputs):
             output, flagFile = outputs
-            runStageCheck('parseSNPsNoGBK', flagFile, outPrefix, input)
+            runStageCheck('parseSNPsNoGBK', flagFile, outPrefix, input, str(conservation))
 
-        # generate tree - eventually more than one option
-        @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles.mfasta"), [outPrefix + r"\2_alleles.tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+        if conservation != 1.0:
+            @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outPrefix + r"\2_alleles_var_cons1.0.csv", outSuccessPrefix + r"\2_alleles.parseSNPsNoGBK_100.Success"])
+            def parseSNPsNoGBK_100(input, outputs):
+                output, flagFile = outputs
+                conservation_temp = 1.0
+                runStageCheck('parseSNPsNoGBK', flagFile, outPrefix, input, str(conservation_temp))
+            
+            # create distance matrices based on pair-wise differences in SNPs
+            @follows(parseSNPsNoGBK_100)
+            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_SNP_diff.nxs", outSuccessPrefix + r"\2_alleles.getDifferenceMatrix.Success"])        
+            def getDifferenceMatrix(inputs, outputs):
+                output, flagFile = outputs
+                input, _success = inputs
+                runStageCheck('getDifferenceMatrix', flagFile, input)
+        else:        
+            # create distance matrices based on pair-wise differences in SNPs
+            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_SNP_diff.nxs", outSuccessPrefix + r"\2_alleles.getDifferenceMatrix.Success"])        
+            def getDifferenceMatrix(inputs, outputs):
+                output, flagFile = outputs
+                input, _success = inputs
+                runStageCheck('getDifferenceMatrix', flagFile, input)        
+
+        # generate tree
+        @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
         def makeTree(inputs, outputs):
             output, flagFile = outputs
             input, _success = inputs
+            input = input[:-4] + ".mfasta"
             runStageCheck('makeTree', flagFile, input, output)
 
 # *** Clean up *** 

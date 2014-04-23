@@ -1,8 +1,20 @@
 '''
-Configuration file for RedDog.py V0.4.5.2
+Configuration file for RedDog.py V0.4.6
 -------------------------------
+Essential pipeline variables.
+'''
+reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_plasmid.gbk"
 
-Reference and sequences (from VR0082 shared directory)
+sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/*.fastq.gz"
+
+output = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
+
+out_merge_target = ""
+
+'''
+Notes:
+
+'reference' and 'sequences'
 
 Reference can be GenBank or fasta format - if GenBank format, this will be converted
 to a fasta version for mapping.
@@ -17,8 +29,8 @@ to be generated, enter a fasta format reference instead.
 #Test Sets
 #reference = "/vlsci/VR0082/shared/pipeline_test_data/reference/NC_007384.gbk"
 #reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_plasmid.gbk"
-reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_plasmid.fasta"
-sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/*.fastq.gz"
+#reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_plasmid.fasta"
+#sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/*.fastq.gz"
 #sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/extra/*.fastq.gz"
 
 # You can now also combine sequences from different folders into the same run...
@@ -27,11 +39,47 @@ sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/*.fastq.g
 #reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/DT104.fasta"
 #sequences = "/vlsci/VR0082/shared/pipeline_test_data/salmonella/*in.iontor.fastq.gz"
 
+'''
+'output' directory:
+full path name including final "/"
+
+For large data sets run the output to the scratch disk area and save the final output to
+your shared directory (or contagion if you have access) 
+e.g. output = "/scratch/VR0082/a_folder/<ref>_<version>_<date>/"
+'''
+#output = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
 
 '''
-Choose type of input sequences: IT for ion torrent (single reads), 
-                                PE for Illumina pair-end reads
-				                        or SE for Illumina single-end reads
+Directory to merge output with ('out_merge_target'):
+ 
+When running new analysis set to null string.
+ 
+Otherwise set to the directory you want to merge with.
+ 
+You can only merge a prior run with a new run (not two prior runs)
+This merge target folder must have the bams and indexes in one 
+sub-folder (/bam) and the vcfs in another (/vcf). There also must 
+be a sequence_list.txt file - i.e. V0.4.5.2+ format.
+ 
+The 'output' folder (see above) for a merge run should NOT exist prior to the run,
+and will be deleted at completion of the pipeline.
+
+Set to empty string for no merging (i.e. new run).
+
+Note: the pipeline can no longer merge 'single' run types (those that use 'stats.tab').
+If you really need to do so, make use of v0.4.4.4 of the pipeline.
+
+'''
+#out_merge_target = ""
+#out_merge_target = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
+
+'''
+If none of the following are set or changed, the default settings will be used.
+###############################################################################
+
+Choose type of input sequences:    IT for ion torrent (single reads), 
+                                   PE for Illumina pair-end reads
+                                or SE for Illumina single-end reads
 
 readType = "PE" or "SE" or "IT"
 
@@ -39,7 +87,7 @@ Each read type has a particular pattern you need to follow for use in the pipeli
 
 SE: *.fastq.gz                      (i.e. must be gzipped)
 PE: *_1.fastq.gz and *_2.fastq.gz   (i.e. must be gzipped with forward and reverse in separate files)
-IT: *_in.iontor.fastq.gz            (i.e. must be gzipped!!!!)
+IT: *_in.iontor.fastq.gz            (i.e. must be gzipped)
 
 '''
 readType = "PE"
@@ -65,9 +113,9 @@ For a pangenome run, the SNPs will only be called for the largest replicon - thi
 the core genome is in this replicon. The user can define an alternative replicon
 (or replicons) for the SNP calling.
 
-Note: there must be a space after any comma
-Set to null string to get the largest contig, 
-or for phylogeny run type
+Note: there must be a space after any comma. 
+Set to null string to get the largest contig
+
 '''
 core_replicon = ""
 #core_replicon = "NC_007384, NC_007385"
@@ -93,6 +141,7 @@ BWA samse   N     Y     N
 Bowtie2     Y     Y     Y
 
 Note: You cannot use two mappers at the same time!
+
 '''
 #mapping = "bwa"
 mapping = "bowtie"
@@ -119,6 +168,7 @@ sensitive-local mapping will be used.
 
 See the Bowtie2 Manual for more information on the presets
 http://bowtie-bio.sourceforge.net/bowtie2/manual.shtml
+
 '''
 #end-to-end mode
 #bowtie_map_type = "--very-fast"
@@ -133,45 +183,11 @@ bowtie_map_type = "--sensitive-local"
 #bowtie_map_type = "--very-sensitive-local"
 
 '''
-Output directory:
-full path name including final "/"
-
-VR0082 users: Make sure this is to a directory in the shared folder!!!
-
-For large data sets run the output to the scratch disk area and save the final output to
-your shared directory (or contagion if you have access) 
-e.g. output = "/scratch/VR0082/<ref>_<version>_<date>/"
-'''
-output = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
-
-'''
-Directory to merge output with (out_merge_target):
- 
-When running new analysis set to null string.
- 
-Otherwise set to the directory you want to merge with.
- 
-You can only merge a prior run with a new run (not two prior runs)
-This merge target folder must have the bams and indexes in one sub-folder (/bam)
-and the vcfs in another (/vcf). 
-There also must be a sequence_list.txt file - i.e. V0.4.5.2+ format.
- 
-The 'output' folder (see above) for a merge run should NOT exist prior to the run,
-and will be deleted at completion of the pipeline.
-
-Set to empty string for no merging (i.e. new run).
-
-Note: the pipeline can no longer merge 'single' run types (those that use 'stats.tab).
-If you really need to do so, make use of v0.4.4.4 of the pipeline.
-'''
-out_merge_target = ""
-#out_merge_target = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
-
-'''
-You can also "replace" any reads: these will be marked as "failed"
+You can also "remove" any reads: these will be marked as "failed"
 This only works during a "merge run"
 eg. replace a set of reads with their qc-ed version
     replaceReads ="'read_set_2', 'read_set_3'"
+
 '''
 replaceReads = ""
 #replaceReads = "'pool8_tag1', 'pool8_tag2'"
@@ -180,16 +196,18 @@ replaceReads = ""
 Minimum depth of reads for variant filtering
 Default value:
         minimum_depth = 5
+
 '''
 minimum_depth = 5
 
 '''
 Values for calling the pass/fail and ingroup/outgroup status of strains
-suggested (default) values for standard run (single reference genome)
+suggested (default) values
         cover_fail = 50
         depth_fail = 10
         mapped_fail = 50
         sd_out = 2 
+
 '''
 cover_fail = 50
 depth_fail = 10
@@ -206,16 +224,14 @@ If set to "off", there will be no check for percentage of reads mapped.
 Otherwise, give list of the n replicons to be checked, followed by an 'x'
 followed by the ratio of the first n-1 replicons
 For a single replicon, just put the replicon.
-e.g. 
-check_reads_mapped = "rep_1"
+e.g. check_reads_mapped = "rep_1"
+or   check_reads_mapped = "rep_1,rep_2,rep_3,x,0.45,0.3"
 
-or
-
-check_reads_mapped = "rep_1,rep_2,rep_3,x,0.45,0.3"
 i.e. rep1 is 45% of the total genome, rep2 is 30% of the total genome,
 and rep3 is 25% of the total genome (by default). 
 
 Note: there must be no spaces in the list.
+
 '''
 check_reads_mapped = ""
 #check_reads_mapped = "off"
@@ -225,13 +241,21 @@ check_reads_mapped = ""
 
 #check_reads_mapped = "CP002555,CP002556,x,0.75"
 
-#To be added: an option for the user defining the outgroups in a set
-#eg. outgroups = "pool1_tag4", "pool10_tag6"
-#outgroups = ""
-# Not Yet Implemented - don't set!
+'''
+During allele matrix filtering, you can set the conservation level for missing alleles
+this is a ratio between 1.0 (100% conservation - remove all SNPs with even one missing allele call)
+and 0.0 (0% conservation - remove no SNPs). By default, the pipeline produces the 100% and
+0% conservation matrices, with downstream analysis on the 100% matrix. 
+
+By entering a different conservation level (e.g. 0.95), both the 100% and 0% matrices 
+will still be produced, but so too will the 95% matrix (in this example), 
+and downsteam analysis carried out on this matrix.
 
 '''
-Rubra variables:
+conservation = 1.0
+
+'''
+Rubra pipeline variables (do not delete!):
 - logDir: the directory where batch queue scripts, stdout and sterr dumps are stored.
 - logFile: the file used to log all jobs that are run.
 - style: the default style, one of 'flowchart', 'print', 'run', 'touchfiles'. Can be 
@@ -428,18 +452,18 @@ stages = {
 #        "walltime": "06:00:00",
         "command": "python make_distance_matrix.py %in"
     },
-#    "parseSNPs": {
+    "parseSNPs": {
 # large data sets
 #        "walltime": "3:00:00:00",
 #        "memInGB": 16,
-#        "command": "wDir=\\\"`pwd`\\\" && cd %dir && python $wDir/parseSNPtable.py -m aln,coding -r %genbank -s %input"
-#    },
+        "command": "wDir=\\\"`pwd`\\\" && cd %dir && python $wDir/parseSNPtable.py -m cons,aln,coding -s %input -c %conservation -r %genbank -q %replicon"
+    },
     "parseSNPsNoGBK": {
         "walltime": "00:10:00",
 # large data sets
 #        "walltime": "08:00:00",
 #        "memInGB": 64,
-        "command": "wDir=\\\"`pwd`\\\" && cd %dir && python $wDir/parseSNPtable.py -m aln -s %input"
+        "command": "wDir=\\\"`pwd`\\\" && cd %dir && python $wDir/parseSNPtable.py -m cons,aln -s %input -c %conservation"
     },
     "makeTree": {
         "walltime": "00:15:00",
@@ -453,3 +477,4 @@ stages = {
         "command": "rm -rf %directory"
     }
 }
+    

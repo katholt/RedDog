@@ -6,11 +6,13 @@ a list of all positions in the reference where a homozygous SNP occurs in at lea
 
 outputs list to user-defined file
 
+Modified to include ingroup and outgroup SNPs (not just ingroup)
+
 example:
 python getSNPList.py <statsFile> <replicon> <output>
 
 Created:	12052013
-Modified:	
+Modified:	15042014
 author: David Edwards
 '''
 import sys, glob
@@ -29,7 +31,7 @@ for file in glob.glob(vcfs):
     for sample in statsFile:
         if sample.startswith("Isolate") != True:
             splitSample = sample.split("\t")
-            if (name == splitSample[0]) and (splitSample[-1].startswith("i") == True):
+            if (name == splitSample[0]) and (splitSample[-1].startswith("f") != True):
                 vcfFile = open(file)
                 varList = []
                 mergeList = []
