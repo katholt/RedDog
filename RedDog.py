@@ -1,7 +1,7 @@
 #!/bin/env python
 
 '''
-RedDog V0.4.6 230414
+RedDog V0.4.7 010514
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
@@ -357,7 +357,7 @@ else:
 
 #Phew! Now that's all set up, we can begin...
 #but first, output run conditions to user and get confirmation to run
-print "\nRedDog V0.4.6 - " + runType + " run\n"
+print "\nRedDog V0.4.7 - " + runType + " run\n"
 print "Mapping: " + mapping_out
 if mapping == 'bowtie':
     print "Preset Option: " + bowtie_map_type
