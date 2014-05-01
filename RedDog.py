@@ -1453,6 +1453,7 @@ if outMerge != "":
         @follows(getDifferenceMatrix, makeTree)
         @files(input==None, outMerge + "finish.deleteDir.Success")
         def deleteDir(input, flagFile):
+            # make_sequence_list(outMerge, full_sequence_list)
             sequence_list_file = open((outMerge + 'sequence_list.txt') , "w")
             for item in full_sequence_list:
                 sequence_list_file.write(item +'\n')
@@ -1464,6 +1465,7 @@ if outMerge != "":
         @follows(parseGeneContent, getDifferenceMatrix, makeTree)
         @files(input==None, outMerge + "finish.deleteDir.Success")
         def deleteDir(input, flagFile):
+            # make_sequence_list(outMerge, full_sequence_list)
             sequence_list_file = open((outMerge + 'sequence_list.txt') , "w")
             for item in full_sequence_list:
                 sequence_list_file.write(item +'\n')
@@ -1476,6 +1478,7 @@ else:
         @follows(getDifferenceMatrix, makeTree)
         @files(input==None, outPrefix + "finish.deleteDir.Success")
         def deleteDir(input, flagFile):
+            # make_sequence_list(outPrefix, full_sequence_list)
             sequence_list_file = open((outPrefix + 'sequence_list.txt') , "w")
             for item in full_sequence_list:
                 sequence_list_file.write(item +'\n')
@@ -1486,6 +1489,7 @@ else:
         @follows(parseGeneContent, getDifferenceMatrix, makeTree)
         @files(input==None, outPrefix + "finish.deleteDir.Success")
         def deleteDir(input, flagFile):
+            # make_sequence_list(outPrefix, full_sequence_list)
             sequence_list_file = open((outPrefix + 'sequence_list.txt') , "w")
             for item in full_sequence_list:
                 sequence_list_file.write(item +'\n')

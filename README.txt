@@ -17,12 +17,13 @@ Note: for Illumina paired-end or single reads, or Ion Torrent single reads.
 IMPORTANT: See config file/instructions for input options/requirements
 
 current version:
-V0.4.7      include post-run report file for: 
+V0.4.7      include post-run report file function for: 
                 recording those read sets failed (and how)
                 when not removed by pipeline by testing
                 (i.e. user-removed reads)
                 and all the other user settings
                 also provides settings for reanalysis/merge runs (continuity checks) (DE)
+            change 'sequence_list.txt' generation to function (DE)
 (???)       change getRepAllGeneCover to report all isolates AND 'passed' isolates (DE)
 
 previous versions:
