@@ -74,3 +74,11 @@ def get_key(name):
         out_number += out
     out_number = out_number*(out+1)
     return out_number
+
+
+# write out the list of sequences to a text file
+def make_sequence_list(directory, sequence_list):
+    sequence_list_file = open((directory + 'sequence_list.txt') , "w")
+    for item in sequence_list:
+        sequence_list_file.write(item +'\n')
+    sequence_list_file.close()

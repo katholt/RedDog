@@ -27,7 +27,7 @@ License: none as yet...
 from ruffus import *
 import os.path
 import shutil
-from pipe_utils import (getValue, getCover, isGenbank, isFasta)
+from pipe_utils import (getValue, getCover, isGenbank, isFasta, make_sequence_list)
 from chrom_info import (chromInfoFasta, chromInfoGenbank)
 import sys
 import glob
@@ -1453,11 +1453,7 @@ if outMerge != "":
         @follows(getDifferenceMatrix, makeTree)
         @files(input==None, outMerge + "finish.deleteDir.Success")
         def deleteDir(input, flagFile):
-            # make_sequence_list(outMerge, full_sequence_list)
-            sequence_list_file = open((outMerge + 'sequence_list.txt') , "w")
-            for item in full_sequence_list:
-                sequence_list_file.write(item +'\n')
-            sequence_list_file.close()
+            make_sequence_list(outMerge, full_sequence_list)
             runStageCheck('deleteDir', flagFile, outPrefix)
 
     else:
@@ -1465,11 +1461,7 @@ if outMerge != "":
         @follows(parseGeneContent, getDifferenceMatrix, makeTree)
         @files(input==None, outMerge + "finish.deleteDir.Success")
         def deleteDir(input, flagFile):
-            # make_sequence_list(outMerge, full_sequence_list)
-            sequence_list_file = open((outMerge + 'sequence_list.txt') , "w")
-            for item in full_sequence_list:
-                sequence_list_file.write(item +'\n')
-            sequence_list_file.close()
+            make_sequence_list(outMerge, full_sequence_list)
             runStageCheck('deleteDir', flagFile, outPrefix)    
 
 else:
@@ -1478,22 +1470,14 @@ else:
         @follows(getDifferenceMatrix, makeTree)
         @files(input==None, outPrefix + "finish.deleteDir.Success")
         def deleteDir(input, flagFile):
-            # make_sequence_list(outPrefix, full_sequence_list)
-            sequence_list_file = open((outPrefix + 'sequence_list.txt') , "w")
-            for item in full_sequence_list:
-                sequence_list_file.write(item +'\n')
-            sequence_list_file.close()
+            make_sequence_list(outPrefix, full_sequence_list)
             runStageCheck('deleteDir', flagFile, outTempPrefix)
     else:
         # delete outTemp directory to finish
         @follows(parseGeneContent, getDifferenceMatrix, makeTree)
         @files(input==None, outPrefix + "finish.deleteDir.Success")
         def deleteDir(input, flagFile):
-            # make_sequence_list(outPrefix, full_sequence_list)
-            sequence_list_file = open((outPrefix + 'sequence_list.txt') , "w")
-            for item in full_sequence_list:
-                sequence_list_file.write(item +'\n')
-            sequence_list_file.close()
+            make_sequence_list(outPrefix, full_sequence_list)
             runStageCheck('deleteDir', flagFile, outTempPrefix)
 
 #end of pipeline
