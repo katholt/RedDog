@@ -1,4 +1,4 @@
-RedDog V0.4.7 010514
+RedDog V0.4.7 110614
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
@@ -17,14 +17,11 @@ Note: for Illumina paired-end or single reads, or Ion Torrent single reads.
 IMPORTANT: See config file/instructions for input options/requirements
 
 current version:
-V0.4.7      include post-run report file function for: 
-                recording those read sets failed (and how)
-                when not removed by pipeline by testing
-                (i.e. user-removed reads)
-                and all the other user settings
-                also provides settings for reanalysis/merge runs (continuity checks) (DE)
-            change 'sequence_list.txt' generation to function (DE)
-(???)       change getRepAllGeneCover to report all isolates AND 'passed' isolates (DE)
+V0.4.7      changed 'sequence_list.txt' generation to function (DE)
+            added stage counts and check before firing last stage deleteDir (DE)
+            added check for isolates/reads with identical names (DE)
+            fixes for errors in mergeRepStats and parseSNPtable (DE)
+                - latter includes fixes in script to improve performance (DE)
 
 previous versions:
 V0.1        converted to vcf output via mpileup instead of depreciated pileup (DE)
@@ -130,7 +127,15 @@ V0.4.6      update to newer version of parseSNPtable.py (DE)
             change behaviour of outgroups - reported (also in outgroups.txt fle) but not removed (DE)
             Editing and reorder of options in config file (DE)
 
-planned update(s) (Post-release) 
+next planned update 
+            include post-run report file function for: 
+                recording those read sets failed (and how)
+                when not removed by pipeline by testing
+                (i.e. user-removed reads)
+                and all the other user settings
+                also provides settings for reanalysis/merge runs (continuity checks) (DE)
+            
+(Post-release) 
             reanalysis without mapping
                 (with/without a GenBank file,
                 restore of read sets removed by user,

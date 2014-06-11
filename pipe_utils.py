@@ -2,6 +2,7 @@
 # First command (splitPath) is from Rubra
 import sys
 import os.path
+import glob
 
 def splitPath(path):
     (prefix, base) = os.path.split(path)
@@ -82,3 +83,10 @@ def make_sequence_list(directory, sequence_list):
     for item in sequence_list:
         sequence_list_file.write(item +'\n')
     sequence_list_file.close()
+    return
+
+# count the number of success files in a folder
+def getSuccessCount(directory):
+    success_files = []
+    success_files = glob.glob(directory + '*.Success')
+    return len(success_files)
