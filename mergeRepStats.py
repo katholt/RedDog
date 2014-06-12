@@ -9,7 +9,8 @@ python mergeRepStats.py <new_replicon_RepStats.tab> sdOutgroupMutiplier [reads_t
 
 Created:	23/10/2012
 Modified:	28/10/2013 to mergeRepStats from mergeStats
-            15/04/2013 changed to produce outgroup.txt file if there are any outgroups to report
+            15/04/2014 changed to produce outgroup.txt file if there are any outgroups to report
+            20/05/2014 fix to outgroup reporting
 
 author: David Edwards
 '''
@@ -88,7 +89,7 @@ for line in output.split("\n"):
             number = float(items[6]) / (float(items[1])/100)
 #            if number < (average - (sd * sdOutgroupMutiplier)) or number > (average + (sd * sdOutgroupMutiplier)):
             if number > (average + (sd * sdOutgroupMutiplier)):
-                outgroups.append(stats[0])
+                outgroups.append(items[0])
                 if items[-1] != "o":
                     finalOutput += line[:-1] + "o\n"
                 else:
@@ -107,7 +108,7 @@ for line in output.split("\n"):
 if outgroups != []:
     outgroup_outfile = open(outgroup_outfile_name,"w")
     for outgroup in outgroups:
-        outgroup_outfile.writeline(outgroup+'\n')
+        outgroup_outfile.write(outgroup+'\n')
     outgroup_outfile.close()
 
 mergeFile = open(mergeFileName, "w")

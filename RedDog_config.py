@@ -1,5 +1,5 @@
 '''
-Configuration file for RedDog.py V0.4.6
+Configuration file for RedDog.py V0.4.7
 -------------------------------
 Essential pipeline variables.
 '''
@@ -454,16 +454,16 @@ stages = {
     },
     "parseSNPs": {
 # large data sets
-#        "walltime": "3:00:00:00",
-#        "memInGB": 16,
-        "command": "wDir=\\\"`pwd`\\\" && cd %dir && python $wDir/parseSNPtable.py -m cons,aln,coding -s %input -c %conservation -r %genbank -q %replicon"
+#        "walltime": "08:00:00",
+#        "memInGB": 8,
+        "command": "python parseSNPtable.py -m cons,aln,coding -s %input -c %conservation -r %genbank -q %replicon -d %dir"
     },
     "parseSNPsNoGBK": {
         "walltime": "00:10:00",
 # large data sets
 #        "walltime": "08:00:00",
-#        "memInGB": 64,
-        "command": "wDir=\\\"`pwd`\\\" && cd %dir && python $wDir/parseSNPtable.py -m cons,aln -s %input -c %conservation"
+#        "memInGB": 8,
+        "command": "python parseSNPtable.py -m cons,aln -s %input -c %conservation -d %dir"
     },
     "makeTree": {
         "walltime": "00:15:00",

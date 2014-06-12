@@ -1,4 +1,4 @@
-RedDog V0.4.6 230414
+RedDog V0.4.7 110614
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
@@ -17,15 +17,11 @@ Note: for Illumina paired-end or single reads, or Ion Torrent single reads.
 IMPORTANT: See config file/instructions for input options/requirements
 
 current version:
-V0.4.6      update to newer version of parseSNPtable.py (DE)
-                - generation of variable and conserved SNP tables (DE)
-                - includes of additional option of setting conservation level (DE)
-            further early checks that include:
-                - name of reference/replicons/isolates won't confuse post-NEXUS analysis (i.e. no '+')
-            fix for when a replicon consensus fasta is missing (rare error) (DE)
-                includes new 'warning' file (DE)
-            change behaviour of outgroups - reported (also in outgroups.txt fle) but not removed (DE)
-            Editing and reorder of options in config file (DE)
+V0.4.7      changed 'sequence_list.txt' generation to function (DE)
+            added stage counts and check before firing last stage deleteDir (DE)
+            added check for isolates/reads with identical names (DE)
+            fixes for errors in mergeRepStats and parseSNPtable (DE)
+                - latter includes fixes in script to improve performance (DE)
 
 previous versions:
 V0.1        converted to vcf output via mpileup instead of depreciated pileup (DE)
@@ -121,24 +117,30 @@ V0.4.5.2    check that replicons all have unique names (DE)
             check that output folder is not empty string (DE)
             splitting of getRepAlleleMatrix to improve performance (DE)
                 includes sequence list generation (start of post-run report)
+V0.4.6      update to newer version of parseSNPtable.py (DE)
+                - generation of variable and conserved SNP tables (DE)
+                - includes of additional option of setting conservation level (DE)
+            further early checks that include:
+                - name of reference/replicons/isolates won't confuse post-NEXUS analysis (i.e. no '+')
+            fix for when a replicon consensus fasta is missing (rare error) (DE)
+                includes new 'warning' file (DE)
+            change behaviour of outgroups - reported (also in outgroups.txt fle) but not removed (DE)
+            Editing and reorder of options in config file (DE)
 
-planned update(s)
-V0.4.7      include post-run report file for: 
+next planned update 
+            include post-run report file function for: 
                 recording those read sets failed (and how)
                 when not removed by pipeline by testing
-                (user-merged and user-removed reads)
-                and the other user settings
-                also provides settings for reanalysis/merge runs (continuity checks)
-            change getRepAllGeneCover to report all isolates AND 'passed' isolates (DE)
-
-V0.4.8 (? - post release ?)  
+                (i.e. user-removed reads)
+                and all the other user settings
+                also provides settings for reanalysis/merge runs (continuity checks) (DE)
+            
+(Post-release) 
             reanalysis without mapping
                 (with/without a GenBank file,
                 restore of read sets removed by user,
                 merging of prior runs,
                 recalculated/user-edited 'stats.txt' option) 
-
-Also To Add (Post-release):
             add merging of bams for both pangenome and phylogenetic mapping
             reanalysis without mapping - merging of bams
             further analysis options 
