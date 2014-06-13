@@ -3,6 +3,9 @@
 import sys
 import os.path
 import glob
+from Bio import SeqIO
+from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
 
 def splitPath(path):
     (prefix, base) = os.path.split(path)
@@ -20,6 +23,28 @@ def isFasta(refFile):
     line = ref_file.readline()
     ref_file.close()
     return line.startswith('>')   
+
+def chromInfoFasta(refFile):
+    # extract the chromosome name and length from the fasta reference
+    chroms = []
+    for record in SeqIO.parse(refFile, "fasta"):
+        name = record.name
+        if name.find('.') != -1:
+            temp_name = name.split('.')
+            name = temp_name[0]
+        chroms.append((name, len(record)))
+    return chroms
+
+def chromInfoGenbank(refFile):
+    # extract the chromosome name and length from the genbank reference
+    chroms = []
+    for record in SeqIO.parse(refFile, "genbank"):
+        name = record.name
+        if name.find('.') != -1:
+            temp_name = name.split('.')
+            name = temp_name[0]
+        chroms.append((name, len(record)))
+    return chroms
 
 # get first value from a simple file
 def getValue(coverFile):
@@ -75,7 +100,6 @@ def get_key(name):
         out_number += out
     out_number = out_number*(out+1)
     return out_number
-
 
 # write out the list of sequences to a text file
 def make_sequence_list(directory, sequence_list):

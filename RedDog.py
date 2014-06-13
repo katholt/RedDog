@@ -1,7 +1,7 @@
 #!/bin/env python
 
 '''
-RedDog V0.4.7 110614
+RedDog V0.4.8 130614
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
@@ -27,12 +27,11 @@ License: none as yet...
 from ruffus import *
 import os.path
 import shutil
-from pipe_utils import (getValue, getCover, isGenbank, isFasta, make_sequence_list, getSuccessCount)
-from chrom_info import (chromInfoFasta, chromInfoGenbank)
 import sys
 import glob
 from rubra.utils import pipeline_options
-from rubra.utils import (runStageCheck, zeroFile, splitPath)
+from rubra.utils import (runStageCheck, splitPath)
+from pipe_utils import (getValue, getCover, isGenbank, isFasta, chromInfoFasta, chromInfoGenbank, make_sequence_list, getSuccessCount)
 
 # determine the reference file,
 # list of sequence files, and list of chromosmes.
@@ -373,6 +372,7 @@ if duplicate_isolate_name != []:
 #Phew! Now that's all set up, we can begin...
 #but first, output run conditions to user and get confirmation to run
 print "\nRedDog V0.4.7 - " + runType + " run\n"
+#print license information
 print "Mapping: " + mapping_out
 if mapping == 'bowtie':
     print "Preset Option: " + bowtie_map_type
@@ -1628,7 +1628,8 @@ else: # refGenbank == False
         else:
             stage_count += len(core_replicons)
 
-print str(stage_count) + " stages will be executed"
+print str(stage_count + 1) + " stages will be executed"
+
 # *** Clean up *** 
 if outMerge != "":
     if refGenbank == False:
@@ -1641,6 +1642,7 @@ if outMerge != "":
                 print "Pipeline Stopped: check for errors in the log files\n"
             else:
                 make_sequence_list(outMerge, full_sequence_list)
+                #print_run_report(details)
                 runStageCheck('deleteDir', flagFile, outPrefix)
 
     else:
@@ -1653,6 +1655,7 @@ if outMerge != "":
                 print "Pipeline Stopped: check for errors in the log files\n"
             else:
                 make_sequence_list(outMerge, full_sequence_list)
+                #print_run_report(details)
                 runStageCheck('deleteDir', flagFile, outPrefix)    
 
 else:
@@ -1666,6 +1669,7 @@ else:
                 print "Pipeline Stopped: check for errors in the log files\n"
             else:
                 make_sequence_list(outPrefix, full_sequence_list)
+                #print_run_report(details)
                 runStageCheck('deleteDir', flagFile, outTempPrefix)
     else:
         # delete outTemp directory to finish
@@ -1677,6 +1681,7 @@ else:
                 print "Pipeline Stopped: check for errors in the log files\n"
             else:
                 make_sequence_list(outPrefix, full_sequence_list)
+                #print_run_report(details)
                 runStageCheck('deleteDir', flagFile, outTempPrefix)
 
 #end of pipeline

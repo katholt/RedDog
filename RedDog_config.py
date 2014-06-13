@@ -1,5 +1,5 @@
 '''
-Configuration file for RedDog.py V0.4.7
+Configuration file for RedDog.py V0.4.8
 -------------------------------
 Essential pipeline variables.
 '''

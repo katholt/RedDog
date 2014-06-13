@@ -1,4 +1,4 @@
-RedDog V0.4.7 110614
+RedDog V0.4.8 130614
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
@@ -17,11 +17,14 @@ Note: for Illumina paired-end or single reads, or Ion Torrent single reads.
 IMPORTANT: See config file/instructions for input options/requirements
 
 current version:
-V0.4.7      changed 'sequence_list.txt' generation to function (DE)
-            added stage counts and check before firing last stage deleteDir (DE)
-            added check for isolates/reads with identical names (DE)
-            fixes for errors in mergeRepStats and parseSNPtable (DE)
-                - latter includes fixes in script to improve performance (DE)
+V0.4.8      include post-run report file function for: 
+                recording those read sets failed (and how)
+                when not removed by pipeline by testing
+                (i.e. user-removed reads) 
+                and all the other user settings (DE)
+            tests for 'output' and 'out_merge_target' folders prior to run (DE)
+            consolidated chrom_info functions into pipe_utils (DE)
+            replicon name check - abilitiy to handle NCBI fasta headers (DE)
 
 previous versions:
 V0.1        converted to vcf output via mpileup instead of depreciated pileup (DE)
@@ -126,15 +129,22 @@ V0.4.6      update to newer version of parseSNPtable.py (DE)
                 includes new 'warning' file (DE)
             change behaviour of outgroups - reported (also in outgroups.txt fle) but not removed (DE)
             Editing and reorder of options in config file (DE)
+V0.4.7      changed 'sequence_list.txt' generation to function (DE)
+            added stage counts and check before firing last stage deleteDir (DE)
+            added check for isolates/reads with identical names (DE)
+            fixes for errors in mergeRepStats and parseSNPtable (DE)
+                - latter includes fixes in script to improve performance (DE)
 
-next planned update 
-            include post-run report file function for: 
-                recording those read sets failed (and how)
-                when not removed by pipeline by testing
-                (i.e. user-removed reads)
-                and all the other user settings
-                also provides settings for reanalysis/merge runs (continuity checks) (DE)
-            
+next planned updates
+V0.4.9      Run report to provide settings for merge runs (continuity checks) (DE)
+            Impliment any changes to run report from user feedback (DE)
+            Improve on all comments in programming (DE)
+            Add licensing information to all scripts (DE)
+
+V0.5        Any fixes from final testing (DE)
+
+V1.0        First Release of RedDog 
+
 (Post-release) 
             reanalysis without mapping
                 (with/without a GenBank file,
