@@ -1,7 +1,7 @@
 #!/bin/env python
 
 '''
-RedDog V0.4.8 130614
+RedDog V0.4.8 160614
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
@@ -25,7 +25,7 @@ Version History: See ReadMe.txt
 License: none as yet...
 '''
 from ruffus import *
-import os.path
+import os
 import shutil
 import sys
 import glob
@@ -58,6 +58,8 @@ if not os.path.exists(reference):
 if isFasta(reference):
     refGenbank = False
     replicons = chromInfoFasta(reference)
+    print replicons
+
 elif isGenbank(reference):
     refGenbank = True
     replicons = chromInfoGenbank(reference)
@@ -85,8 +87,8 @@ if len(replicons)>1:
 
 # check that replicon names in reference do not in contain ":" or "+"
 for i in range(len(replicons)):
-    if replicons[i][0].find(":") != -1 or replicons[i][0].find("+") != -1:
-        print "\nReference has replicon with an illegal character (':' or '+'): " + replicons[i][0]
+    if replicons[i][0].find(":") != -1 or replicons[i][0].find("+") != -1 or replicons[i][0].find("|") != -1:
+        print "\nReference has replicon with an illegal character ('|', ':' or '+'): " + replicons[i][0]
         print "Pipeline Stopped: please change the name of the replicon in the reference\n"
         sys.exit()
 
@@ -299,6 +301,11 @@ if outPrefix == "":
 if outPrefix[-1] != '/':
     outPrefix += '/'
 
+outTempPrefix = outPrefix + 'temp/'
+outSuccessPrefix = outTempPrefix + 'success/'
+outBamPrefix = outPrefix + 'bam/'
+outVcfPrefix = outPrefix + 'vcf/'
+
 try:
     outMerge = pipeline_options.out_merge_target
 except:
@@ -309,10 +316,16 @@ except:
 if outMerge != '':
     if outMerge[-1] != '/':
         outMerge += '/'
+
 if outPrefix == outMerge:
     print "\nOutput folder and out_merge_target for run are the same"
     print "Pipeline Stopped: please check 'output' and 'out_merge_target' in the options file\n"
     sys.exit()
+
+if os.path.isdir(outPrefix) and not(os.path.exists(outSuccessPrefix + "dir.makeDir.Success")):
+    print "\nOutput folder already exists"
+    print "Pipeline Stopped: please change 'output' to a new folder\n"
+    sys.exit()    
 
 try:
     replaceReads = pipeline_options.replaceReads
@@ -320,10 +333,7 @@ except:
     replaceReads = ""
 
 replaceReads = '"'+replaceReads+'"'
-outTempPrefix = outPrefix + 'temp/'
-outSuccessPrefix = outTempPrefix + 'success/'
-outBamPrefix = outPrefix + 'bam/'
-outVcfPrefix = outPrefix + 'vcf/'
+
 if outMerge != "":
     outMergeBam = outMerge + 'bam/'
     outMergeVcf = outMerge + 'vcf/'
@@ -371,7 +381,7 @@ if duplicate_isolate_name != []:
 
 #Phew! Now that's all set up, we can begin...
 #but first, output run conditions to user and get confirmation to run
-print "\nRedDog V0.4.7 - " + runType + " run\n"
+print "\nRedDog V0.4.8 - " + runType + " run\n"
 #print license information
 print "Mapping: " + mapping_out
 if mapping == 'bowtie':

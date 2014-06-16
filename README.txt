@@ -1,4 +1,4 @@
-RedDog V0.4.8 130614
+RedDog V0.4.8 160614
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
@@ -22,9 +22,9 @@ V0.4.8      include post-run report file function for:
                 when not removed by pipeline by testing
                 (i.e. user-removed reads) 
                 and all the other user settings (DE)
-            tests for 'output' and 'out_merge_target' folders prior to run (DE)
+            test for 'output' folder prior to run (DE)
             consolidated chrom_info functions into pipe_utils (DE)
-            replicon name check - abilitiy to handle NCBI fasta headers (DE)
+            further replicon name checking (DE)
 
 previous versions:
 V0.1        converted to vcf output via mpileup instead of depreciated pileup (DE)
