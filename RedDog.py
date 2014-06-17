@@ -1,7 +1,7 @@
 #!/bin/env python
 
 '''
-RedDog V0.4.8 160614
+RedDog V0.4.8 170614
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
@@ -327,16 +327,29 @@ if os.path.isdir(outPrefix) and not(os.path.exists(outSuccessPrefix + "dir.makeD
     print "Pipeline Stopped: please change 'output' to a new folder\n"
     sys.exit()    
 
+if outMerge != "":
+    outMergeBam = outMerge + 'bam/'
+    outMergeVcf = outMerge + 'vcf/'
+    if not(os.path.isdir(outMerge)):
+        print "\nMerge target folder not found"
+        print "Pipeline Stopped: please change 'out_merge_target' to previous output folder\n"
+        sys.exit()
+    else:
+        if not(os.path.isdir(outMergeBam)):
+            print "\nBAM folder not found"
+            print "Pipeline Stopped: check 'out_merge_target' has BAM folder\n"
+            sys.exit()    
+        if not(os.path.isdir(outMergeVcf)):
+            print "\nVCF folder not found"
+            print "Pipeline Stopped: check 'out_merge_target' has VCF folder\n"
+            sys.exit()    
+
 try:
     replaceReads = pipeline_options.replaceReads
 except:
     replaceReads = ""
 
 replaceReads = '"'+replaceReads+'"'
-
-if outMerge != "":
-    outMergeBam = outMerge + 'bam/'
-    outMergeVcf = outMerge + 'vcf/'
 
 try:
     conservation = float(pipeline_options.conservation)
