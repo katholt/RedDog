@@ -1,4 +1,4 @@
-RedDog V0.4.8 160614
+RedDog V0.4.8 260614
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
@@ -23,6 +23,7 @@ V0.4.8      include post-run report file function for:
                 (i.e. user-removed reads) 
                 and all the other user settings (DE)
             test for 'output' folder prior to run (DE)
+            default conservation changed to 0.95 (DE)
             consolidated chrom_info functions into pipe_utils (DE)
             further replicon name checking (DE)
 

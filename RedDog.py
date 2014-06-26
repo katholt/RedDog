@@ -254,6 +254,8 @@ if mapping == 'bowtie':
         print "\nUnrecogised Bowtie2 mapping option"
         print "Pipeline Stopped: please check 'bowtie_map_type' in the options file\n"
         sys.exit()
+else:
+    bowtie_map_type = "-"
 
 try:
     minDepth = pipeline_options.minimum_depth
@@ -316,8 +318,11 @@ except:
     sys.exit()    
 
 if outMerge != '':
+    merge_run = True
     if outMerge[-1] != '/':
         outMerge += '/'
+else:
+    merge_run = False
 
 if outPrefix == outMerge:
     print "\nOutput folder and out_merge_target for run are the same"
@@ -1668,7 +1673,12 @@ if outMerge != "":
                 print "Pipeline Stopped: check for errors in the log files\n"
             else:
                 make_sequence_list(outMerge, full_sequence_list)
-                #print_run_report(details)
+                make_run_report(outMerge, merge_run, version, run_history, 
+                                options.reference, refName, refGenbank, replicons, 
+                                full_sequence_list, readType, runType, core_replicons, 
+                                mapping, bowtie_map_type, replaceReads, minDepth, 
+                                coverFail, depthFail, mappedFail, sdOutgroupMultiplier, 
+                                check_reads_mapped, conservation)
                 runStageCheck('deleteDir', flagFile, outPrefix)
 
     else:
@@ -1681,7 +1691,12 @@ if outMerge != "":
                 print "Pipeline Stopped: check for errors in the log files\n"
             else:
                 make_sequence_list(outMerge, full_sequence_list)
-                #print_run_report(details)
+                make_run_report(outMerge, merge_run, version, run_history, 
+                                options.reference, refName, refGenbank, replicons, 
+                                full_sequence_list, readType, runType, core_replicons, 
+                                mapping, bowtie_map_type, replaceReads, minDepth, 
+                                coverFail, depthFail, mappedFail, sdOutgroupMultiplier, 
+                                check_reads_mapped, conservation)
                 runStageCheck('deleteDir', flagFile, outPrefix)    
 
 else:
@@ -1695,7 +1710,12 @@ else:
                 print "Pipeline Stopped: check for errors in the log files\n"
             else:
                 make_sequence_list(outPrefix, full_sequence_list)
-                #print_run_report(details)
+                make_run_report(outPrefix, merge_run, version, run_history, 
+                                options.reference, refName, refGenbank, replicons, 
+                                full_sequence_list, readType, runType, core_replicons, 
+                                mapping, bowtie_map_type, replaceReads, minDepth, 
+                                coverFail, depthFail, mappedFail, sdOutgroupMultiplier, 
+                                check_reads_mapped, conservation)
                 runStageCheck('deleteDir', flagFile, outTempPrefix)
     else:
         # delete outTemp directory to finish
@@ -1707,7 +1727,12 @@ else:
                 print "Pipeline Stopped: check for errors in the log files\n"
             else:
                 make_sequence_list(outPrefix, full_sequence_list)
-                #print_run_report(details)
+                make_run_report(outPrefix, merge_run, version, run_history, 
+                                options.reference, refName, refGenbank, replicons, 
+                                full_sequence_list, readType, runType, core_replicons, 
+                                mapping, bowtie_map_type, replaceReads, minDepth, 
+                                coverFail, depthFail, mappedFail, sdOutgroupMultiplier, 
+                                check_reads_mapped, conservation)
                 runStageCheck('deleteDir', flagFile, outTempPrefix)
 
 #end of pipeline
