@@ -3,6 +3,7 @@
 import sys
 import os.path
 import glob
+import datetime
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
@@ -114,3 +115,113 @@ def getSuccessCount(directory):
     success_files = []
     success_files = glob.glob(directory + '*.Success')
     return len(success_files)
+
+def make_run_report(out_directory,
+                    merge_run, 
+                    version, 
+                    run_history, 
+                    reference, 
+                    refName, 
+                    refGenbank, 
+                    replicons, 
+                    sequences, 
+                    read_type, 
+                    run_type, 
+                    core_replicons, 
+                    mapping, 
+                    bowtie_preset, 
+                    replace_reads, 
+                    min_depth, 
+                    coverFail, 
+                    depthFail, 
+                    mappedFail, 
+                    sd_out, 
+                    check_reads_mapped, 
+                    conservation):
+
+    timestamp = str(datetime.datetime.now())
+    output = "RedDog " +  version + " " + timestamp +"\n"
+    output += "copyright information to go here...\n\n"
+
+    if merge_run and run_history != "-":
+        output += run_history
+        output += "merge\t" + timestamp + "\t" + len(sequences) + " \n"
+    elif merge_run and run_history = "-":
+        output += "Run History:\nRun\tdate/time\tsequences\n"
+        output += "merge\t" + timestamp + "\t" + len(sequences) +"\n"
+    else:
+        output += "Run\tdate/time\tsequences\n"
+        output += "first\t" + timestamp + "\t" + len(sequences) +"\n"
+
+    output += "\nReference: " + reference + "\n"
+    if refGenbank:
+        format = "Genbank"
+    else:
+        format = "FASTA"
+    output += "Reference Format: " + format + "\n"
+    output += "No. of Replicons: " + str(len(replicons)) + "\n\n"
+
+    output += "No. of Sequences: " + str(len(sequences)) + "\n"
+    if read_type = "PE":
+        type_out = "Illumina paired-end"
+    elif readtype = "SE":
+        type_out = "Illumina single-end"
+    else:
+        type_out = "Ion Torrent single-end"
+
+    output += "Sequence Type: " + type_out + "\n"
+    output += "Sequences: full_sequence_list.txt\n\n"
+    output += "Run type: " + run_type + "\n"
+    if run_type == "pangenome":
+        output += "Core replicon(s):\n"
+        for item in core_replicons:
+            output += item + "\n"
+
+    output += "\nMapping: " + mapping + "\n"
+    if mapping == 'bowtie':
+        output += "bowtie mapping preset: " + bowtie_preset + "\n"
+
+    if merge_run and replace_reads != "-":
+        output += "\nSequences failed by user:\n"
+        for item in replace_reads:
+            output += item + "\n"
+
+    output += "\nFilter Options:\n"
+    output += "Minimum read depth: " + min_depth + "\n"
+    output += "\nPass/fail criteria:\n"
+    output += "Coverage of replicon: " + coverFail + "%\n"
+    output += "Depth of reads: " + depthFail + "\n"
+    if check_reads_mapped != "off":
+        output += "Reads mapped: " + mappedFail + "\n"
+        output += "\nReplicon tested for percent of reads mapped:\n"
+        output += "Replicon\tPercent of total\n"        
+        if len(check_reads_mapped) == 1:
+            output += check_reads_mapped[0] + "\t100"
+        else:
+            found_x = False
+            final_ratio = 1.0
+            list_of_replicons = []
+            ratio_of_replicons = []
+            check_reps = check_reads_mapped.split(',')
+            for item in check_reps:
+                if item != 'x':
+                    if found_x != True:
+                        list_of_replicons.append(item)
+                    else:
+                        ratio_of_replicons.append(float(item))
+                        final_ratio -= float(item)
+                else:
+                    found_x = True
+            ratio_of_replicons.append(final_ratio)
+            for i in range(0, len(list_of_replicons)):
+                output += list_of_replicons[i] + "\t" + str(ratio_of_replicons[i]) + "\n"
+
+    output += "\nAllele conservation ratio: " + str(conservation) + "\n"
+    output += "\nOutgroup calling\nStandard Deviations from mean SNP count: " + str(sd_out) + "\n"
+
+    report_file = open((out_directory + 'run_report.txt') , "w")
+    report_file.write(output)
+    print "writing run report to " + out_directory + "run_report.txt"
+    report_file.close()
+
+    return

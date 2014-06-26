@@ -244,15 +244,15 @@ check_reads_mapped = ""
 '''
 During allele matrix filtering, you can set the conservation level for missing alleles
 this is a ratio between 1.0 (100% conservation - remove all SNPs with even one missing allele call)
-and 0.0 (0% conservation - remove no SNPs). By default, the pipeline produces the 100% and
-0% conservation matrices, with downstream analysis on the 100% matrix. 
+and 0.0 (0% conservation - remove no SNPs). By default, the pipeline produces the 95% and
+0% conservation matrices, with downstream analysis on the 95% matrix. 
 
-By entering a different conservation level (e.g. 0.95), both the 100% and 0% matrices 
-will still be produced, but so too will the 95% matrix (in this example), 
+By entering a different conservation level (e.g. 0.85), both the 95% and 0% matrices 
+will still be produced, but so too will the 85% matrix (in this example), 
 and downsteam analysis carried out on this matrix.
 
 '''
-conservation = 1.0
+conservation = 0.95
 
 '''
 Rubra pipeline variables (do not delete!):

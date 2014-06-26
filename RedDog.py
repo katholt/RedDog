@@ -1,7 +1,7 @@
 #!/bin/env python
 
 '''
-RedDog V0.4.8 170614
+RedDog V0.4.8 260614
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
@@ -31,7 +31,9 @@ import sys
 import glob
 from rubra.utils import pipeline_options
 from rubra.utils import (runStageCheck, splitPath)
-from pipe_utils import (getValue, getCover, isGenbank, isFasta, chromInfoFasta, chromInfoGenbank, make_sequence_list, getSuccessCount)
+from pipe_utils import (getValue, getCover, isGenbank, isFasta, chromInfoFasta, chromInfoGenbank, make_sequence_list, getSuccessCount, make_run_report)
+
+version = "V0.4.8"
 
 # determine the reference file,
 # list of sequence files, and list of chromosmes.
@@ -354,7 +356,7 @@ replaceReads = '"'+replaceReads+'"'
 try:
     conservation = float(pipeline_options.conservation)
 except:
-    conservation = 1.0
+    conservation = 0.95
 
 if conservation > 1.0 or conservation < 0.0:
     print "\n'conservation' set to value outside parameters"
@@ -394,7 +396,7 @@ if duplicate_isolate_name != []:
 
 #Phew! Now that's all set up, we can begin...
 #but first, output run conditions to user and get confirmation to run
-print "\nRedDog V0.4.8 - " + runType + " run\n"
+print "\nRedDog " + version + " - " + runType + " run\n"
 #print license information
 print "Mapping: " + mapping_out
 if mapping == 'bowtie':
@@ -442,6 +444,7 @@ while start_run == False:
 
 print "\nStarting pipeline..."
 stage_count = 0
+
 # Create temp and other output subfolders
 @files(input==None, outSuccessPrefix + "dir.makeDir.Success")
 def makeDir(input, flagFile):
@@ -1178,13 +1181,13 @@ if refGenbank == True:
             stage_count += len(core_replicons)
 
 
-        if conservation != 1.0:
-            @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outMerge + r"\2_alleles_var_cons1.0.csv", outSuccessPrefix + r"\2_alleles.parseSNPs_100.Success"])
-            def parseSNPs_100(input, outputs):
+        if conservation != 0.95:
+            @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outMerge + r"\2_alleles_var_cons0.95.csv", outSuccessPrefix + r"\2_alleles.parseSNPs_95.Success"])
+            def parseSNPs_95(input, outputs):
                 output, flagFile = outputs
                 (prefix, name, ext) = splitPath(input)
                 replicon = name[len(refName)+1:-8]
-                conservation_temp = 1.0
+                conservation_temp = 0.95
                 runStageCheck('parseSNPs', flagFile, input, str(conservation_temp), genbank, replicon, outMerge)
             if runType == "phylogeny":
                 stage_count += len(replicons)
@@ -1192,7 +1195,7 @@ if refGenbank == True:
                 stage_count += len(core_replicons)
             
             # create distance matrices based on pair-wise differences in SNPs
-            @follows(parseSNPs_100)
+            @follows(parseSNPs_95)
             @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_SNP_diff.nxs", outSuccessPrefix + r"\2_alleles.getDifferenceMatrix.Success"])        
             def getDifferenceMatrix(inputs, outputs):
                 output, flagFile = outputs
@@ -1333,9 +1336,9 @@ if refGenbank == True:
         else:
             stage_count += len(core_replicons)
 
-        if conservation != 1.0:
-            @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outPrefix + r"\2_alleles_var_cons1.0.csv", outSuccessPrefix + r"\2_alleles.parseSNPs_100.Success"])
-            def parseSNPs_100(input, outputs):
+        if conservation != 0.95:
+            @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outPrefix + r"\2_alleles_var_cons0.95.csv", outSuccessPrefix + r"\2_alleles.parseSNPs_95.Success"])
+            def parseSNPs_95(input, outputs):
                 output, flagFile = outputs
                 (prefix, name, ext) = splitPath(input)
                 replicon = name[len(refName)+1:-8]
@@ -1347,7 +1350,7 @@ if refGenbank == True:
                 stage_count += len(core_replicons)
             
             # create distance matrices based on pair-wise differences in SNPs
-            @follows(parseSNPs_100)
+            @follows(parseSNPs_95)
             @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_SNP_diff.nxs", outSuccessPrefix + r"\2_alleles.getDifferenceMatrix.Success"])        
             def getDifferenceMatrix(inputs, outputs):
                 output, flagFile = outputs
@@ -1477,11 +1480,11 @@ else: # refGenbank == False
         else:
             stage_count += len(core_replicons)
 
-        if conservation != 1.0:
-            @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outMerge + r"\2_alleles_var_cons1.0.csv", outSuccessPrefix + r"\2_alleles.parseSNPsNoGBK_100.Success"])
-            def parseSNPsNoGBK_100(input, outputs):
+        if conservation != 0.95:
+            @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outMerge + r"\2_alleles_var_cons0.95.csv", outSuccessPrefix + r"\2_alleles.parseSNPsNoGBK_95.Success"])
+            def parseSNPsNoGBK_95(input, outputs):
                 output, flagFile = outputs
-                conservation_temp = 1.0
+                conservation_temp = 0.95
                 runStageCheck('parseSNPsNoGBK', flagFile, input, str(conservation_temp), outMerge)
             if runType == "phylogeny":
                 stage_count += len(replicons)
@@ -1489,7 +1492,7 @@ else: # refGenbank == False
                 stage_count += len(core_replicons)
             
             # create distance matrices based on pair-wise differences in SNPs
-            @follows(parseSNPsNoGBK_100)
+            @follows(parseSNPsNoGBK_95)
             @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_SNP_diff.nxs", outSuccessPrefix + r"\2_alleles.getDifferenceMatrix.Success"])        
             def getDifferenceMatrix(inputs, outputs):
                 output, flagFile = outputs
@@ -1604,11 +1607,11 @@ else: # refGenbank == False
         else:
             stage_count += len(core_replicons)
 
-        if conservation != 1.0:
-            @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outPrefix + r"\2_alleles_var_cons1.0.csv", outSuccessPrefix + r"\2_alleles.parseSNPsNoGBK_100.Success"])
+        if conservation != 0.95:
+            @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outPrefix + r"\2_alleles_var_cons0.95.csv", outSuccessPrefix + r"\2_alleles.parseSNPsNoGBK_95.Success"])
             def parseSNPsNoGBK_100(input, outputs):
                 output, flagFile = outputs
-                conservation_temp = 1.0
+                conservation_temp = 0.95
                 runStageCheck('parseSNPsNoGBK', flagFile, input, str(conservation_temp), outPrefix)
             if runType == "phylogeny":
                 stage_count += len(replicons)
@@ -1616,7 +1619,7 @@ else: # refGenbank == False
                 stage_count += len(core_replicons)
             
             # create distance matrices based on pair-wise differences in SNPs
-            @follows(parseSNPsNoGBK_100)
+            @follows(parseSNPsNoGBK_95)
             @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_SNP_diff.nxs", outSuccessPrefix + r"\2_alleles.getDifferenceMatrix.Success"])        
             def getDifferenceMatrix(inputs, outputs):
                 output, flagFile = outputs
