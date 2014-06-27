@@ -1,7 +1,7 @@
 #!/bin/env python
 
 '''
-RedDog V0.4.8 260614
+RedDog V0.4.8 270614
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
@@ -918,7 +918,6 @@ if runType == "pangenome":
     @follows(deriveRepStats)
     @files(inputByCoreRep)
     def collateRepStats(input, output, refName, exampleRepCover, repliconName, flagFile):
-        stage_count += 1
         runStageCheck('collateRepStats', flagFile, refName, exampleRepCover, repliconName, sdOutgroupMultiplier, runType)
     stage_count += len(core_replicons) 
 

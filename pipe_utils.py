@@ -145,12 +145,12 @@ def make_run_report(out_directory,
 
     if merge_run and run_history != "-":
         output += run_history
-        output += "merge\t" + timestamp + "\t" + len(sequences) + " \n"
+        output += "merge\t" + timestamp + "\t" + len(sequences) + "\n"
     elif merge_run and run_history = "-":
         output += "Run History:\nRun\tdate/time\tsequences\n"
         output += "merge\t" + timestamp + "\t" + len(sequences) +"\n"
     else:
-        output += "Run\tdate/time\tsequences\n"
+        output += "Run History:\nRun\tdate/time\tsequences\n"
         output += "first\t" + timestamp + "\t" + len(sequences) +"\n"
 
     output += "\nReference: " + reference + "\n"
@@ -160,6 +160,10 @@ def make_run_report(out_directory,
         format = "FASTA"
     output += "Reference Format: " + format + "\n"
     output += "No. of Replicons: " + str(len(replicons)) + "\n\n"
+    if run_type == "pangenome":
+        output += "Core replicon(s):\n"
+        for item in core_replicons:
+            output += item + "\n"
 
     output += "No. of Sequences: " + str(len(sequences)) + "\n"
     if read_type = "PE":
@@ -170,12 +174,8 @@ def make_run_report(out_directory,
         type_out = "Ion Torrent single-end"
 
     output += "Sequence Type: " + type_out + "\n"
-    output += "Sequences: full_sequence_list.txt\n\n"
+    output += "Sequences: "+out_directory+"full_sequence_list.txt\n\n"
     output += "Run type: " + run_type + "\n"
-    if run_type == "pangenome":
-        output += "Core replicon(s):\n"
-        for item in core_replicons:
-            output += item + "\n"
 
     output += "\nMapping: " + mapping + "\n"
     if mapping == 'bowtie':
@@ -219,9 +219,73 @@ def make_run_report(out_directory,
     output += "\nAllele conservation ratio: " + str(conservation) + "\n"
     output += "\nOutgroup calling\nStandard Deviations from mean SNP count: " + str(sd_out) + "\n"
 
-    report_file = open((out_directory + 'run_report.txt') , "w")
+    #results by replicon
+    if run_type == "pangenome":
+        for replicon in core_replicons:
+            output += "\nReplicon: " + replicon + "\n"
+            stats_file = open((out_directory + refName + '_' + replicon +'_Repstats.txt') , "rU")
+            stats_lines = stats_file.readlines()
+            failed = 0
+            for stats_line in stats_lines:
+                if not stats_line.startswith('Isol'):
+                    if stats_line.endswith('f\n'):
+                        failed += 1
+            if failed == 0:
+                output += "None of the " +str(len(sequences)) +" isolates failed\n"
+            else:
+                output += "Of the " +str(len(sequences)) +" isolates, " + str(failed) + " failed\n"
+
+            warnings = []
+            warnings = glob.glob(out_directory + refName + '_*_warning.txt')
+            if len(warnings) == 1:
+                output += "\nThere is one consensus warning file for " + replicon + ":\n"
+                output += warnings[0] + "\n"
+            elif len(warnings) > 1:
+                output += "\nThere are " + str(len(warnings)) " consensus warning files for " + replicon + ":\n"
+                for warning in warnings:
+                    output += warning + "\n"
+
+    else:
+        for replicon in replicons:
+            output += "\nReplicon: " + replicon + "\n"
+            stats_file = open((out_directory + refName + '_' + replicon +'_Repstats.txt') , "rU")
+            stats_lines = stats_file.readlines()
+            failed = 0
+            for stats_line in stats_lines:
+                if not stats_line.startswith('Isol'):
+                    if stats_line.endswith('f\n'):
+                        failed += 1
+            if failed == 0:
+                output += "None of the " + str(len(sequences)) +" isolates failed\n"
+            else:
+                output += "Of the " + str(len(sequences)) +" isolates, " + str(failed) + " failed\n"
+
+            outgroup_filename = out_directory + reference_name + '_' + replicon +  '_outgroups.txt'
+            if os.path.exists(outgroup_filename):
+                outgroup_file = open(outgroup_filename, "rU")
+                outgroups = outgroup_file.readlines()
+                if outgroups == 1:
+                    output += "\nOutgroup:\n" + outgroups[0] + "\n"
+                else:
+                    output += "Outgroups (" +str(len(outgroups)) + ")\n"
+                    for outgroup in outgroups:
+                        output += outgroup
+                    output += "\n"
+
+            warnings = []
+            warnings = glob.glob(out_directory + refName + '_*_warning.txt')
+            if len(warnings) == 1:
+                output += "\nThere is one consensus warning file for " + replicon + ":\n"
+                output += warnings[0] + "\n"
+            elif len(warnings) > 1:
+                output += "\nThere are " + str(len(warnings)) " consensus warning files for " + replicon + ":\n"
+                for warning in warnings:
+                    output += warning + "\n"
+
+
+    report_file = open((out_directory + refName + '_run_report.txt') , "w")
     report_file.write(output)
-    print "writing run report to " + out_directory + "run_report.txt"
+    print "writing run report to " + out_directory + refName + "_run_report.txt"
     report_file.close()
 
     return
