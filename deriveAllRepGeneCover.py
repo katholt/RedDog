@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+#
 '''
 deriveAllRepGeneCover.py
 
@@ -9,7 +11,7 @@ example:
 python deriveAllGeneCover.py <outputDir> ref.genbank <coverfile>
 
 Created:  27/05/2013
-Modified: 03/10/2013
+Last Modified: 01/07/2014
 author: David Edwards
 '''
 import sys, glob
@@ -38,11 +40,12 @@ for record in records:
     feature_count = 0
     for f in record.features:
         if f.type == "CDS":
+#        if f.type == "misc_feature":
             feature_count += 1
             start = f.location.nofuzzy_start
             stop = f.location.nofuzzy_end
             geneList.append([record.name, start, stop, 0, 0])
-            sysid = record.name+";"+str(start)+'-'+str(stop)
+            sysid = record.name+";"+str(start+1)+'-'+str(stop+1)
             f.qualifiers['sysid'] = [sysid]
             if 'locus_tag' in f.qualifiers:
                 locus_tag = f.qualifiers['locus_tag'][0]
