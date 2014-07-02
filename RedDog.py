@@ -1,7 +1,7 @@
 #!/bin/env python
 
 '''
-RedDog V0.4.8 270614
+RedDog V0.4.8 030714
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
@@ -321,8 +321,13 @@ if outMerge != '':
     merge_run = True
     if outMerge[-1] != '/':
         outMerge += '/'
+    if os.path.exists(outMerge + refName + '_run_report.txt'):
+        run_history = get_run_report(outMerge + refName + '_run_report.txt')
+    else:
+        run_history = '-'
 else:
     merge_run = False
+    run_history = '-'
 
 if outPrefix == outMerge:
     print "\nOutput folder and out_merge_target for run are the same"

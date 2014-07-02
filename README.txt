@@ -1,4 +1,4 @@
-RedDog V0.4.8 270614
+RedDog V0.4.8 030714
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
@@ -18,11 +18,12 @@ IMPORTANT: See config file/instructions for input options/requirements
 
 current version:
 V0.4.8      include post-run report file function (DE)
+            include pre-run for previous run report - merge run (DE)
             test for 'output' folder prior to run (DE)
             default conservation changed to 0.95 (DE)
             consolidated chrom_info functions into pipe_utils (DE)
             further replicon name checking (DE)
-            changes to patterns for input sequences (DE)
+            fix for gene 'tags' when missing (DE)
 
 previous versions:
 V0.1        converted to vcf output via mpileup instead of depreciated pileup (DE)
@@ -138,7 +139,7 @@ V0.4.9      Run report to provide settings for merge runs (continuity checks) (D
             Impliment any changes to run report from user feedback (DE)
             Improve on all comments in programming (DE)
             Add licensing information to all scripts (DE)
-            Further changes to input sequences pattern recognition (DE)
+            Changes to input sequences pattern recognition (DE)
 
 V0.5        Any fixes from final testing (DE)
 

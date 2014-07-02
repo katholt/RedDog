@@ -287,5 +287,21 @@ def make_run_report(out_directory,
     report_file.write(output)
     print "writing run report to " + out_directory + refName + "_run_report.txt"
     report_file.close()
-
     return
+
+def get_run_report(run_report):
+    report_file = open(run_report, "rU")
+    lines = report_file.readlines()
+    keep = False
+    history = ''
+    for line in lines:
+        if line.startswith('Run History:'):
+            keep = True:
+        if line.rstrip() == '':
+            keep = False:
+        while keep = True:
+            history += line
+    return history
+
+
+    
