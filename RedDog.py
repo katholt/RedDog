@@ -31,7 +31,7 @@ import sys
 import glob
 from rubra.utils import pipeline_options
 from rubra.utils import (runStageCheck, splitPath)
-from pipe_utils import (getValue, getCover, isGenbank, isFasta, chromInfoFasta, chromInfoGenbank, make_sequence_list, getSuccessCount, make_run_report)
+from pipe_utils import (getValue, getCover, isGenbank, isFasta, chromInfoFasta, chromInfoGenbank, make_sequence_list, getSuccessCount, make_run_report, get_run_report)
 
 version = "V0.4.8"
 
@@ -140,6 +140,7 @@ for repliconName, repliconLength in replicons:
     if int(repliconLength) > longest_replicon_length:
         longest_replicon_length = int(repliconLength)
 
+core_replicons = []
 if runType == "pangenome":
     if core_replicon == "":
         for repliconName, repliconLength in replicons:
@@ -357,11 +358,12 @@ if outMerge != "":
             sys.exit()    
 
 try:
-    replaceReads = pipeline_options.replaceReads
+    if pipeline_options.replaceReads != "":
+        replaceReads = '"'+pipeline_options.replaceReads+'"'
+    else:
+        replaceReads = ""
 except:
     replaceReads = ""
-
-replaceReads = '"'+replaceReads+'"'
 
 try:
     conservation = float(pipeline_options.conservation)
@@ -1678,7 +1680,7 @@ if outMerge != "":
             else:
                 make_sequence_list(outMerge, full_sequence_list)
                 make_run_report(outMerge, merge_run, version, run_history, 
-                                options.reference, refName, refGenbank, replicons, 
+                                pipeline_options.reference, refName, refGenbank, replicons, 
                                 full_sequence_list, readType, runType, core_replicons, 
                                 mapping, bowtie_map_type, replaceReads, minDepth, 
                                 coverFail, depthFail, mappedFail, sdOutgroupMultiplier, 
@@ -1696,7 +1698,7 @@ if outMerge != "":
             else:
                 make_sequence_list(outMerge, full_sequence_list)
                 make_run_report(outMerge, merge_run, version, run_history, 
-                                options.reference, refName, refGenbank, replicons, 
+                                pipeline_options.reference, refName, refGenbank, replicons, 
                                 full_sequence_list, readType, runType, core_replicons, 
                                 mapping, bowtie_map_type, replaceReads, minDepth, 
                                 coverFail, depthFail, mappedFail, sdOutgroupMultiplier, 
@@ -1715,7 +1717,7 @@ else:
             else:
                 make_sequence_list(outPrefix, full_sequence_list)
                 make_run_report(outPrefix, merge_run, version, run_history, 
-                                options.reference, refName, refGenbank, replicons, 
+                                pipeline_options.reference, refName, refGenbank, replicons, 
                                 full_sequence_list, readType, runType, core_replicons, 
                                 mapping, bowtie_map_type, replaceReads, minDepth, 
                                 coverFail, depthFail, mappedFail, sdOutgroupMultiplier, 
@@ -1732,7 +1734,7 @@ else:
             else:
                 make_sequence_list(outPrefix, full_sequence_list)
                 make_run_report(outPrefix, merge_run, version, run_history, 
-                                options.reference, refName, refGenbank, replicons, 
+                                pipeline_options.reference, refName, refGenbank, replicons, 
                                 full_sequence_list, readType, runType, core_replicons, 
                                 mapping, bowtie_map_type, replaceReads, minDepth, 
                                 coverFail, depthFail, mappedFail, sdOutgroupMultiplier, 

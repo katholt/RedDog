@@ -279,7 +279,7 @@ pipeline = {
     "logDir": "log",
     "logFile": "pipeline.log",
     "style": "print",
-    "procs": 100,
+    "procs": 30,
     "paired": True,
     "verbose": 1,
     "end": ["deleteDir"],

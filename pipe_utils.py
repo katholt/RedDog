@@ -145,13 +145,13 @@ def make_run_report(out_directory,
 
     if merge_run and run_history != "-":
         output += run_history
-        output += "merge\t" + timestamp + "\t" + len(sequences) + "\n"
-    elif merge_run and run_history = "-":
+        output += "merge\t" + timestamp + "\t" + str(len(sequences)) + "\n"
+    elif merge_run and run_history == "-":
         output += "Run History:\nRun\tdate/time\tsequences\n"
-        output += "merge\t" + timestamp + "\t" + len(sequences) +"\n"
+        output += "merge\t" + timestamp + "\t" + str(len(sequences)) +"\n"
     else:
         output += "Run History:\nRun\tdate/time\tsequences\n"
-        output += "first\t" + timestamp + "\t" + len(sequences) +"\n"
+        output += "first\t" + timestamp + "\t" + str(len(sequences)) +"\n"
 
     output += "\nReference: " + reference + "\n"
     if refGenbank:
@@ -166,9 +166,9 @@ def make_run_report(out_directory,
             output += item + "\n"
 
     output += "No. of Sequences: " + str(len(sequences)) + "\n"
-    if read_type = "PE":
+    if read_type == "PE":
         type_out = "Illumina paired-end"
-    elif readtype = "SE":
+    elif readtype == "SE":
         type_out = "Illumina single-end"
     else:
         type_out = "Ion Torrent single-end"
@@ -181,18 +181,18 @@ def make_run_report(out_directory,
     if mapping == 'bowtie':
         output += "bowtie mapping preset: " + bowtie_preset + "\n"
 
-    if merge_run and replace_reads != "-":
+    if merge_run and replace_reads != []:
         output += "\nSequences failed by user:\n"
         for item in replace_reads:
             output += item + "\n"
 
     output += "\nFilter Options:\n"
-    output += "Minimum read depth: " + min_depth + "\n"
+    output += "Minimum read depth: " + str(min_depth) + "\n"
     output += "\nPass/fail criteria:\n"
-    output += "Coverage of replicon: " + coverFail + "%\n"
-    output += "Depth of reads: " + depthFail + "\n"
+    output += "Coverage of replicon: " + str(coverFail) + "%\n"
+    output += "Depth of reads: " + str(depthFail) + "\n"
     if check_reads_mapped != "off":
-        output += "Reads mapped: " + mappedFail + "\n"
+        output += "Reads mapped: " + str(mappedFail) + "%\n"
         output += "\nReplicon tested for percent of reads mapped:\n"
         output += "Replicon\tPercent of total\n"        
         if len(check_reads_mapped) == 1:
@@ -214,7 +214,7 @@ def make_run_report(out_directory,
                     found_x = True
             ratio_of_replicons.append(final_ratio)
             for i in range(0, len(list_of_replicons)):
-                output += list_of_replicons[i] + "\t" + str(ratio_of_replicons[i]) + "\n"
+                output += list_of_replicons[i] + "\t" + str(ratio_of_replicons[i]*100) + "\n"
 
     output += "\nAllele conservation ratio: " + str(conservation) + "\n"
     output += "\nOutgroup calling\nStandard Deviations from mean SNP count: " + str(sd_out) + "\n"
@@ -241,14 +241,14 @@ def make_run_report(out_directory,
                 output += "\nThere is one consensus warning file for " + replicon + ":\n"
                 output += warnings[0] + "\n"
             elif len(warnings) > 1:
-                output += "\nThere are " + str(len(warnings)) " consensus warning files for " + replicon + ":\n"
+                output += "\nThere are " + str(len(warnings)) + " consensus warning files for " + replicon + ":\n"
                 for warning in warnings:
                     output += warning + "\n"
 
     else:
         for replicon in replicons:
-            output += "\nReplicon: " + replicon + "\n"
-            stats_file = open((out_directory + refName + '_' + replicon +'_Repstats.txt') , "rU")
+            output += "\nReplicon: " + replicon[0] + "\n"
+            stats_file = open((out_directory + refName + '_' + replicon[0] +'_RepStats.txt') , "rU")
             stats_lines = stats_file.readlines()
             failed = 0
             for stats_line in stats_lines:
@@ -260,7 +260,7 @@ def make_run_report(out_directory,
             else:
                 output += "Of the " + str(len(sequences)) +" isolates, " + str(failed) + " failed\n"
 
-            outgroup_filename = out_directory + reference_name + '_' + replicon +  '_outgroups.txt'
+            outgroup_filename = out_directory + refName + '_' + replicon[0] +  '_outgroups.txt'
             if os.path.exists(outgroup_filename):
                 outgroup_file = open(outgroup_filename, "rU")
                 outgroups = outgroup_file.readlines()
@@ -278,7 +278,7 @@ def make_run_report(out_directory,
                 output += "\nThere is one consensus warning file for " + replicon + ":\n"
                 output += warnings[0] + "\n"
             elif len(warnings) > 1:
-                output += "\nThere are " + str(len(warnings)) " consensus warning files for " + replicon + ":\n"
+                output += "\nThere are " + str(len(warnings)) + " consensus warning files for " + replicon + ":\n"
                 for warning in warnings:
                     output += warning + "\n"
 
@@ -296,10 +296,10 @@ def get_run_report(run_report):
     history = ''
     for line in lines:
         if line.startswith('Run History:'):
-            keep = True:
-        if line.rstrip() == '':
-            keep = False:
-        while keep = True:
+            keep = True
+        if line == '\n':
+            keep = False
+        if keep == True:
             history += line
     return history
 
