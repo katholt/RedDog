@@ -6,10 +6,22 @@ Essential pipeline variables.
 reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_plasmid.gbk"
 
 sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/*.fastq.gz"
+#sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/extra/*.fastq.gz"
 
-output = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
+output = "/scratch/VR0082/workspace/mapping/v048_test"
+#output = "/scratch/VR0082/workspace/mapping/v048_test_again"
 
 out_merge_target = ""
+#out_merge_target = "/scratch/VR0082/workspace/mapping/v048_test"
+
+
+#reference = "/vlsci/VR0082/shared/data/salmonella/kentucky/hello_pasteur/plasmids/PlasmidsTopHalf_forMapping.gbk"
+
+#sequences = ["/vlsci/VR0082/shared/data/salmonella/kentucky/hello_pasteur/reads/*.fastq.gz","/vlsci/VR0082/shared/data/salmonella/kentucky/refgenomes/broad_rawdata/SKentucky_01922_Illumina/*.fastq.gz"]
+
+#output = "/scratch/VR0082/workspace/mapping/TopPlasmids_RedDog48_fullslow/"
+
+#out_merge_target = ""
 
 '''
 Notes:
@@ -104,8 +116,8 @@ The user can override the run type, by setting it below. The run types are descr
 more detail in the instructions.
 
 '''
-runType = ""
-#runType = "pangenome"
+#runType = ""
+runType = "pangenome"
 #runType = "phylogeny"
 
 '''
@@ -186,11 +198,12 @@ bowtie_map_type = "--sensitive-local"
 You can also "remove" any reads: these will be marked as "failed"
 This only works during a "merge run"
 eg. replace a set of reads with their qc-ed version
-    replaceReads ="'read_set_2', 'read_set_3'"
+    replaceReads ="read_set_2,read_set_3,read_set_24"
 
 '''
 replaceReads = ""
-#replaceReads = "'pool8_tag1', 'pool8_tag2'"
+#replaceReads = "pool8_tag1"
+#replaceReads = "pool1_tag1,pool1_tag3"
 
 '''
 Minimum depth of reads for variant filtering
@@ -233,7 +246,7 @@ and rep3 is 25% of the total genome (by default).
 Note: there must be no spaces in the list.
 
 '''
-check_reads_mapped = ""
+check_reads_mapped = "off"
 #check_reads_mapped = "off"
 #check_reads_mapped = "rep_1"
 #check_reads_mapped = "rep_1,rep_2,x,0.6"
@@ -477,4 +490,3 @@ stages = {
         "command": "rm -rf %directory"
     }
 }
-    

@@ -1,4 +1,4 @@
-RedDog V0.4.8 030714
+RedDog V0.4.8 040714
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
@@ -124,7 +124,7 @@ V0.4.6      update to newer version of parseSNPtable.py (DE)
                 - includes of additional option of setting conservation level (DE)
             further early checks that include:
                 - name of reference/replicons/isolates won't confuse post-NEXUS analysis (i.e. no '+')
-            fix for when a replicon consensus fasta is missing (rare error) (DE)
+            fix for when a replicon consensus fasta is missing (DE)
                 includes new 'warning' file (DE)
             change behaviour of outgroups - reported (also in outgroups.txt fle) but not removed (DE)
             Editing and reorder of options in config file (DE)
@@ -135,15 +135,17 @@ V0.4.7      changed 'sequence_list.txt' generation to function (DE)
                 - latter includes fixes in script to improve performance (DE)
 
 next planned updates
-V0.4.9      Run report to provide settings for merge runs (continuity checks) (DE)
+V0.4.9      spliting of intermediate files in temp folder to improve stability for large runs (DE)
+
+V0.5        Run report to provide settings for merge runs (continuity checks) (DE)
             Impliment any changes to run report from user feedback (DE)
             Improve on all comments in programming (DE)
             Add licensing information to all scripts (DE)
             Changes to input sequences pattern recognition (DE)
 
-V0.5        Any fixes from final testing (DE)
+V0.5.1      Any fixes from final testing (DE)
 
-V1.0        First Release of RedDog 
+V1.0        First Public Release of RedDog 
 
 (Post-release) 
             reanalysis without mapping

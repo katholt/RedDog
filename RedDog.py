@@ -359,7 +359,7 @@ if outMerge != "":
 
 try:
     if pipeline_options.replaceReads != "":
-        replaceReads = '"'+pipeline_options.replaceReads+'"'
+        replaceReads = pipeline_options.replaceReads
     else:
         replaceReads = "-"
 except:

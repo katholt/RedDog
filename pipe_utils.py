@@ -159,13 +159,13 @@ def make_run_report(out_directory,
     else:
         format = "FASTA"
     output += "Reference Format: " + format + "\n"
-    output += "No. of Replicons: " + str(len(replicons)) + "\n\n"
+    output += "No. of Replicons: " + str(len(replicons)) + "\n"
     if run_type == "pangenome":
         output += "Core replicon(s):\n"
         for item in core_replicons:
             output += item + "\n"
 
-    output += "No. of Sequences: " + str(len(sequences)) + "\n"
+    output += "\nNo. of Sequences: " + str(len(sequences)) + "\n"
     if read_type == "PE":
         type_out = "Illumina paired-end"
     elif readtype == "SE":
@@ -174,16 +174,16 @@ def make_run_report(out_directory,
         type_out = "Ion Torrent single-end"
 
     output += "Sequence Type: " + type_out + "\n"
-    output += "Sequences: "+out_directory+"full_sequence_list.txt\n\n"
+    output += "Sequences: "+out_directory+"full_sequence_list.txt\n"
     output += "Run type: " + run_type + "\n"
 
-    output += "\nMapping: " + mapping + "\n"
+    output += "Mapping: " + mapping + "\n"
     if mapping == 'bowtie':
         output += "bowtie mapping preset: " + bowtie_preset + "\n"
 
     if merge_run and replace_reads != '-':
         output += "\nSequences failed by user:\n"
-        for name in replace_read.split(" "):
+        for name in replace_reads.split(','):
             output += name + "\n"
 
     output += "\nFilter Options:\n"
@@ -223,7 +223,7 @@ def make_run_report(out_directory,
     if run_type == "pangenome":
         for replicon in core_replicons:
             output += "\nReplicon: " + replicon + "\n"
-            stats_file = open((out_directory + refName + '_' + replicon +'_Repstats.txt') , "rU")
+            stats_file = open((out_directory + refName + '_' + replicon +'_RepStats.txt') , "rU")
             stats_lines = stats_file.readlines()
             failed = 0
             for stats_line in stats_lines:
@@ -280,7 +280,6 @@ def make_run_report(out_directory,
                 output += "There are " + str(len(warnings)) + " consensus warning files for " + replicon + ":\n"
                 for warning in warnings:
                     output += warning + "\n"
-
 
     report_file = open((out_directory + refName + '_run_report.txt') , "w")
     report_file.write(output)
