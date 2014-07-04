@@ -361,9 +361,9 @@ try:
     if pipeline_options.replaceReads != "":
         replaceReads = '"'+pipeline_options.replaceReads+'"'
     else:
-        replaceReads = ""
+        replaceReads = "-"
 except:
-    replaceReads = ""
+    replaceReads = "-"
 
 try:
     conservation = float(pipeline_options.conservation)

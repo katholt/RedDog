@@ -42,7 +42,7 @@ for line in inFile:
         if items[-1] != "f":
                 # if the read appears on the list
                 # change it to a fail...
-            if replace != "":
+            if replace != "-":
                 for name in replace.split(" "):
                     if (items[0]) == name:
                         line = line[:-2] + "f\n"

@@ -181,10 +181,10 @@ def make_run_report(out_directory,
     if mapping == 'bowtie':
         output += "bowtie mapping preset: " + bowtie_preset + "\n"
 
-    if merge_run and replace_reads != []:
+    if merge_run and replace_reads != '-':
         output += "\nSequences failed by user:\n"
-        for item in replace_reads:
-            output += item + "\n"
+        for name in replace_read.split(" "):
+            output += name + "\n"
 
     output += "\nFilter Options:\n"
     output += "Minimum read depth: " + str(min_depth) + "\n"
@@ -236,12 +236,12 @@ def make_run_report(out_directory,
                 output += "Of the " +str(len(sequences)) +" isolates, " + str(failed) + " failed\n"
 
             warnings = []
-            warnings = glob.glob(out_directory + refName + '_*_warning.txt')
+            warnings = glob.glob(out_directory + replicon + '*_warning.txt')
             if len(warnings) == 1:
-                output += "\nThere is one consensus warning file for " + replicon + ":\n"
+                output += "There is one consensus warning file for " + replicon + ":\n"
                 output += warnings[0] + "\n"
             elif len(warnings) > 1:
-                output += "\nThere are " + str(len(warnings)) + " consensus warning files for " + replicon + ":\n"
+                output += "There are " + str(len(warnings)) + " consensus warning files for " + replicon + ":\n"
                 for warning in warnings:
                     output += warning + "\n"
 
@@ -264,28 +264,26 @@ def make_run_report(out_directory,
             if os.path.exists(outgroup_filename):
                 outgroup_file = open(outgroup_filename, "rU")
                 outgroups = outgroup_file.readlines()
-                if outgroups == 1:
-                    output += "\nOutgroup:\n" + outgroups[0] + "\n"
+                if len(outgroups) == 1:
+                    output += "Outgroup:\n" + outgroups[0] + "\n"
                 else:
-                    output += "Outgroups (" +str(len(outgroups)) + ")\n"
+                    output += "Outgroups (" +str(len(outgroups)) + "):\n"
                     for outgroup in outgroups:
-                        output += outgroup
-                    output += "\n"
+                        output += outgroup + "\n"
 
             warnings = []
-            warnings = glob.glob(out_directory + refName + '_*_warning.txt')
+            warnings = glob.glob(out_directory + replicon[0] + '_*_warning.txt')
             if len(warnings) == 1:
-                output += "\nThere is one consensus warning file for " + replicon + ":\n"
+                output += "There is one consensus warning file for " + replicon + ":\n"
                 output += warnings[0] + "\n"
             elif len(warnings) > 1:
-                output += "\nThere are " + str(len(warnings)) + " consensus warning files for " + replicon + ":\n"
+                output += "There are " + str(len(warnings)) + " consensus warning files for " + replicon + ":\n"
                 for warning in warnings:
                     output += warning + "\n"
 
 
     report_file = open((out_directory + refName + '_run_report.txt') , "w")
     report_file.write(output)
-    print "writing run report to " + out_directory + refName + "_run_report.txt"
     report_file.close()
     return
 
