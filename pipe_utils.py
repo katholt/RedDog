@@ -168,7 +168,7 @@ def make_run_report(out_directory,
     output += "\nNo. of Sequences: " + str(len(sequences)) + "\n"
     if read_type == "PE":
         type_out = "Illumina paired-end"
-    elif readtype == "SE":
+    elif read_type == "SE":
         type_out = "Illumina single-end"
     else:
         type_out = "Ion Torrent single-end"
@@ -265,19 +265,19 @@ def make_run_report(out_directory,
                 outgroup_file = open(outgroup_filename, "rU")
                 outgroups = outgroup_file.readlines()
                 if len(outgroups) == 1:
-                    output += "Outgroup:\n" + outgroups[0] + "\n"
+                    output += "Outgroup:\n" + outgroups[0]
                 else:
                     output += "Outgroups (" +str(len(outgroups)) + "):\n"
                     for outgroup in outgroups:
-                        output += outgroup + "\n"
+                        output += outgroup
 
             warnings = []
             warnings = glob.glob(out_directory + replicon[0] + '_*_warning.txt')
             if len(warnings) == 1:
-                output += "There is one consensus warning file for " + replicon + ":\n"
+                output += "There is one consensus warning file for " + replicon[0] + ":\n"
                 output += warnings[0] + "\n"
             elif len(warnings) > 1:
-                output += "There are " + str(len(warnings)) + " consensus warning files for " + replicon + ":\n"
+                output += "There are " + str(len(warnings)) + " consensus warning files for " + replicon[0] + ":\n"
                 for warning in warnings:
                     output += warning + "\n"
 
