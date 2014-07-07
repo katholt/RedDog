@@ -60,7 +60,6 @@ if not os.path.exists(reference):
 if isFasta(reference):
     refGenbank = False
     replicons = chromInfoFasta(reference)
-    print replicons
 
 elif isGenbank(reference):
     refGenbank = True

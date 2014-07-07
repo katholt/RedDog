@@ -8,20 +8,9 @@ reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_pl
 sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/*.fastq.gz"
 #sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/extra/*.fastq.gz"
 
-output = "/scratch/VR0082/workspace/mapping/v048_test"
-#output = "/scratch/VR0082/workspace/mapping/v048_test_again"
+output = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
 
 out_merge_target = ""
-#out_merge_target = "/scratch/VR0082/workspace/mapping/v048_test"
-
-
-#reference = "/vlsci/VR0082/shared/data/salmonella/kentucky/hello_pasteur/plasmids/PlasmidsTopHalf_forMapping.gbk"
-
-#sequences = ["/vlsci/VR0082/shared/data/salmonella/kentucky/hello_pasteur/reads/*.fastq.gz","/vlsci/VR0082/shared/data/salmonella/kentucky/refgenomes/broad_rawdata/SKentucky_01922_Illumina/*.fastq.gz"]
-
-#output = "/scratch/VR0082/workspace/mapping/TopPlasmids_RedDog48_fullslow/"
-
-#out_merge_target = ""
 
 '''
 Notes:
@@ -116,8 +105,8 @@ The user can override the run type, by setting it below. The run types are descr
 more detail in the instructions.
 
 '''
-#runType = ""
-runType = "pangenome"
+runType = ""
+#runType = "pangenome"
 #runType = "phylogeny"
 
 '''
@@ -246,7 +235,7 @@ and rep3 is 25% of the total genome (by default).
 Note: there must be no spaces in the list.
 
 '''
-check_reads_mapped = "off"
+check_reads_mapped = ""
 #check_reads_mapped = "off"
 #check_reads_mapped = "rep_1"
 #check_reads_mapped = "rep_1,rep_2,x,0.6"
