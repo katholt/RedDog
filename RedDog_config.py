@@ -443,7 +443,7 @@ stages = {
         "command": "python parseGeneContent.py -g %input -o %out -s %out2"
     },
     "deriveRepAlleleMatrix": {
-        "command": "python deriveRepAlleleMatrix.py %in %out %ref %replicon %consensus %repStats"
+        "command": "python deriveRepAlleleMatrix.py %in %out %ref %replicon %consensus %repStats %merge_prefix"
     },
     "collateRepAlleleMatrix": {
         "command": "python collateRepAlleleMatrix.py %in %out %length"

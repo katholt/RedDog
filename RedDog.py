@@ -1,7 +1,7 @@
 #!/bin/env python
 
 '''
-RedDog V0.4.8 070714
+RedDog V0.4.8 080714
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
@@ -1121,13 +1121,14 @@ if refGenbank == True:
                         replicon = repliconName
                         consensus =  outTempPrefix + isolate + '_cns.fq'
                         repliconStats = outMerge + refName + '_' + repliconName + '_RepStats.txt'
-                        yield([input, output, replicon, consensus,repliconStats, flagFile])
+                        merge_prefix = outMerge
+                        yield([input, output, replicon, consensus,repliconStats, merge_prefix, flagFile])
 
             @follows(getConsensus, getMergeConsensus)
             @follows(getRepSNPList)
             @files(matrixEntryByCoreRep)
-            def deriveRepAlleleMatrix(input, output, replicon, consensus, repliconStats, flagFile):
-                runStageCheck('deriveRepAlleleMatrix', flagFile, input, output, reference, replicon, consensus, repliconStats)
+            def deriveRepAlleleMatrix(input, output, replicon, consensus, repliconStats, merge_prefix, flagFile):
+                runStageCheck('deriveRepAlleleMatrix', flagFile, input, output, reference, replicon, consensus, repliconStats, merge_prefix)
             stage_count += (len(full_sequence_list)*len(core_replicons))
 
             def matrixByCoreRep():
@@ -1155,13 +1156,14 @@ if refGenbank == True:
                         replicon = repliconName[0]
                         consensus =  outTempPrefix + isolate + '_cns.fq'
                         repliconStats = outMerge + refName + '_' + repliconName[0] + '_RepStats.txt'
-                        yield([input, output, replicon, consensus,repliconStats, flagFile])
+                        merge_prefix = outMerge
+                        yield([input, output, replicon, consensus,repliconStats, merge_prefix, flagFile])
 
             @follows(getConsensus, getMergeConsensus)
             @follows(getRepSNPList)
             @files(matrixEntryByRep)
-            def deriveRepAlleleMatrix(input, output, replicon, consensus, repliconStats, flagFile):
-                runStageCheck('deriveRepAlleleMatrix', flagFile, input, output, reference, replicon, consensus, repliconStats)
+            def deriveRepAlleleMatrix(input, output, replicon, consensus, repliconStats, merge_prefix, flagFile):
+                runStageCheck('deriveRepAlleleMatrix', flagFile, input, output, reference, replicon, consensus, repliconStats, merge_prefix)
             stage_count += (len(full_sequence_list)*len(replicons))
 
             def matrixByRep():
@@ -1189,7 +1191,6 @@ if refGenbank == True:
             stage_count += len(replicons)
         else:
             stage_count += len(core_replicons)
-
 
         if conservation != 0.95:
             @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outMerge + r"\2_alleles_var_cons0.95.csv", outSuccessPrefix + r"\2_alleles.parseSNPs_95.Success"])
@@ -1277,13 +1278,14 @@ if refGenbank == True:
                         replicon = repliconName
                         consensus =  outTempPrefix + isolate + '_cns.fq'
                         repliconStats = outPrefix + refName + '_' + repliconName + '_RepStats.txt'
-                        yield([input, output, replicon, consensus,repliconStats, flagFile])
+                        merge_prefix = '-'
+                        yield([input, output, replicon, consensus,repliconStats, merge_prefix, flagFile])
 
             @follows(getConsensus)
             @follows(getRepSNPList)
             @files(matrixEntryByCoreRep)
-            def deriveRepAlleleMatrix(input, output, replicon, consensus, repliconStats, flagFile):
-                runStageCheck('deriveRepAlleleMatrix', flagFile, input, output, reference, replicon, consensus, repliconStats)
+            def deriveRepAlleleMatrix(input, output, replicon, consensus, repliconStats, merge_prefix, flagFile):
+                runStageCheck('deriveRepAlleleMatrix', flagFile, input, output, reference, replicon, consensus, repliconStats, merge_prefix)
             stage_count += (len(full_sequence_list)*len(core_replicons))
 
             def matrixByCoreRep():
@@ -1311,13 +1313,14 @@ if refGenbank == True:
                         replicon = repliconName[0]
                         consensus =  outTempPrefix + isolate + '_cns.fq'
                         repliconStats = outPrefix + refName + '_' + repliconName[0] + '_RepStats.txt'
-                        yield([input, output, replicon, consensus,repliconStats, flagFile])
+                        merge_prefix = '-'
+                        yield([input, output, replicon, consensus,repliconStats, merge_prefix, flagFile])
 
             @follows(getConsensus)
             @follows(getRepSNPList)
             @files(matrixEntryByRep)
-            def deriveRepAlleleMatrix(input, output, replicon, consensus, repliconStats, flagFile):
-                runStageCheck('deriveRepAlleleMatrix', flagFile, input, output, reference, replicon, consensus, repliconStats)
+            def deriveRepAlleleMatrix(input, output, replicon, consensus, repliconStats, merge_prefix, flagFile):
+                runStageCheck('deriveRepAlleleMatrix', flagFile, input, output, reference, replicon, consensus, repliconStats, merge_prefix)
             stage_count += (len(full_sequence_list)*len(replicons))
 
             def matrixByRep():
@@ -1423,13 +1426,14 @@ else: # refGenbank == False
                         replicon = repliconName
                         consensus =  outTempPrefix + isolate + '_cns.fq'
                         repliconStats = outMerge + refName + '_' + repliconName + '_RepStats.txt'
-                        yield([input, output, replicon, consensus,repliconStats, flagFile])
+                        merge_prefix = outMerge
+                        yield([input, output, replicon, consensus,repliconStats, merge_prefix, flagFile])
 
             @follows(getConsensus, getMergeConsensus)
             @follows(getRepSNPList)
             @files(matrixEntryByCoreRep)
-            def deriveRepAlleleMatrix(input, output, replicon, consensus, repliconStats, flagFile):
-                runStageCheck('deriveRepAlleleMatrix', flagFile, input, output, reference, replicon, consensus, repliconStats)
+            def deriveRepAlleleMatrix(input, output, replicon, consensus, repliconStats, merge_prefix, flagFile):
+                runStageCheck('deriveRepAlleleMatrix', flagFile, input, output, reference, replicon, consensus, repliconStats, merge_prefix)
             stage_count += (len(full_sequence_list)*len(core_replicons))
 
             def matrixByCoreRep():
@@ -1457,13 +1461,14 @@ else: # refGenbank == False
                         replicon = repliconName[0]
                         consensus =  outTempPrefix + isolate + '_cns.fq'
                         repliconStats = outMerge + refName + '_' + repliconName[0] + '_RepStats.txt'
-                        yield([input, output, replicon, consensus,repliconStats, flagFile])
+                        merge_prefix = outMerge
+                        yield([input, output, replicon, consensus,repliconStats, merge_prefix, flagFile])
 
             @follows(getConsensus, getMergeConsensus)
             @follows(getRepSNPList)
             @files(matrixEntryByRep)
-            def deriveRepAlleleMatrix(input, output, replicon, consensus, repliconStats, flagFile):
-                runStageCheck('deriveRepAlleleMatrix', flagFile, input, output, reference, replicon, consensus, repliconStats)
+            def deriveRepAlleleMatrix(input, output, replicon, consensus, repliconStats, merge_prefix, flagFile):
+                runStageCheck('deriveRepAlleleMatrix', flagFile, input, output, reference, replicon, consensus, repliconStats, merge_prefix)
             stage_count += (len(full_sequence_list)*len(replicons))
 
             def matrixByRep():
@@ -1549,13 +1554,14 @@ else: # refGenbank == False
                         replicon = repliconName
                         consensus =  outTempPrefix + isolate + '_cns.fq'
                         repliconStats = outPrefix + refName + '_' + repliconName + '_RepStats.txt'
-                        yield([input, output, replicon, consensus,repliconStats, flagFile])
+                        merge_prefix = '-'
+                        yield([input, output, replicon, consensus,repliconStats, merge_prefix, flagFile])
 
             @follows(getConsensus)
             @follows(getRepSNPList)
             @files(matrixEntryByCoreRep)
-            def deriveRepAlleleMatrix(input, output, replicon, consensus, repliconStats, flagFile):
-                runStageCheck('deriveRepAlleleMatrix', flagFile, input, output, reference, replicon, consensus, repliconStats)
+            def deriveRepAlleleMatrix(input, output, replicon, consensus, repliconStats, merge_prefix, flagFile):
+                runStageCheck('deriveRepAlleleMatrix', flagFile, input, output, reference, replicon, consensus, repliconStats, merge_prefix)
             stage_count += (len(full_sequence_list)*len(core_replicons))
 
             def matrixByCoreRep():
@@ -1584,13 +1590,14 @@ else: # refGenbank == False
                         replicon = repliconName[0]
                         consensus =  outTempPrefix + isolate + '_cns.fq'
                         repliconStats = outPrefix + refName + '_' + repliconName[0] + '_RepStats.txt'
+                        merge_prefix = '-'
                         yield([input, output, replicon, consensus,repliconStats, flagFile])
 
             @follows(getConsensus)
             @follows(getRepSNPList)
             @files(matrixEntryByRep)
-            def deriveRepAlleleMatrix(input, output, replicon, consensus, repliconStats, flagFile):
-                runStageCheck('deriveRepAlleleMatrix', flagFile, input, output, reference, replicon, consensus, repliconStats)
+            def deriveRepAlleleMatrix(input, output, replicon, consensus, repliconStats, merge_prefix, flagFile):
+                runStageCheck('deriveRepAlleleMatrix', flagFile, input, output, reference, replicon, consensus, repliconStats, merge_prefix)
             stage_count += (len(full_sequence_list)*len(replicons))
 
             def matrixByRep():
