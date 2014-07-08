@@ -1575,7 +1575,6 @@ else: # refGenbank == False
             @follows(deriveRepAlleleMatrix)
             @files(matrixByCoreRep)
             def collateRepAlleleMatrix(input, output, length_to_remove, flagFile):
-                stage_count += 1
                 runStageCheck('collateRepAlleleMatrix', flagFile, input, output, length_to_remove)
             stage_count += len(core_replicons)
 
@@ -1591,7 +1590,7 @@ else: # refGenbank == False
                         consensus =  outTempPrefix + isolate + '_cns.fq'
                         repliconStats = outPrefix + refName + '_' + repliconName[0] + '_RepStats.txt'
                         merge_prefix = '-'
-                        yield([input, output, replicon, consensus,repliconStats, flagFile])
+                        yield([input, output, replicon, consensus,repliconStats, merge_prefix, flagFile])
 
             @follows(getConsensus)
             @follows(getRepSNPList)
