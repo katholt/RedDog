@@ -6,15 +6,15 @@ of an Isolate and generates a colummn in the allele matrix
 with regard to the reference for that Isolate 
 - if consensus sequence is not available (rare samtools error)
 the read set is 'failed' for that allele matrix and a warning
-message produced
+message produced (and sent to merge_prefix if a merge run)
 
 outputs matrix to user-defined file
 
 example:
-python deriveRepAlleleMatrix.py <SNPList> <output> <reference.fa> <replicon> <isolate_consensus_seq> <replicon_RepStats.txt>
+python deriveRepAlleleMatrix.py <SNPList> <output> <reference.fa> <replicon> <isolate_consensus_seq> <replicon_RepStats.txt> <merge_prefix>
 
 Created:	26/2/2014
-Modified:	15/4/2014
+Modified:	08/07/2014
 author: David Edwards
 '''
 from Bio import SeqIO
@@ -30,6 +30,7 @@ reference_name = sys.argv[3]
 replicon = sys.argv[4]
 consensus_in = sys.argv[5]
 stats = sys.argv[6]
+merge_prefix = sys.argv [7]
 
 snpList = open(snpList_name)
 header = 'Pos,Ref'
@@ -52,7 +53,10 @@ for reference in references:
 
 # call bases for each SNP from consensus file of the strain
 (prefix, name, ext) = splitPath(consensus_in)
-warning_file = prefix[:-4] + replicon +'_'+name +'_warning.txt'
+if merge_prefix == '-':
+    warning_file = prefix[:-4] + replicon +'_'+name +'_warning.txt'
+else:
+    warning_file = merge_prefix + replicon +'_'+name +'_warning.txt'
 name = name[:-4]   
 consensus = SeqIO.parse(consensus_in, "fastq")
 statsFile = open(stats)

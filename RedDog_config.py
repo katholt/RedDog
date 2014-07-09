@@ -1,11 +1,12 @@
 '''
-Configuration file for RedDog.py V0.4.7
+Configuration file for RedDog.py V0.4.8
 -------------------------------
 Essential pipeline variables.
 '''
 reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_plasmid.gbk"
 
 sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/*.fastq.gz"
+#sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/extra/*.fastq.gz"
 
 output = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
 
@@ -186,11 +187,12 @@ bowtie_map_type = "--sensitive-local"
 You can also "remove" any reads: these will be marked as "failed"
 This only works during a "merge run"
 eg. replace a set of reads with their qc-ed version
-    replaceReads ="'read_set_2', 'read_set_3'"
+    replaceReads ="read_set_2,read_set_3,read_set_24"
 
 '''
 replaceReads = ""
-#replaceReads = "'pool8_tag1', 'pool8_tag2'"
+#replaceReads = "pool8_tag1"
+#replaceReads = "pool1_tag1,pool1_tag3"
 
 '''
 Minimum depth of reads for variant filtering
@@ -244,15 +246,15 @@ check_reads_mapped = ""
 '''
 During allele matrix filtering, you can set the conservation level for missing alleles
 this is a ratio between 1.0 (100% conservation - remove all SNPs with even one missing allele call)
-and 0.0 (0% conservation - remove no SNPs). By default, the pipeline produces the 100% and
-0% conservation matrices, with downstream analysis on the 100% matrix. 
+and 0.0 (0% conservation - remove no SNPs). By default, the pipeline produces the 95% and
+0% conservation matrices, with downstream analysis on the 95% matrix. 
 
-By entering a different conservation level (e.g. 0.95), both the 100% and 0% matrices 
-will still be produced, but so too will the 95% matrix (in this example), 
+By entering a different conservation level (e.g. 0.85), both the 95% and 0% matrices 
+will still be produced, but so too will the 85% matrix (in this example), 
 and downsteam analysis carried out on this matrix.
 
 '''
-conservation = 1.0
+conservation = 0.95
 
 '''
 Rubra pipeline variables (do not delete!):
@@ -279,7 +281,7 @@ pipeline = {
     "logDir": "log",
     "logFile": "pipeline.log",
     "style": "print",
-    "procs": 100,
+    "procs": 30,
     "paired": True,
     "verbose": 1,
     "end": ["deleteDir"],
@@ -441,7 +443,7 @@ stages = {
         "command": "python parseGeneContent.py -g %input -o %out -s %out2"
     },
     "deriveRepAlleleMatrix": {
-        "command": "python deriveRepAlleleMatrix.py %in %out %ref %replicon %consensus %repStats"
+        "command": "python deriveRepAlleleMatrix.py %in %out %ref %replicon %consensus %repStats %merge_prefix"
     },
     "collateRepAlleleMatrix": {
         "command": "python collateRepAlleleMatrix.py %in %out %length"
@@ -477,4 +479,3 @@ stages = {
         "command": "rm -rf %directory"
     }
 }
-    

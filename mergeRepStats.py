@@ -5,12 +5,13 @@ for RedDog.py
 merges the general 'replicon' statistics for two set of reads.
 
 example:
-python mergeRepStats.py <new_replicon_RepStats.tab> sdOutgroupMutiplier [reads_to_replace] <mergeDirectory> runType 
+python mergeRepStats.py <new_replicon_RepStats.tab> sdOutgroupMutiplier reads_to_replace <mergeDirectory> runType 
 
 Created:	23/10/2012
 Modified:	28/10/2013 to mergeRepStats from mergeStats
             15/04/2014 changed to produce outgroup.txt file if there are any outgroups to report
             20/05/2014 fix to outgroup reporting
+            04/07/2014 change to replace_reads handling
 
 author: David Edwards
 '''
@@ -44,8 +45,8 @@ for line in mergeFile:
             # if there is a replaceRead list and the read appears on the list
             # change it to a fail...
             if replace != "":
-                for name in replace.split(", "):
-                    if ("'"+items[0]+"'") == name:
+                for name in replace.split(","):
+                    if items[0] == name:
                         line = line[:-2] + "f\n"
                         items = line.split()
             if items[-1] != "f" and runType=='phylogeny':
