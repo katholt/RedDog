@@ -1,5 +1,5 @@
 '''
-Configuration file for RedDog.py V0.4.8
+Configuration file for RedDog.py V0.4.9
 -------------------------------
 Essential pipeline variables.
 '''
@@ -358,10 +358,6 @@ stages = {
         "walltime": "00:10:00",
         "command": "samtools faidx %ref"
     },
-    "callSNPs": {
-        "walltime": "03:00:00",
-        "command": "samtools mpileup -uD -f %ref %bam  | bcftools view -bvcg - > %out"
-    },
     "callRepSNPs": {
         "walltime": "01:00:00",
         "command": "samtools mpileup -uD -f %ref %bam -r %replicon | bcftools view -bvcg - > %out"
@@ -373,9 +369,6 @@ stages = {
     "getCoverage": {
         "walltime": "01:00:00",
         "command": "samtools mpileup %bam | cut - -f 1-4 > %out"
-    },
-    "averageCoverage": {
-        "command": "python averageCoverage.py %coverage %minDepth %out"
     },
     "getCoverByRep": {
         "command": "python getCoverByRep.py %ref %coverage %out"

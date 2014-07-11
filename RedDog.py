@@ -1,13 +1,13 @@
 #!/bin/env python
 
 '''
-RedDog V0.4.8 080714
+RedDog V0.4.9 090714
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
 Description: 
 
-This program implements a workflow pipeline for short read length
+This program implements a worklow pipeline for short read length
 sequencing analysis, including the read mapping task, through to variant
 detection, followed by analyses (SNPs only).
 
@@ -33,7 +33,7 @@ from rubra.utils import pipeline_options
 from rubra.utils import (runStageCheck, splitPath)
 from pipe_utils import (getValue, getCover, isGenbank, isFasta, chromInfoFasta, chromInfoGenbank, make_sequence_list, getSuccessCount, make_run_report, get_run_report)
 
-version = "V0.4.8"
+version = "V0.4.9"
 
 # determine the reference file,
 # list of sequence files, and list of chromosmes.
