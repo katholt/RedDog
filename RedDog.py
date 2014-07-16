@@ -4,6 +4,7 @@
 RedDog V0.4.9 160714
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
+License: none as yet...
 
 Description: 
 
@@ -22,7 +23,6 @@ IMPORTANT: See config file/instructions for input options/requirements
 
 Version History: See ReadMe.txt
 
-License: none as yet...
 '''
 from ruffus import *
 import os
@@ -867,6 +867,51 @@ if runType == "pangenome":
         runStageCheck('finalFilter', flagFile, vcfFile, output)
     stage_count += (len(sequence_list)*len(core_replicons)) 
 
+    # set up for getting vcf statistics
+    def vcfStatsByCoreRep():
+        for repliconName in core_replicons:
+            for seqName in sequence_list:
+                vcfFile = outVcfPrefix + seqName + '_' + repliconName + '_q30.vcf'
+                output = outTempPrefix + seqName + '/getVCFStats/' + seqName + '_' + repliconName + '_vcf.txt'
+                flagFile = outSuccessPrefix + seqName + '_' + repliconName + '.getVcfStats.Success'
+                yield([vcfFile, output, flagFile])
+
+    # Get the vcf statistics
+    @follows(finalFilter)
+    @files(vcfStatsByCoreRep)
+    def getVcfStats(vcfFile, output, flagFile):
+        runStageCheck('getVcfStats', flagFile, vcfFile, output)
+    stage_count += (len(sequence_list)*len(core_replicons))
+
+    # Derive run statistics - second, the statistics for each replicon (largest or user-defined list)
+    def statsByCoreRep():
+        for repliconName in core_replicons:
+            for seqName in sequence_list:
+                coverFile = outTempPrefix + seqName + '/' + seqName + '_rep_cover.txt'
+                output = outTempPrefix + seqName + '/deriveRepStats/' + seqName + '_' + repliconName + '_RepStats.txt'
+                flagFile = outSuccessPrefix + seqName + '_' + repliconName + '.deriveRepStats.Success'
+                yield([coverFile, output, repliconName, depthFail, coverFail, flagFile])
+
+    @follows(getVcfStats)
+    @follows(getSamStats)
+    @follows(getCoverByRep)
+    @files(statsByCoreRep)
+    def deriveRepStats(coverFile, output, repliconName, depthFail, coverFail, flagFile):
+        runStageCheck('deriveRepStats', flagFile, coverFile, repliconName, depthFail, coverFail, runType, mappedFail, check_reads_mapped)
+    stage_count += (len(sequence_list)*len(core_replicons)) 
+
+    def inputByCoreRep():
+        for repliconName in core_replicons:
+            output = outPrefix + refName + '_' + repliconName + '_RepStats.txt'
+            flagFile = outSuccessPrefix + refName + '_' + repliconName + '.collateRepStats.Success'
+            yield([input==None, output, refName, repliconName, flagFile])
+
+    @follows(deriveRepStats)
+    @files(inputByCoreRep)
+    def collateRepStats(input, output, refName, repliconName, flagFile):
+        runStageCheck('collateRepStats', flagFile, refName, outPrefix, repliconName, sdOutgroupMultiplier, runType, sequence_list_string)
+    stage_count += len(core_replicons) 
+
 else: # runType == "phylogeny"
     #create inputs for callRepSNPs
     def snpsByReplicons():
@@ -913,57 +958,28 @@ else: # runType == "phylogeny"
         runStageCheck('finalFilter', flagFile, vcfFile, output)
     stage_count += (len(sequence_list)*len(replicons)) 
 
-# Get the vcf statistics
-@transform(finalFilter, regex(r"(.*)\/(.+)_q30.vcf"), [outTempPrefix + r"\2/getVCFStats/\2_vcf.txt", outSuccessPrefix + r"\2.getVcfStats.Success"])
-def getVcfStats(inputs, outputs):
-    output, flagFile = outputs
-    vcfFile, _success = inputs
-    runStageCheck('getVcfStats', flagFile, vcfFile, output)
-if runType == "phylogeny":
-    stage_count += (len(sequence_list)*len(replicons)) 
-else:
-    stage_count += (len(sequence_list)*len(core_replicons)) 
-
-
-if runType == "pangenome":
-    # Derive run statistics - second, the statistics for each replicon (largest or user-defined list)
-    def statsByCoreRep():
-        for repliconName in core_replicons:
+    # set up for getting vcf statistics
+    def vcfStatsByRep():
+        for repliconName in replicons:
             for seqName in sequence_list:
-                coverFile = outTempPrefix + seqName + '_rep_cover.txt'
-                output = outTempPrefix + seqName + '_' + repliconName + '_RepStats.txt'
-                flagFile = outSuccessPrefix + seqName + '_' + repliconName + '.deriveRepStats.Success'
-                yield([coverFile, output, repliconName, depthFail, coverFail, flagFile])
+                vcfFile = outVcfPrefix + seqName + '_' + repliconName[0] + '_q30.vcf'
+                output = outTempPrefix + seqName + '/getVCFStats/' + seqName + '_' + repliconName[0] + '_vcf.txt'
+                flagFile = outSuccessPrefix + seqName + '_' + repliconName[0] + '.getVcfStats.Success'
+                yield([vcfFile, output, flagFile])
 
-    @follows(getVcfStats)
-    @follows(getSamStats)
-    @follows(getCoverByRep)
-    @files(statsByCoreRep)
-    def deriveRepStats(coverFile, output, repliconName, depthFail, coverFail, flagFile):
-        runStageCheck('deriveRepStats', flagFile, coverFile, repliconName, depthFail, coverFail, runType, mappedFail, check_reads_mapped)
-    stage_count += (len(sequence_list)*len(core_replicons)) 
+    # Get the vcf statistics
+    @follows(finalFilter)
+    @files(vcfStatsByRep)
+    def getVcfStats(vcfFile, output, flagFile):
+        runStageCheck('getVcfStats', flagFile, vcfFile, output)
+    stage_count += (len(sequence_list)*len(replicons))
 
-    def inputByCoreRep():
-        for repliconName in core_replicons:
-            example_name = sequence_list[0]
-            exampleRepCover = outTempPrefix + example_name + "_rep_cover.txt"
-            output = outPrefix + refName + '_' + repliconName + '_RepStats.txt'
-            flagFile = outSuccessPrefix + refName + '_' + repliconName + '.collateRepStats.Success'
-            yield([input==None, output, refName, exampleRepCover, repliconName, flagFile])
-
-    @follows(deriveRepStats)
-    @files(inputByCoreRep)
-    def collateRepStats(input, output, refName, exampleRepCover, repliconName, flagFile):
-        runStageCheck('collateRepStats', flagFile, refName, exampleRepCover, repliconName, sdOutgroupMultiplier, runType)
-    stage_count += len(core_replicons) 
-
-else: #runType == "phylogeny":
     # Derive run statistics - second, the statistics for each replicon (largest or user-defined list)
     def statsByRep():
         for repliconName in replicons:
             for seqName in sequence_list:
-                coverFile = outTempPrefix + seqName + '_rep_cover.txt'
-                output = outTempPrefix + seqName + '_' + repliconName[0] + '_RepStats.txt'
+                coverFile = outTempPrefix + seqName + '/' + seqName + '_rep_cover.txt'
+                output = outTempPrefix + seqName + '/deriveRepStats/' + seqName + '_' + repliconName[0] + '_RepStats.txt'
                 flagFile = outSuccessPrefix + seqName + '_' + repliconName[0] + '.deriveRepStats.Success'
                 replicon = repliconName[0]
                 yield([coverFile, output, replicon, depthFail, coverFail, flagFile])
@@ -978,17 +994,15 @@ else: #runType == "phylogeny":
 
     def inputByRep():
         for repliconName in replicons:
-            example_name = sequence_list[0]
-            exampleRepCover = outTempPrefix + example_name + "_rep_cover.txt"
             output = outPrefix + refName + '_' + repliconName[0] + '_RepStats.txt'
             flagFile = outSuccessPrefix + refName + '_' + repliconName[0] + '.collateRepStats.Success'
             replicon = repliconName[0]
-            yield([input==None, output, refName, exampleRepCover, replicon, flagFile])
+            yield([input==None, output, refName, replicon, flagFile])
 
     @follows(deriveRepStats)
     @files(inputByRep)
-    def collateRepStats(input, output, refName, exampleRepCover, replicon, flagFile):
-        runStageCheck('collateRepStats', flagFile, refName, exampleRepCover, replicon, sdOutgroupMultiplier, runType)
+    def collateRepStats(input, output, refName, replicon, flagFile):
+        runStageCheck('collateRepStats', flagFile, refName, outPrefix, replicon, sdOutgroupMultiplier, runType, sequence_list_string)
     stage_count += len(replicons)
 
 if outMerge != "":

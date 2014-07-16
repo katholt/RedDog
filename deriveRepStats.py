@@ -8,7 +8,7 @@ example:
 python deriveRepStats.py <isolate>_rep_cover.txt replicon depth_fail cover_fail runType mapped_fail check_reads_mapped
 
 Created:	29042013
-Modified:	04032014
+Modified:	16072014
 author: David Edwards
 '''
 import sys
@@ -19,10 +19,9 @@ output_RepStats = ""
 repCoverFile = sys.argv[1]
 repCover = open(repCoverFile, "r") 
 (prefix, middle, ext) = splitPath(repCoverFile)
-name = middle[:-10]
+seq_name = middle[:-10]
 
-output_RepStats += name +"\t"
-name = prefix + "/" + name
+output_RepStats += seq_name +"\t"
 
 replicon = sys.argv[2]
 if replicon.find('.') != -1:
@@ -32,8 +31,6 @@ replicon_names = []
 
 #get % cover and depth for each replicon
 depth_test_value = 0.0
-cover = ""
-depth = ""
 for line in repCover:
 	entry = line.split()
 	replicon_names.append(entry[0])
@@ -44,7 +41,8 @@ for line in repCover:
 
 #get % mapped stats for each replicon and the total
 replicons_mapped = []
-repMapped = open(name + "_samStats.txt")
+name = prefix + "/" + seq_name + "_samStats.txt"
+repMapped = open(name)
 for line in repMapped:
 	if line.startswith('reads'):
 		entry = line.split()
@@ -74,11 +72,17 @@ for rep in replicon_names:
 mapped_test_value = int(mapped_reads)*100.0/int(total_reads)
 output_RepStats += str(mapped_test_value) +"\t"+ total_reads + "\t"
 
-vcfFile = open(name + "_" + replicon + "_vcf.txt")
-hetFile = open(name + "_" + replicon + "_het.txt")
-vcfList = vcfFile.readline()
+name = prefix + "/q30VarFilter/" + seq_name + "_" + replicon + "_het.txt"
+hetFile = open(name)
 het = hetFile.read()
+hetFile.close()
+
+name = prefix + "/getVCFStats/" + seq_name + "_" + replicon + "_vcf.txt"
+vcfFile = open(name)
+vcfList = vcfFile.readline()
+vcfFile.close()
 vcf = vcfList.split()
+
 output_RepStats += vcf[0] +"\t"+ het +"\t"+ vcf[2]
 
 # decide if a sample (strain) is a fail or pass
@@ -129,6 +133,7 @@ if line_end == False:
 	else:
 		output_RepStats += "\ti\n"
 
-out_RepStats = open(name + "_" + replicon + "_RepStats.txt", "w")
+name = prefix + "/deriveRepStats/" + seq_name + "_" + replicon + "_RepStats.txt"
+out_RepStats = open(name, "w")
 out_RepStats.write(output_RepStats)
 out_RepStats.close()
