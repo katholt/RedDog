@@ -305,7 +305,7 @@ stageDefaults = {
 stages = {
     "makeDir": {
         "walltime": "00:10:00",
-        "command": "mkdir -p %dir1 %dir2 %dir3"
+        "command": "python makeDir.py %out %sequence_list"
     },
     "copyRef": {
         "walltime": "00:10:00",

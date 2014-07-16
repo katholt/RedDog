@@ -1,7 +1,7 @@
 #!/bin/env python
 
 '''
-RedDog V0.4.9 090714
+RedDog V0.4.9 140714
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
@@ -210,8 +210,10 @@ for sequence in sequences:
     if readType == "IT":
         sequence_list.append(name[:-16])
     elif readType == "PE":
-        if name.find('_1.f') != -1:
+        if name.find('_1.fastq') != -1:
             sequence_list.append(name[:-8])
+        if name.find('_2.fastq') != -1 and name[:-8] not in sequence_list:
+            sequence_list.append(name[:-8])            
     else:
         sequence_list.append(name[:-6])
 
@@ -455,11 +457,14 @@ while start_run == False:
 
 print "\nStarting pipeline..."
 stage_count = 0
+full_sequence_list_string = ""
+for sequence in full_sequence_list:
+    full_sequence_list_string += sequence + ","
 
 # Create temp and other output subfolders
 @files(input==None, outSuccessPrefix + "dir.makeDir.Success")
 def makeDir(input, flagFile):
-    runStageCheck('makeDir', flagFile, outSuccessPrefix, outBamPrefix, outVcfPrefix)
+    runStageCheck('makeDir', flagFile, outPrefix, full_sequence_list_string)
 stage_count += 1
 
 if refGenbank == False:
@@ -542,7 +547,7 @@ if mapping == 'bowtie':
         input = r'(.*)\/(.+)_1\.fastq.gz'
         extraInput = [r'\1/\2_2.fastq.gz']
         @follows(buildBowtieIndex)
-        @transform(sequences, regex(input), add_inputs(extraInput), [outTempPrefix + r'\2.bam', outSuccessPrefix + r'\2.alignBowtiePE.Success'])
+        @transform(sequences, regex(input), add_inputs(extraInput), [outTempPrefix + r'\2/\2.bam', outSuccessPrefix + r'\2.alignBowtiePE.Success'])
         def alignBowtiePE(inputs, outputs):
             output, flagFile = outputs
             (prefix, name, ext) = splitPath(output)
@@ -562,7 +567,7 @@ if mapping == 'bowtie':
 
         #get bam stats by replicon
         @follows(indexBam)
-        @transform(alignBowtiePE, regex(r"(.*)\/(.+).bam"), [outTempPrefix + r"\2_samStats.txt", outSuccessPrefix + r'\2.getSamStats.Success'])
+        @transform(alignBowtiePE, regex(r"(.*)\/(.+).bam"), [r'\1/\2._samStats.txt', outSuccessPrefix + r'\2.getSamStats.Success'])
         def getSamStats(inputs, outputs):
             output, flagFile = outputs
             bamFile, _success = inputs
@@ -584,7 +589,7 @@ if mapping == 'bowtie':
         if readType=="SE":
             #align reads with Bowtie2 to sorted bam
             @follows(buildBowtieIndex)
-            @transform(sequences, regex(r"(.*)\/(.+).fastq.gz"), [outTempPrefix + r'\2.bam', outSuccessPrefix + r'\2.alignBowtie.Success'])
+            @transform(sequences, regex(r"(.*)\/(.+).fastq.gz"), [outTempPrefix + r'\2/\2.bam', outSuccessPrefix + r'\2.alignBowtie.Success'])
             def alignBowtie(input, outputs):
                 output, flagFile = outputs
                 (prefix, name, ext) = splitPath(output)
@@ -596,7 +601,7 @@ if mapping == 'bowtie':
         else: #readType == "IT"
             #align reads with Bowtie2 to sorted bam
             @follows(buildBowtieIndex)
-            @transform(sequences, regex(r"(.*)\/(.+)_in.iontor.fastq.gz"), [outTempPrefix + r'\2.bam', outSuccessPrefix + r'\2.alignBowtie.Success'])
+            @transform(sequences, regex(r"(.*)\/(.+)_in.iontor.fastq.gz"), [outTempPrefix + r'\2/\2.bam', outSuccessPrefix + r'\2.alignBowtie.Success'])
             def alignBowtie(input, outputs):
                 output, flagFile = outputs
                 (prefix, name, ext) = splitPath(output)
@@ -615,7 +620,7 @@ if mapping == 'bowtie':
 
         #get bam stats by replicon
         @follows(indexBam)
-        @transform(alignBowtie, regex(r"(.*)\/(.+).bam"), [outTempPrefix + r"\2_samStats.txt", outSuccessPrefix + r'\2.getSamStats.Success'])
+        @transform(alignBowtie, regex(r"(.*)\/(.+).bam"), [r'\1/\2._samStats.txt', outSuccessPrefix + r'\2.getSamStats.Success'])
         def getSamStats(inputs, outputs):
             output, flagFile = outputs
             bamFile, _success = inputs
@@ -634,19 +639,28 @@ if mapping == 'bowtie':
         stage_count += len(sequence_list) 
 
 else: # mapping = 'BWA'
-    # Align sequence reads to the reference genome.
-    @follows(buildBWAIndex)
-    @transform(sequences, regex(r"(.*)\/(.+).fastq.gz"), [outTempPrefix + r"\2.sai", outSuccessPrefix + r"\2.alignSequence.Success"])
-    def alignSequence(sequence, outputs):
-        output, flagFile = outputs
-        runStageCheck('alignSequence', flagFile, reference, sequence, output)
-    stage_count += len(sequences) 
-
     if readType == "PE":
+        # Align 'forward' sequences reads to the reference genome.
+        @follows(buildBWAIndex)
+        @transform(sequences, regex(r'(.*)\/(.+)_1\.fastq.gz'), [outTempPrefix + r'\2/\2_1.sai', outSuccessPrefix + r"\2.alignForward.Success"])
+        def alignForward(sequence, outputs):
+            output, flagFile = outputs
+            runStageCheck('alignSequence', flagFile, reference, sequence, output)
+        stage_count += len(sequences)/2 
+
+        # Align 'reverse' sequences reads to the reference genome.
+        @follows(buildBWAIndex)
+        @transform(sequences, regex(r'(.*)\/(.+)_2\.fastq.gz'), [outTempPrefix + r'\2/\2_2.sai', outSuccessPrefix + r"\2.alignReverse.Success"])
+        def alignReverse(sequence, outputs):
+            output, flagFile = outputs
+            runStageCheck('alignSequence', flagFile, reference, sequence, output)
+        stage_count += len(sequences)/2
+
         #align reads with BWA to sorted bam
         input = r'(.*)\/(.+)_1\.sai'
         extraInput = [r'\1/\2_2.sai']
-        @transform(alignSequence, regex(input), add_inputs(extraInput), [outTempPrefix + r'\2.bam', outSuccessPrefix + r'\2.alignBWAPE.Success'])
+        @follows(alignReverse)
+        @transform(alignForward, regex(input), add_inputs(extraInput), [r'\1/\2.bam', outSuccessPrefix + r'\2.alignBWAPE.Success'])
         def alignBWAPE(inputs, outputs):
             output, flagFile = outputs
             [align1, _success], [align2] = inputs
@@ -673,7 +687,7 @@ else: # mapping = 'BWA'
 
         #get bam stats by replicon
         @follows(indexBam)
-        @transform(alignBWAPE, regex(r"(.*)\/(.+).bam"), [outTempPrefix + r"\2_samStats.txt", outSuccessPrefix + r'\2.getSamStats.Success'])
+        @transform(alignBWAPE, regex(r"(.*)\/(.+).bam"), [r'\1/\2._samStats.txt', outSuccessPrefix + r'\2.getSamStats.Success'])
         def getSamStats(inputs, outputs):
             output, flagFile = outputs
             bamFile, _success = inputs
@@ -692,9 +706,17 @@ else: # mapping = 'BWA'
         stage_count += len(sequence_list) 
 
     else:
+        # Align sequence reads to the reference genome.
+        @follows(buildBWAIndex)
+        @transform(sequences, regex(r"(.*)\/(.+).fastq.gz"), [outTempPrefix + r'\2/\2.sai', outSuccessPrefix + r"\2.alignSequence.Success"])
+        def alignSequence(sequence, outputs):
+            output, flagFile = outputs
+            runStageCheck('alignSequence', flagFile, reference, sequence, output)
+        stage_count += len(sequences)
+
         #align reads with BWA to sorted bam
         @follows(buildBWAIndex)
-        @transform(alignSequence, regex(r"(.*)\/(.+).sai"), [outTempPrefix + r'\2.bam', outSuccessPrefix + r'\2.alignBWASE.Success'])
+        @transform(alignSequence, regex(r"(.*)\/(.+).sai"), [r'\1/\2.bam', outSuccessPrefix + r'\2.alignBWASE.Success'])
         def alignBWASE(inputs, outputs):
             output, flagFile = outputs
             align, _success = inputs
@@ -719,7 +741,7 @@ else: # mapping = 'BWA'
 
         #get bam stats by replicon
         @follows(indexBam)
-        @transform(alignBWASE, regex(r"(.*)\/(.+).bam"), [outTempPrefix + r"\2_samStats.txt", outSuccessPrefix + r'\2.getSamStats.Success'])
+        @transform(alignBWASE, regex(r"(.*)\/(.+).bam"), [r'\1/\2._samStats.txt', outSuccessPrefix + r'\2.getSamStats.Success'])
         def getSamStats(inputs, outputs):
             output, flagFile = outputs
             bamFile, _success = inputs
@@ -748,7 +770,7 @@ stage_count += len(sequence_list)
 # get consensus sequence from bam
 @follows(indexFilteredBam)
 @follows(indexRef)
-@transform(filterUnmapped, regex(r"(.*)\/(.+).bam"), [outTempPrefix + r"\2_cns.fq", outSuccessPrefix + r"\2.getConsensus.Success"])
+@transform(filterUnmapped, regex(r"(.*)\/(.+).bam"), [outTempPrefix + r"\2/\2_cns.fq", outSuccessPrefix + r"\2.getConsensus.Success"])
 def getConsensus(inputs, outputs):
     output, flagFile = outputs
     bamFile, _success = inputs
@@ -758,7 +780,7 @@ stage_count += len(sequence_list)
 # Get coverage from BAM
 @follows(indexFilteredBam)
 @follows(indexRef)
-@transform(filterUnmapped, regex(r"(.*)\/(.+).bam"), [outTempPrefix + r"\2_coverage.txt", outSuccessPrefix + r"\2.getCoverage.Success"])
+@transform(filterUnmapped, regex(r"(.*)\/(.+).bam"), [outTempPrefix + r"\2/\2_coverage.txt", outSuccessPrefix + r"\2.getCoverage.Success"])
 def getCoverage(inputs, outputs):
     output, flagFile = outputs
     bamFile, _success = inputs
@@ -779,7 +801,7 @@ if runType == "pangenome":
         for repliconName in core_replicons:
             for seqName in sequence_list:
                 sortedBam = outBamPrefix + seqName + '.bam'
-                output = outTempPrefix + seqName + '_' + repliconName + '_raw.bcf'
+                output = outTempPrefix + seqName + '/callRepSNPs/' + seqName + '_' + repliconName + '_raw.bcf'
                 flagFile = outSuccessPrefix + seqName + '_' + repliconName + '.callRepSNPs.Success'
                 yield([sortedBam, output, repliconName, flagFile])
 
@@ -795,9 +817,9 @@ if runType == "pangenome":
     def q30FilterByCoreReplicons():
         for repliconName in core_replicons:
             for seqName in sequence_list:
-                rawBCF = outTempPrefix + seqName + '_' + repliconName + '_raw.bcf'
-                coverFile = outTempPrefix + seqName + '_rep_cover.txt'                        
-                output = outTempPrefix + seqName + '_' + repliconName + '_raw.vcf'
+                rawBCF = outTempPrefix + seqName + '/callRepSNPs/' + seqName + '_' + repliconName + '_raw.bcf'
+                coverFile = outTempPrefix + seqName + '/' + seqName + '_rep_cover.txt'                        
+                output = outTempPrefix + seqName + '/q30VarFilter/' + seqName + '_' + repliconName + '_raw.vcf'
                 flagFile = outSuccessPrefix + seqName + '_' + repliconName + '.q30VarFilter.Success'
                 yield([rawBCF, output, coverFile, repliconName, flagFile])
     
@@ -822,8 +844,8 @@ else: # runType == "phylogeny"
     def snpsByReplicons():
         for repliconName in replicons:
             for seqName in sequence_list:
-                sortedBam = outTempPrefix + seqName + '.bam'
-                output = outTempPrefix + seqName + '_' + repliconName[0] + '_raw.bcf'
+                sortedBam = outBamPrefix + seqName + '.bam'
+                output = outTempPrefix + seqName + '/callRepSNPs/' + seqName + '_' + repliconName[0] + '_raw.bcf'
                 flagFile = outSuccessPrefix + seqName + '_' + repliconName[0] + '.callRepSNPs.Success'
                 replicon = repliconName[0]
                 yield([sortedBam, output, replicon, flagFile])
@@ -840,9 +862,9 @@ else: # runType == "phylogeny"
     def q30FilterByReplicons():
         for repliconName in replicons:
             for seqName in sequence_list:
-                rawBCF = outTempPrefix + seqName + '_' + repliconName[0] + '_raw.bcf'
-                coverFile = outTempPrefix + seqName + '_rep_cover.txt'    
-                output = outTempPrefix + seqName + '_' + repliconName[0] + '_raw.vcf'
+                rawBCF = outTempPrefix + seqName + '/callRepSNPs/' + seqName + '_' + repliconName[0] + '_raw.bcf'
+                coverFile = outTempPrefix + seqName + '/' + seqName + '_rep_cover.txt'    
+                output = outTempPrefix + seqName + '/q30VarFilter/' + seqName + '_' + repliconName[0] + '_raw.vcf'
                 flagFile = outSuccessPrefix + seqName + '_' + repliconName[0] + '.q30VarFilter.Success'
                 replicon = repliconName[0]
                 yield([rawBCF, output, coverFile, replicon, flagFile])
@@ -864,7 +886,7 @@ else: # runType == "phylogeny"
     stage_count += (len(sequence_list)*len(replicons)) 
 
 # Get the vcf statistics
-@transform(finalFilter, regex(r"(.*)\/(.+)_q30.vcf"), [outTempPrefix + r"\2_vcf.txt", outSuccessPrefix + r"\2.getVcfStats.Success"])
+@transform(finalFilter, regex(r"(.*)\/(.+)_q30.vcf"), [outTempPrefix + r"\2/getVCFStats/\2_vcf.txt", outSuccessPrefix + r"\2.getVcfStats.Success"])
 def getVcfStats(inputs, outputs):
     output, flagFile = outputs
     vcfFile, _success = inputs
