@@ -8,9 +8,20 @@ reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_pl
 sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/*.fastq.gz"
 #sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/extra/*.fastq.gz"
 
-output = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
+#output = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
+#output = "/scratch/VR0082/workspace/mapping/v049_test_PE_bowtie_phy"
+#output = "/scratch/VR0082/workspace/mapping/v049_test_PE_bowtie_pan"
+#output = "/scratch/VR0082/workspace/mapping/v049_test_PE_bwa_pan"
+#output = "/scratch/VR0082/workspace/mapping/v049_test_PE_bwa_phy"
+#output = "/scratch/VR0082/workspace/mapping/v049_test_IT_bowtie_pan"
+#output = "/scratch/VR0082/workspace/mapping/v049_test_IT_bowtie_phy"
+#output = "/scratch/VR0082/workspace/mapping/v049_test_SE_bowtie_phy"
+#output = "/scratch/VR0082/workspace/mapping/v049_test_SE_bowtie_pan"
+#output = "/scratch/VR0082/workspace/mapping/v049_test_SE_bwa_pan"
+output = "/scratch/VR0082/workspace/mapping/v049_test_SE_bwa_phy"
 
 out_merge_target = ""
+#out_merge_target = "/scratch/VR0082/workspace/mapping/v048_test"
 
 '''
 Notes:
@@ -91,8 +102,8 @@ PE: *_1.fastq.gz and *_2.fastq.gz   (i.e. must be gzipped with forward and rever
 IT: *_in.iontor.fastq.gz            (i.e. must be gzipped)
 
 '''
-readType = "PE"
-#readType = "SE"
+#readType = "PE"
+readType = "SE"
 #readType = "IT"
 
 '''
@@ -105,9 +116,9 @@ The user can override the run type, by setting it below. The run types are descr
 more detail in the instructions.
 
 '''
-runType = ""
+#runType = ""
 #runType = "pangenome"
-#runType = "phylogeny"
+runType = "phylogeny"
 
 '''
 For a pangenome run, the SNPs will only be called for the largest replicon - this assumes
@@ -144,8 +155,8 @@ Bowtie2     Y     Y     Y
 Note: You cannot use two mappers at the same time!
 
 '''
-#mapping = "bwa"
-mapping = "bowtie"
+mapping = "bwa"
+#mapping = "bowtie"
 
 '''
 Bowtie2 Mapping:
@@ -399,7 +410,7 @@ stages = {
     },
     "collateAllStats": {
         "walltime": "00:10:00",
-        "command": "python collateAllStats.py %ref %in"
+        "command": "python collateAllStats.py %ref %in %path %sequence_list"
     },
     "mergeOutputs": {
         "command": "cp %inputBam %outDirBam && cp %inputIndex %outDirBam && cp %inputVcf %outDirVcf"

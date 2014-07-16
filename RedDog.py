@@ -1,7 +1,7 @@
 #!/bin/env python
 
 '''
-RedDog V0.4.9 140714
+RedDog V0.4.9 160714
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
@@ -407,6 +407,16 @@ if duplicate_isolate_name != []:
     print "\n" 
     sys.exit()
 
+full_sequence_list_string = ""
+for sequence in full_sequence_list:
+    full_sequence_list_string += sequence + ","
+full_sequence_list_string.rstrip()
+
+sequence_list_string = ""
+for sequence in sequence_list:
+    sequence_list_string += sequence + ","
+sequence_list_string.rstrip()
+
 #Phew! Now that's all set up, we can begin...
 #but first, output run conditions to user and get confirmation to run
 print "\nRedDog " + version + " - " + runType + " run\n"
@@ -457,9 +467,6 @@ while start_run == False:
 
 print "\nStarting pipeline..."
 stage_count = 0
-full_sequence_list_string = ""
-for sequence in full_sequence_list:
-    full_sequence_list_string += sequence + ","
 
 # Create temp and other output subfolders
 @files(input==None, outSuccessPrefix + "dir.makeDir.Success")
@@ -567,7 +574,7 @@ if mapping == 'bowtie':
 
         #get bam stats by replicon
         @follows(indexBam)
-        @transform(alignBowtiePE, regex(r"(.*)\/(.+).bam"), [r'\1/\2._samStats.txt', outSuccessPrefix + r'\2.getSamStats.Success'])
+        @transform(alignBowtiePE, regex(r"(.*)\/(.+).bam"), [r'\1/\2_samStats.txt', outSuccessPrefix + r'\2.getSamStats.Success'])
         def getSamStats(inputs, outputs):
             output, flagFile = outputs
             bamFile, _success = inputs
@@ -620,7 +627,7 @@ if mapping == 'bowtie':
 
         #get bam stats by replicon
         @follows(indexBam)
-        @transform(alignBowtie, regex(r"(.*)\/(.+).bam"), [r'\1/\2._samStats.txt', outSuccessPrefix + r'\2.getSamStats.Success'])
+        @transform(alignBowtie, regex(r"(.*)\/(.+).bam"), [r'\1/\2_samStats.txt', outSuccessPrefix + r'\2.getSamStats.Success'])
         def getSamStats(inputs, outputs):
             output, flagFile = outputs
             bamFile, _success = inputs
@@ -687,7 +694,7 @@ else: # mapping = 'BWA'
 
         #get bam stats by replicon
         @follows(indexBam)
-        @transform(alignBWAPE, regex(r"(.*)\/(.+).bam"), [r'\1/\2._samStats.txt', outSuccessPrefix + r'\2.getSamStats.Success'])
+        @transform(alignBWAPE, regex(r"(.*)\/(.+).bam"), [r'\1/\2_samStats.txt', outSuccessPrefix + r'\2.getSamStats.Success'])
         def getSamStats(inputs, outputs):
             output, flagFile = outputs
             bamFile, _success = inputs
@@ -741,7 +748,7 @@ else: # mapping = 'BWA'
 
         #get bam stats by replicon
         @follows(indexBam)
-        @transform(alignBWASE, regex(r"(.*)\/(.+).bam"), [r'\1/\2._samStats.txt', outSuccessPrefix + r'\2.getSamStats.Success'])
+        @transform(alignBWASE, regex(r"(.*)\/(.+).bam"), [r'\1/\2_samStats.txt', outSuccessPrefix + r'\2.getSamStats.Success'])
         def getSamStats(inputs, outputs):
             output, flagFile = outputs
             bamFile, _success = inputs
@@ -794,6 +801,27 @@ def getCoverByRep(inputs, outputs):
     coverageFile, _success = inputs
     runStageCheck('getCoverByRep', flagFile, reference, coverageFile, output)
 stage_count += len(sequence_list) 
+
+# Derive run statistics - first, the 'all statistics' data
+@follows(getSamStats)
+@transform(getCoverByRep, regex(r"(.*)\/(.+)_rep_cover.txt"), [r'\1/\2_AllStats.txt', outSuccessPrefix + r'\2.deriveAllStats.Success'])
+def deriveAllStats(inputs, outputs):
+    output, flagFile = outputs
+    coverFile, _success = inputs
+    runStageCheck('deriveAllStats', flagFile, coverFile)
+stage_count += len(sequence_list)
+
+# Collate run statistics into tab-delimited file
+# and add header to the statistics file
+# example rep cover file is to establish replicon order in the header (order from reference)
+# also provides a user-friendly version of the all stats file with isolates as the header (for spreadsheets) 
+@merge(deriveAllStats, [outPrefix + refName + "_AllStats.txt", outSuccessPrefix + refName + ".collateAllStats.Success"])
+def collateAllStats(inputs, outputs):
+    output, flagFile = outputs
+    example_name = sequence_list[0]
+    exampleRepCover = outTempPrefix + example_name + '/' + example_name + "_rep_cover.txt"
+    runStageCheck('collateAllStats', flagFile, refName, exampleRepCover, outPrefix, sequence_list_string)
+stage_count += 1
 
 if runType == "pangenome":
     #create inputs for callRepSNPs
@@ -896,26 +924,6 @@ if runType == "phylogeny":
 else:
     stage_count += (len(sequence_list)*len(core_replicons)) 
 
-# Derive run statistics - first, the 'all statistics' data
-@follows(getSamStats)
-@transform(getCoverByRep, regex(r"(.*)\/(.+)_rep_cover.txt"), [r'\1/\2_AllStats.txt', outSuccessPrefix + r'\2.deriveAllStats.Success'])
-def deriveAllStats(inputs, outputs):
-    output, flagFile = outputs
-    coverFile, _success = inputs
-    runStageCheck('deriveAllStats', flagFile, coverFile)
-stage_count += len(sequence_list)
-
-# Collate run statistics into tab-delimited file
-# and add header to the statistics file
-# example rep cover file is to establish replicon order in the header (order from reference)
-# also provides a user-friendly version of the all stats file with isolates as the header (for spreadsheets) 
-@merge(deriveAllStats, [outPrefix + refName + "_AllStats.txt", outSuccessPrefix + refName + ".collateAllStats.Success"])
-def collateAllStats(inputs, outputs):
-    output, flagFile = outputs
-    example_name = sequence_list[0]
-    exampleRepCover = outTempPrefix + example_name + "_rep_cover.txt"
-    runStageCheck('collateAllStats', flagFile, refName, exampleRepCover)
-stage_count += 1
 
 if runType == "pangenome":
     # Derive run statistics - second, the statistics for each replicon (largest or user-defined list)
@@ -1015,7 +1023,6 @@ if outMerge != "":
     else:
         stage_count += len(core_replicons) 
 
-#    if mergeReads == "":
     if runType == "phylogeny":
         # Start of phylogeny analysis
         def snpListByRep():
@@ -1052,7 +1059,8 @@ if outMerge != "":
             runStageCheck('getRepSNPList', flagFile, input, replicon, output)
         stage_count += len(core_replicons) 
 
-else:
+
+else: #    if mergeReads == "":
     if runType == "phylogeny":
         # Start of new run phylogeny analysis
         def snpListByRep():
