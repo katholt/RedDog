@@ -864,7 +864,9 @@ if runType == "pangenome":
     @transform(q30VarFilter, regex(r"(.*)\/(.+)_raw.vcf"), [outVcfPrefix + r"\2_q30.vcf", outSuccessPrefix + r"\2.finalFilter.Success"])
     def finalFilter(vcfFile, outputs):
         output, flagFile = outputs
-        runStageCheck('finalFilter', flagFile, vcfFile, output)
+        (prefix, name, ext) = splitPath(vcfFile) 
+        prefix += '/hets/'       
+        runStageCheck('finalFilter', flagFile, vcfFile, output, prefix)
     stage_count += (len(sequence_list)*len(core_replicons)) 
 
     # set up for getting vcf statistics
@@ -955,7 +957,9 @@ else: # runType == "phylogeny"
     @transform(q30VarFilter, regex(r"(.*)\/(.+)_raw.vcf"), [outVcfPrefix + r"\2_q30.vcf", outSuccessPrefix + r"\2.finalFilter.Success"])
     def finalFilter(vcfFile, outputs):
         output, flagFile = outputs
-        runStageCheck('finalFilter', flagFile, vcfFile, output)
+        (prefix, name, ext) = splitPath(vcfFile) 
+        prefix += '/hets/'       
+        runStageCheck('finalFilter', flagFile, vcfFile, output, prefix)
     stage_count += (len(sequence_list)*len(replicons)) 
 
     # set up for getting vcf statistics

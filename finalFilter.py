@@ -5,17 +5,20 @@ removes heterozygote calls fron a vcf, also keeping count of the het SNPs remove
 output to _q30.vcf file and het count file
 
 example: 
-python finalFilter.py <raw>.vfc <q30>.vcf
+python finalFilter.py <raw>.vfc <q30>.vcf <outHetFile>
 
 Created:	24/01/2013
-Modified:	
+Modified:	17/07/2014
 author: David Edwards
 '''
 import sys
+from pipe_utils import (splitPath)
 
 inFile = sys.argv[1]
 outFile = sys.argv[2]
-outHetFile = inFile[:-7] + "het.txt"
+(prefix,middle,ext) = splitPath(outFile)
+
+outHetFile = sys.argv[3] + '/' + middle[:-3] + "het.txt"
 vcfIn = open(inFile)
 vcfOut = open(outFile, "w")
 hetOut = open(outHetFile, "w")

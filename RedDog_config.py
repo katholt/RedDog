@@ -390,7 +390,7 @@ stages = {
     },
     "finalFilter": {
         "walltime": "00:10:00",
-        "command": "python finalFilter.py %vcfFile %out"
+        "command": "python finalFilter.py %vcfFile %out %het"
     },
     "getVcfStats": {
         "walltime": "00:10:00",

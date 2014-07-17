@@ -72,7 +72,7 @@ for rep in replicon_names:
 mapped_test_value = int(mapped_reads)*100.0/int(total_reads)
 output_RepStats += str(mapped_test_value) +"\t"+ total_reads + "\t"
 
-name = prefix + "/q30VarFilter/" + seq_name + "_" + replicon + "_het.txt"
+name = prefix + "/q30VarFilter/hets/" + seq_name + "_" + replicon + "_het.txt"
 hetFile = open(name)
 het = hetFile.read()
 hetFile.close()

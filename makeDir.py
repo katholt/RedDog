@@ -7,7 +7,7 @@ example:
 python makeDir.py <output_directory> <sequences_string> 
 
 Created:    14/07/2014
-Modified:   
+Modified:   17/07/2014
 author: David Edwards
 '''
 import os, sys
@@ -16,7 +16,7 @@ output_prefix = sys.argv[1]
 sequences_string = sys.argv[2]
 sequences = sequences_string.split(',')
 
-seq_stages = ["callRepSNPs", "q30VarFilter", "getVCFStats", "deriveRepStats", "deriveRepAlleleMartix"]
+seq_stages = ["callRepSNPs", "q30VarFilter/hets", "getVCFStats", "deriveRepStats", "deriveRepAlleleMartix"]
 temp_stages = ["getRepSNPList", "collateRepAlleleMatrix"]
 
 dir_names = []
