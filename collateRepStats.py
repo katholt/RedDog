@@ -6,39 +6,44 @@ collates the general statistics for set of reads that have gone through
 the pipeline during a pangenome or phylogeny run for a particular replicon
 
 example:
-python collateRepStats.py reference_name <example>_rep_cover.txt replicon sd_multiplier runType
+python collateRepStats.py reference_name prefix replicon sd_multiplier runType sequences_string
 
 Created:	29042013
-Modified:	28102013 changed to mean + SD * sd_multiplier only
-            15042013 changed to produce outgroup.txt file if there are any outgroups to report
+Modified:	16072014
 author: David Edwards
 '''
 import sys, glob
 from pipe_utils import (splitPath)
 
 reference_name = sys.argv[1]
-example_rep_cover_File = sys.argv[2]
+prefix = sys.argv[2]
 replicon = sys.argv[3]
 sd_multiplier = float(sys.argv[4])
 runType = sys.argv[5]
+sequences_string = sys.argv[6]
+sequences = sequences_string.split(',')
 
-(prefix, middle, ext) = splitPath(example_rep_cover_File)
-outfile_RepStats_name = prefix[:-4] + reference_name + '_' + replicon +  '_RepStats.txt'
-outgroup_outfile_name = prefix[:-4] + reference_name + '_' + replicon +  '_outgroups.txt'
+outfile_RepStats_name = prefix + reference_name + '_' + replicon +  '_RepStats.txt'
+outgroup_outfile_name = prefix + reference_name + '_' + replicon +  '_outgroups.txt'
 outgroups = []
 
 output_RepStats = ''
 header_RepStats = 'Isolate\tCover%_' + replicon + '\tDepth_' + replicon + '\tMapped%_' + replicon + '\tMapped%_Total\tTotal_Reads\tSNPs\tHets_Removed\tIndels\tIngroup/Fail\n'
-inFiles = prefix + '/*_' + replicon +'_RepStats.txt'
+inFiles = []
+for sequence in sequences:
+    if sequence != '':
+        inFiles.append((prefix + 'temp/' + sequence + '/deriveRepStats/' + sequence + '_' + replicon + '_RepStats.txt'))
+
 if runType == 'pangenome':
-	for inFile in glob.glob(inFiles):
-	    repStatsFile = open(inFile)
-	    output_RepStats += repStatsFile.read()
+	for inFile in inFiles:
+	    statsFile = open(inFile)
+	    output_RepStats += statsFile.read()
+	    statsFile.close()
 else:
 	average = 0
 	sd = 0
 	count = 0
-	for inFile in glob.glob(inFiles):
+	for inFile in inFiles:
 	    statsFile = open(inFile)
 	    for line in statsFile:
 	        stats = line.split()
@@ -54,8 +59,8 @@ else:
 	    if sd < 0:
 	        sd = sd * -1
 	    sd = sd**(1/2.0)
-	for file in glob.glob(inFiles):
-	    statsFile = open(file)
+	for inFile in inFiles:
+	    statsFile = open(inFile)
 	    for line in statsFile:
 	        stats = line.split()
 	        output_RepStats += line[:-1]

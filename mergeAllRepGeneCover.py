@@ -6,10 +6,10 @@ after each new isolate, and converts them to an entry on the merge target
 coverage matrix and average depth matrix, divided by replicon__gene and isolate.
 
 example:
-python mergeAllGeneCover.py <inputDir> <outputDir> refName
+python mergeAllGeneCover.py <inputDir> <outputDir> refName sequence_list_string
 
 Created:	27/5/2013
-Modified:   29/10/2013 to mergeAllGeneCover from collateAllGeneCover.py
+Modified:   21/07/2014
 author: David Edwards
 '''
 import sys, glob
@@ -18,9 +18,15 @@ from pipe_utils import splitPath
 inPath = sys.argv[1]
 outPath = sys.argv[2]
 refName = sys.argv[3]
+sequences_string = sys.argv[4]
+sequences = sequences_string.split(',')
+
+coverFiles = []
+for sequence in sequences:
+    if sequence != '':
+        coverFiles.append((inPath+sequence+'/'+sequence+'_CoverDepthMatrix.txt'))
 
 output = ""
-coverFileName = inPath + "*_CoverDepthMatrix.txt"
 CoverMatrixName = outPath + refName + "_CoverMatrix.csv"
 DepthMatrixName = outPath + refName + "_DepthMatrix.csv"
 geneList = []
@@ -56,7 +62,7 @@ for line in inDepthMatrix:
         second_line = False
 
 counter = len(depthList)
-for file in glob.glob(coverFileName):    
+for file in coverFiles:    
     (prefix, name, ext) = splitPath(file)        
     output = output + "," + name[:-17]
     coverFile = open(file)

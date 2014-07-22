@@ -11,7 +11,7 @@ example:
 python deriveAllGeneCover.py <outputDir> ref.genbank <coverfile>
 
 Created:  27/05/2013
-Last Modified: 01/07/2014
+Last Modified: 21/07/2014
 author: David Edwards
 '''
 import sys, glob
@@ -27,7 +27,7 @@ genbankName = sys.argv[2]
 coverFileName = sys.argv[3]
 
 (prefix, name, ext) = splitPath(coverFileName)        
-outCover = outPath + name[:-9] + "_CoverDepthMatrix.txt"
+outCover = outPath + name[:-9] + "/" + name[:-9] + "_CoverDepthMatrix.txt"
 
 geneList = []
 geneCoverList = []

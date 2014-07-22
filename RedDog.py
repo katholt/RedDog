@@ -1,13 +1,14 @@
 #!/bin/env python
 
 '''
-RedDog V0.4.8 080714
+RedDog V0.4.9 220714
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
+License: none as yet...
 
 Description: 
 
-This program implements a workflow pipeline for short read length
+This program implements a worklow pipeline for short read length
 sequencing analysis, including the read mapping task, through to variant
 detection, followed by analyses (SNPs only).
 
@@ -22,7 +23,6 @@ IMPORTANT: See config file/instructions for input options/requirements
 
 Version History: See ReadMe.txt
 
-License: none as yet...
 '''
 from ruffus import *
 import os
@@ -33,7 +33,7 @@ from rubra.utils import pipeline_options
 from rubra.utils import (runStageCheck, splitPath)
 from pipe_utils import (getValue, getCover, isGenbank, isFasta, chromInfoFasta, chromInfoGenbank, make_sequence_list, getSuccessCount, make_run_report, get_run_report)
 
-version = "V0.4.8"
+version = "V0.4.9"
 
 # determine the reference file,
 # list of sequence files, and list of chromosmes.
@@ -210,8 +210,10 @@ for sequence in sequences:
     if readType == "IT":
         sequence_list.append(name[:-16])
     elif readType == "PE":
-        if name.find('_1.f') != -1:
+        if name.find('_1.fastq') != -1 and name[:-8] not in sequence_list:
             sequence_list.append(name[:-8])
+        if name.find('_2.fastq') != -1 and name[:-8] not in sequence_list:
+            sequence_list.append(name[:-8])            
     else:
         sequence_list.append(name[:-6])
 
@@ -405,6 +407,16 @@ if duplicate_isolate_name != []:
     print "\n" 
     sys.exit()
 
+full_sequence_list_string = ""
+for sequence in full_sequence_list:
+    full_sequence_list_string += sequence + ","
+full_sequence_list_string.rstrip()
+
+sequence_list_string = ""
+for sequence in sequence_list:
+    sequence_list_string += sequence + ","
+sequence_list_string.rstrip()
+
 #Phew! Now that's all set up, we can begin...
 #but first, output run conditions to user and get confirmation to run
 print "\nRedDog " + version + " - " + runType + " run\n"
@@ -459,7 +471,7 @@ stage_count = 0
 # Create temp and other output subfolders
 @files(input==None, outSuccessPrefix + "dir.makeDir.Success")
 def makeDir(input, flagFile):
-    runStageCheck('makeDir', flagFile, outSuccessPrefix, outBamPrefix, outVcfPrefix)
+    runStageCheck('makeDir', flagFile, outPrefix, full_sequence_list_string)
 stage_count += 1
 
 if refGenbank == False:
@@ -542,7 +554,7 @@ if mapping == 'bowtie':
         input = r'(.*)\/(.+)_1\.fastq.gz'
         extraInput = [r'\1/\2_2.fastq.gz']
         @follows(buildBowtieIndex)
-        @transform(sequences, regex(input), add_inputs(extraInput), [outTempPrefix + r'\2.bam', outSuccessPrefix + r'\2.alignBowtiePE.Success'])
+        @transform(sequences, regex(input), add_inputs(extraInput), [outTempPrefix + r'\2/\2.bam', outSuccessPrefix + r'\2.alignBowtiePE.Success'])
         def alignBowtiePE(inputs, outputs):
             output, flagFile = outputs
             (prefix, name, ext) = splitPath(output)
@@ -562,7 +574,7 @@ if mapping == 'bowtie':
 
         #get bam stats by replicon
         @follows(indexBam)
-        @transform(alignBowtiePE, regex(r"(.*)\/(.+).bam"), [outTempPrefix + r"\2_samStats.txt", outSuccessPrefix + r'\2.getSamStats.Success'])
+        @transform(alignBowtiePE, regex(r"(.*)\/(.+).bam"), [r'\1/\2_samStats.txt', outSuccessPrefix + r'\2.getSamStats.Success'])
         def getSamStats(inputs, outputs):
             output, flagFile = outputs
             bamFile, _success = inputs
@@ -584,7 +596,7 @@ if mapping == 'bowtie':
         if readType=="SE":
             #align reads with Bowtie2 to sorted bam
             @follows(buildBowtieIndex)
-            @transform(sequences, regex(r"(.*)\/(.+).fastq.gz"), [outTempPrefix + r'\2.bam', outSuccessPrefix + r'\2.alignBowtie.Success'])
+            @transform(sequences, regex(r"(.*)\/(.+).fastq.gz"), [outTempPrefix + r'\2/\2.bam', outSuccessPrefix + r'\2.alignBowtie.Success'])
             def alignBowtie(input, outputs):
                 output, flagFile = outputs
                 (prefix, name, ext) = splitPath(output)
@@ -596,7 +608,7 @@ if mapping == 'bowtie':
         else: #readType == "IT"
             #align reads with Bowtie2 to sorted bam
             @follows(buildBowtieIndex)
-            @transform(sequences, regex(r"(.*)\/(.+)_in.iontor.fastq.gz"), [outTempPrefix + r'\2.bam', outSuccessPrefix + r'\2.alignBowtie.Success'])
+            @transform(sequences, regex(r"(.*)\/(.+)_in.iontor.fastq.gz"), [outTempPrefix + r'\2/\2.bam', outSuccessPrefix + r'\2.alignBowtie.Success'])
             def alignBowtie(input, outputs):
                 output, flagFile = outputs
                 (prefix, name, ext) = splitPath(output)
@@ -615,7 +627,7 @@ if mapping == 'bowtie':
 
         #get bam stats by replicon
         @follows(indexBam)
-        @transform(alignBowtie, regex(r"(.*)\/(.+).bam"), [outTempPrefix + r"\2_samStats.txt", outSuccessPrefix + r'\2.getSamStats.Success'])
+        @transform(alignBowtie, regex(r"(.*)\/(.+).bam"), [r'\1/\2_samStats.txt', outSuccessPrefix + r'\2.getSamStats.Success'])
         def getSamStats(inputs, outputs):
             output, flagFile = outputs
             bamFile, _success = inputs
@@ -634,19 +646,28 @@ if mapping == 'bowtie':
         stage_count += len(sequence_list) 
 
 else: # mapping = 'BWA'
-    # Align sequence reads to the reference genome.
-    @follows(buildBWAIndex)
-    @transform(sequences, regex(r"(.*)\/(.+).fastq.gz"), [outTempPrefix + r"\2.sai", outSuccessPrefix + r"\2.alignSequence.Success"])
-    def alignSequence(sequence, outputs):
-        output, flagFile = outputs
-        runStageCheck('alignSequence', flagFile, reference, sequence, output)
-    stage_count += len(sequences) 
-
     if readType == "PE":
+        # Align 'forward' sequences reads to the reference genome.
+        @follows(buildBWAIndex)
+        @transform(sequences, regex(r'(.*)\/(.+)_1\.fastq.gz'), [outTempPrefix + r'\2/\2_1.sai', outSuccessPrefix + r"\2.alignForward.Success"])
+        def alignForward(sequence, outputs):
+            output, flagFile = outputs
+            runStageCheck('alignSequence', flagFile, reference, sequence, output)
+        stage_count += len(sequences)/2 
+
+        # Align 'reverse' sequences reads to the reference genome.
+        @follows(buildBWAIndex)
+        @transform(sequences, regex(r'(.*)\/(.+)_2\.fastq.gz'), [outTempPrefix + r'\2/\2_2.sai', outSuccessPrefix + r"\2.alignReverse.Success"])
+        def alignReverse(sequence, outputs):
+            output, flagFile = outputs
+            runStageCheck('alignSequence', flagFile, reference, sequence, output)
+        stage_count += len(sequences)/2
+
         #align reads with BWA to sorted bam
         input = r'(.*)\/(.+)_1\.sai'
         extraInput = [r'\1/\2_2.sai']
-        @transform(alignSequence, regex(input), add_inputs(extraInput), [outTempPrefix + r'\2.bam', outSuccessPrefix + r'\2.alignBWAPE.Success'])
+        @follows(alignReverse)
+        @transform(alignForward, regex(input), add_inputs(extraInput), [r'\1/\2.bam', outSuccessPrefix + r'\2.alignBWAPE.Success'])
         def alignBWAPE(inputs, outputs):
             output, flagFile = outputs
             [align1, _success], [align2] = inputs
@@ -673,7 +694,7 @@ else: # mapping = 'BWA'
 
         #get bam stats by replicon
         @follows(indexBam)
-        @transform(alignBWAPE, regex(r"(.*)\/(.+).bam"), [outTempPrefix + r"\2_samStats.txt", outSuccessPrefix + r'\2.getSamStats.Success'])
+        @transform(alignBWAPE, regex(r"(.*)\/(.+).bam"), [r'\1/\2_samStats.txt', outSuccessPrefix + r'\2.getSamStats.Success'])
         def getSamStats(inputs, outputs):
             output, flagFile = outputs
             bamFile, _success = inputs
@@ -692,9 +713,17 @@ else: # mapping = 'BWA'
         stage_count += len(sequence_list) 
 
     else:
+        # Align sequence reads to the reference genome.
+        @follows(buildBWAIndex)
+        @transform(sequences, regex(r"(.*)\/(.+).fastq.gz"), [outTempPrefix + r'\2/\2.sai', outSuccessPrefix + r"\2.alignSequence.Success"])
+        def alignSequence(sequence, outputs):
+            output, flagFile = outputs
+            runStageCheck('alignSequence', flagFile, reference, sequence, output)
+        stage_count += len(sequences)
+
         #align reads with BWA to sorted bam
         @follows(buildBWAIndex)
-        @transform(alignSequence, regex(r"(.*)\/(.+).sai"), [outTempPrefix + r'\2.bam', outSuccessPrefix + r'\2.alignBWASE.Success'])
+        @transform(alignSequence, regex(r"(.*)\/(.+).sai"), [r'\1/\2.bam', outSuccessPrefix + r'\2.alignBWASE.Success'])
         def alignBWASE(inputs, outputs):
             output, flagFile = outputs
             align, _success = inputs
@@ -719,7 +748,7 @@ else: # mapping = 'BWA'
 
         #get bam stats by replicon
         @follows(indexBam)
-        @transform(alignBWASE, regex(r"(.*)\/(.+).bam"), [outTempPrefix + r"\2_samStats.txt", outSuccessPrefix + r'\2.getSamStats.Success'])
+        @transform(alignBWASE, regex(r"(.*)\/(.+).bam"), [r'\1/\2_samStats.txt', outSuccessPrefix + r'\2.getSamStats.Success'])
         def getSamStats(inputs, outputs):
             output, flagFile = outputs
             bamFile, _success = inputs
@@ -748,7 +777,7 @@ stage_count += len(sequence_list)
 # get consensus sequence from bam
 @follows(indexFilteredBam)
 @follows(indexRef)
-@transform(filterUnmapped, regex(r"(.*)\/(.+).bam"), [outTempPrefix + r"\2_cns.fq", outSuccessPrefix + r"\2.getConsensus.Success"])
+@transform(filterUnmapped, regex(r"(.*)\/(.+).bam"), [outTempPrefix + r"\2/\2_cns.fq", outSuccessPrefix + r"\2.getConsensus.Success"])
 def getConsensus(inputs, outputs):
     output, flagFile = outputs
     bamFile, _success = inputs
@@ -758,7 +787,7 @@ stage_count += len(sequence_list)
 # Get coverage from BAM
 @follows(indexFilteredBam)
 @follows(indexRef)
-@transform(filterUnmapped, regex(r"(.*)\/(.+).bam"), [outTempPrefix + r"\2_coverage.txt", outSuccessPrefix + r"\2.getCoverage.Success"])
+@transform(filterUnmapped, regex(r"(.*)\/(.+).bam"), [outTempPrefix + r"\2/\2_coverage.txt", outSuccessPrefix + r"\2.getCoverage.Success"])
 def getCoverage(inputs, outputs):
     output, flagFile = outputs
     bamFile, _success = inputs
@@ -772,107 +801,6 @@ def getCoverByRep(inputs, outputs):
     coverageFile, _success = inputs
     runStageCheck('getCoverByRep', flagFile, reference, coverageFile, output)
 stage_count += len(sequence_list) 
-
-if runType == "pangenome":
-    #create inputs for callRepSNPs
-    def snpsByCoreReplicons():
-        for repliconName in core_replicons:
-            for seqName in sequence_list:
-                sortedBam = outBamPrefix + seqName + '.bam'
-                output = outTempPrefix + seqName + '_' + repliconName + '_raw.bcf'
-                flagFile = outSuccessPrefix + seqName + '_' + repliconName + '.callRepSNPs.Success'
-                yield([sortedBam, output, repliconName, flagFile])
-
-    # Call SNPs for core replicon(s)
-    @follows(indexFilteredBam)
-    @follows(indexRef)
-    @files(snpsByCoreReplicons)
-    def callRepSNPs(sortedBam, output, repliconName, flagFile):
-        runStageCheck('callRepSNPs', flagFile, reference, sortedBam, repliconName, output)
-    stage_count += (len(sequence_list)*len(core_replicons)) 
-
-    #create inputs for filter variants on Q30
-    def q30FilterByCoreReplicons():
-        for repliconName in core_replicons:
-            for seqName in sequence_list:
-                rawBCF = outTempPrefix + seqName + '_' + repliconName + '_raw.bcf'
-                coverFile = outTempPrefix + seqName + '_rep_cover.txt'                        
-                output = outTempPrefix + seqName + '_' + repliconName + '_raw.vcf'
-                flagFile = outSuccessPrefix + seqName + '_' + repliconName + '.q30VarFilter.Success'
-                yield([rawBCF, output, coverFile, repliconName, flagFile])
-    
-    # Filter variants on Q30
-    @follows(getCoverByRep)
-    @follows(callRepSNPs)
-    @files(q30FilterByCoreReplicons)
-    def q30VarFilter(rawBCF, output, coverFile, repliconName, flagFile):
-        cover = getCover(coverFile, repliconName)
-        runStageCheck('q30VarFilter', flagFile, rawBCF, minDepth, cover, output)
-    stage_count += (len(sequence_list)*len(core_replicons)) 
-
-    # Filter out simple hets
-    @transform(q30VarFilter, regex(r"(.*)\/(.+)_raw.vcf"), [outVcfPrefix + r"\2_q30.vcf", outSuccessPrefix + r"\2.finalFilter.Success"])
-    def finalFilter(vcfFile, outputs):
-        output, flagFile = outputs
-        runStageCheck('finalFilter', flagFile, vcfFile, output)
-    stage_count += (len(sequence_list)*len(core_replicons)) 
-
-else: # runType == "phylogeny"
-    #create inputs for callRepSNPs
-    def snpsByReplicons():
-        for repliconName in replicons:
-            for seqName in sequence_list:
-                sortedBam = outTempPrefix + seqName + '.bam'
-                output = outTempPrefix + seqName + '_' + repliconName[0] + '_raw.bcf'
-                flagFile = outSuccessPrefix + seqName + '_' + repliconName[0] + '.callRepSNPs.Success'
-                replicon = repliconName[0]
-                yield([sortedBam, output, replicon, flagFile])
-
-    # Call SNPs for all replicon(s)
-    @follows(indexFilteredBam)
-    @follows(indexRef)
-    @files(snpsByReplicons)
-    def callRepSNPs(sortedBam, output, replicon, flagFile):
-        runStageCheck('callRepSNPs', flagFile, reference, sortedBam, replicon, output)
-    stage_count += (len(sequence_list)*len(replicons)) 
-
-    #create inputs for filter variants on Q30
-    def q30FilterByReplicons():
-        for repliconName in replicons:
-            for seqName in sequence_list:
-                rawBCF = outTempPrefix + seqName + '_' + repliconName[0] + '_raw.bcf'
-                coverFile = outTempPrefix + seqName + '_rep_cover.txt'    
-                output = outTempPrefix + seqName + '_' + repliconName[0] + '_raw.vcf'
-                flagFile = outSuccessPrefix + seqName + '_' + repliconName[0] + '.q30VarFilter.Success'
-                replicon = repliconName[0]
-                yield([rawBCF, output, coverFile, replicon, flagFile])
-    
-    # Filter variants on Q30
-    @follows(getCoverByRep)
-    @follows(callRepSNPs)
-    @files(q30FilterByReplicons)
-    def q30VarFilter(rawBCF, output, coverFile, replicon, flagFile):
-        cover = getCover(coverFile, replicon)
-        runStageCheck('q30VarFilter', flagFile, rawBCF, minDepth, cover, output)
-    stage_count += (len(sequence_list)*len(replicons)) 
-
-    # Filter out simple hets
-    @transform(q30VarFilter, regex(r"(.*)\/(.+)_raw.vcf"), [outVcfPrefix + r"\2_q30.vcf", outSuccessPrefix + r"\2.finalFilter.Success"])
-    def finalFilter(vcfFile, outputs):
-        output, flagFile = outputs
-        runStageCheck('finalFilter', flagFile, vcfFile, output)
-    stage_count += (len(sequence_list)*len(replicons)) 
-
-# Get the vcf statistics
-@transform(finalFilter, regex(r"(.*)\/(.+)_q30.vcf"), [outTempPrefix + r"\2_vcf.txt", outSuccessPrefix + r"\2.getVcfStats.Success"])
-def getVcfStats(inputs, outputs):
-    output, flagFile = outputs
-    vcfFile, _success = inputs
-    runStageCheck('getVcfStats', flagFile, vcfFile, output)
-if runType == "phylogeny":
-    stage_count += (len(sequence_list)*len(replicons)) 
-else:
-    stage_count += (len(sequence_list)*len(core_replicons)) 
 
 # Derive run statistics - first, the 'all statistics' data
 @follows(getSamStats)
@@ -891,17 +819,78 @@ stage_count += len(sequence_list)
 def collateAllStats(inputs, outputs):
     output, flagFile = outputs
     example_name = sequence_list[0]
-    exampleRepCover = outTempPrefix + example_name + "_rep_cover.txt"
-    runStageCheck('collateAllStats', flagFile, refName, exampleRepCover)
+    exampleRepCover = outTempPrefix + example_name + '/' + example_name + "_rep_cover.txt"
+    runStageCheck('collateAllStats', flagFile, refName, exampleRepCover, outPrefix, sequence_list_string)
 stage_count += 1
 
 if runType == "pangenome":
+    #create inputs for callRepSNPs
+    def snpsByCoreReplicons():
+        for repliconName in core_replicons:
+            for seqName in sequence_list:
+                sortedBam = outBamPrefix + seqName + '.bam'
+                output = outTempPrefix + seqName + '/callRepSNPs/' + seqName + '_' + repliconName + '_raw.bcf'
+                flagFile = outSuccessPrefix + seqName + '_' + repliconName + '.callRepSNPs.Success'
+                yield([sortedBam, output, repliconName, flagFile])
+
+    # Call SNPs for core replicon(s)
+    @follows(indexFilteredBam)
+    @follows(indexRef)
+    @files(snpsByCoreReplicons)
+    def callRepSNPs(sortedBam, output, repliconName, flagFile):
+        runStageCheck('callRepSNPs', flagFile, reference, sortedBam, repliconName, output)
+    stage_count += (len(sequence_list)*len(core_replicons)) 
+
+    #create inputs for filter variants on Q30
+    def q30FilterByCoreReplicons():
+        for repliconName in core_replicons:
+            for seqName in sequence_list:
+                rawBCF = outTempPrefix + seqName + '/callRepSNPs/' + seqName + '_' + repliconName + '_raw.bcf'
+                coverFile = outTempPrefix + seqName + '/' + seqName + '_rep_cover.txt'                        
+                output = outTempPrefix + seqName + '/q30VarFilter/' + seqName + '_' + repliconName + '_raw.vcf'
+                flagFile = outSuccessPrefix + seqName + '_' + repliconName + '.q30VarFilter.Success'
+                yield([rawBCF, output, coverFile, repliconName, flagFile])
+    
+    # Filter variants on Q30
+    @follows(getCoverByRep)
+    @follows(callRepSNPs)
+    @files(q30FilterByCoreReplicons)
+    def q30VarFilter(rawBCF, output, coverFile, repliconName, flagFile):
+        cover = getCover(coverFile, repliconName)
+        runStageCheck('q30VarFilter', flagFile, rawBCF, minDepth, cover, output)
+    stage_count += (len(sequence_list)*len(core_replicons)) 
+
+    # Filter out simple hets
+    @transform(q30VarFilter, regex(r"(.*)\/(.+)_raw.vcf"), [outVcfPrefix + r"\2_q30.vcf", outSuccessPrefix + r"\2.finalFilter.Success"])
+    def finalFilter(vcfFile, outputs):
+        output, flagFile = outputs
+        (prefix, name, ext) = splitPath(vcfFile) 
+        prefix += '/hets/'       
+        runStageCheck('finalFilter', flagFile, vcfFile, output, prefix)
+    stage_count += (len(sequence_list)*len(core_replicons)) 
+
+    # set up for getting vcf statistics
+    def vcfStatsByCoreRep():
+        for repliconName in core_replicons:
+            for seqName in sequence_list:
+                vcfFile = outVcfPrefix + seqName + '_' + repliconName + '_q30.vcf'
+                output = outTempPrefix + seqName + '/getVCFStats/' + seqName + '_' + repliconName + '_vcf.txt'
+                flagFile = outSuccessPrefix + seqName + '_' + repliconName + '.getVcfStats.Success'
+                yield([vcfFile, output, flagFile])
+
+    # Get the vcf statistics
+    @follows(finalFilter)
+    @files(vcfStatsByCoreRep)
+    def getVcfStats(vcfFile, output, flagFile):
+        runStageCheck('getVcfStats', flagFile, vcfFile, output)
+    stage_count += (len(sequence_list)*len(core_replicons))
+
     # Derive run statistics - second, the statistics for each replicon (largest or user-defined list)
     def statsByCoreRep():
         for repliconName in core_replicons:
             for seqName in sequence_list:
-                coverFile = outTempPrefix + seqName + '_rep_cover.txt'
-                output = outTempPrefix + seqName + '_' + repliconName + '_RepStats.txt'
+                coverFile = outTempPrefix + seqName + '/' + seqName + '_rep_cover.txt'
+                output = outTempPrefix + seqName + '/deriveRepStats/' + seqName + '_' + repliconName + '_RepStats.txt'
                 flagFile = outSuccessPrefix + seqName + '_' + repliconName + '.deriveRepStats.Success'
                 yield([coverFile, output, repliconName, depthFail, coverFail, flagFile])
 
@@ -915,25 +904,86 @@ if runType == "pangenome":
 
     def inputByCoreRep():
         for repliconName in core_replicons:
-            example_name = sequence_list[0]
-            exampleRepCover = outTempPrefix + example_name + "_rep_cover.txt"
             output = outPrefix + refName + '_' + repliconName + '_RepStats.txt'
             flagFile = outSuccessPrefix + refName + '_' + repliconName + '.collateRepStats.Success'
-            yield([input==None, output, refName, exampleRepCover, repliconName, flagFile])
+            yield([input==None, output, refName, repliconName, flagFile])
 
     @follows(deriveRepStats)
     @files(inputByCoreRep)
-    def collateRepStats(input, output, refName, exampleRepCover, repliconName, flagFile):
-        runStageCheck('collateRepStats', flagFile, refName, exampleRepCover, repliconName, sdOutgroupMultiplier, runType)
+    def collateRepStats(input, output, refName, repliconName, flagFile):
+        runStageCheck('collateRepStats', flagFile, refName, outPrefix, repliconName, sdOutgroupMultiplier, runType, sequence_list_string)
     stage_count += len(core_replicons) 
 
-else: #runType == "phylogeny":
+else: # runType == "phylogeny"
+    #create inputs for callRepSNPs
+    def snpsByReplicons():
+        for repliconName in replicons:
+            for seqName in sequence_list:
+                sortedBam = outBamPrefix + seqName + '.bam'
+                output = outTempPrefix + seqName + '/callRepSNPs/' + seqName + '_' + repliconName[0] + '_raw.bcf'
+                flagFile = outSuccessPrefix + seqName + '_' + repliconName[0] + '.callRepSNPs.Success'
+                replicon = repliconName[0]
+                yield([sortedBam, output, replicon, flagFile])
+
+    # Call SNPs for all replicon(s)
+    @follows(indexFilteredBam)
+    @follows(indexRef)
+    @files(snpsByReplicons)
+    def callRepSNPs(sortedBam, output, replicon, flagFile):
+        runStageCheck('callRepSNPs', flagFile, reference, sortedBam, replicon, output)
+    stage_count += (len(sequence_list)*len(replicons)) 
+
+    #create inputs for filter variants on Q30
+    def q30FilterByReplicons():
+        for repliconName in replicons:
+            for seqName in sequence_list:
+                rawBCF = outTempPrefix + seqName + '/callRepSNPs/' + seqName + '_' + repliconName[0] + '_raw.bcf'
+                coverFile = outTempPrefix + seqName + '/' + seqName + '_rep_cover.txt'    
+                output = outTempPrefix + seqName + '/q30VarFilter/' + seqName + '_' + repliconName[0] + '_raw.vcf'
+                flagFile = outSuccessPrefix + seqName + '_' + repliconName[0] + '.q30VarFilter.Success'
+                replicon = repliconName[0]
+                yield([rawBCF, output, coverFile, replicon, flagFile])
+    
+    # Filter variants on Q30
+    @follows(getCoverByRep)
+    @follows(callRepSNPs)
+    @files(q30FilterByReplicons)
+    def q30VarFilter(rawBCF, output, coverFile, replicon, flagFile):
+        cover = getCover(coverFile, replicon)
+        runStageCheck('q30VarFilter', flagFile, rawBCF, minDepth, cover, output)
+    stage_count += (len(sequence_list)*len(replicons)) 
+
+    # Filter out simple hets
+    @transform(q30VarFilter, regex(r"(.*)\/(.+)_raw.vcf"), [outVcfPrefix + r"\2_q30.vcf", outSuccessPrefix + r"\2.finalFilter.Success"])
+    def finalFilter(vcfFile, outputs):
+        output, flagFile = outputs
+        (prefix, name, ext) = splitPath(vcfFile) 
+        prefix += '/hets/'       
+        runStageCheck('finalFilter', flagFile, vcfFile, output, prefix)
+    stage_count += (len(sequence_list)*len(replicons)) 
+
+    # set up for getting vcf statistics
+    def vcfStatsByRep():
+        for repliconName in replicons:
+            for seqName in sequence_list:
+                vcfFile = outVcfPrefix + seqName + '_' + repliconName[0] + '_q30.vcf'
+                output = outTempPrefix + seqName + '/getVCFStats/' + seqName + '_' + repliconName[0] + '_vcf.txt'
+                flagFile = outSuccessPrefix + seqName + '_' + repliconName[0] + '.getVcfStats.Success'
+                yield([vcfFile, output, flagFile])
+
+    # Get the vcf statistics
+    @follows(finalFilter)
+    @files(vcfStatsByRep)
+    def getVcfStats(vcfFile, output, flagFile):
+        runStageCheck('getVcfStats', flagFile, vcfFile, output)
+    stage_count += (len(sequence_list)*len(replicons))
+
     # Derive run statistics - second, the statistics for each replicon (largest or user-defined list)
     def statsByRep():
         for repliconName in replicons:
             for seqName in sequence_list:
-                coverFile = outTempPrefix + seqName + '_rep_cover.txt'
-                output = outTempPrefix + seqName + '_' + repliconName[0] + '_RepStats.txt'
+                coverFile = outTempPrefix + seqName + '/' + seqName + '_rep_cover.txt'
+                output = outTempPrefix + seqName + '/deriveRepStats/' + seqName + '_' + repliconName[0] + '_RepStats.txt'
                 flagFile = outSuccessPrefix + seqName + '_' + repliconName[0] + '.deriveRepStats.Success'
                 replicon = repliconName[0]
                 yield([coverFile, output, replicon, depthFail, coverFail, flagFile])
@@ -948,17 +998,15 @@ else: #runType == "phylogeny":
 
     def inputByRep():
         for repliconName in replicons:
-            example_name = sequence_list[0]
-            exampleRepCover = outTempPrefix + example_name + "_rep_cover.txt"
             output = outPrefix + refName + '_' + repliconName[0] + '_RepStats.txt'
             flagFile = outSuccessPrefix + refName + '_' + repliconName[0] + '.collateRepStats.Success'
             replicon = repliconName[0]
-            yield([input==None, output, refName, exampleRepCover, replicon, flagFile])
+            yield([input==None, output, refName, replicon, flagFile])
 
     @follows(deriveRepStats)
     @files(inputByRep)
-    def collateRepStats(input, output, refName, exampleRepCover, replicon, flagFile):
-        runStageCheck('collateRepStats', flagFile, refName, exampleRepCover, replicon, sdOutgroupMultiplier, runType)
+    def collateRepStats(input, output, refName, replicon, flagFile):
+        runStageCheck('collateRepStats', flagFile, refName, outPrefix, replicon, sdOutgroupMultiplier, runType, sequence_list_string)
     stage_count += len(replicons)
 
 if outMerge != "":
@@ -993,13 +1041,12 @@ if outMerge != "":
     else:
         stage_count += len(core_replicons) 
 
-#    if mergeReads == "":
     if runType == "phylogeny":
         # Start of phylogeny analysis
         def snpListByRep():
             for repliconName in replicons:
                 input  = outMerge + refName + '_' + repliconName[0] + '_RepStats.txt'
-                output = outTempPrefix + refName + '_' + repliconName[0] + '_SNPList.txt'
+                output = outTempPrefix + 'getRepSNPList/' + refName + '_' + repliconName[0] + '_SNPList.txt'
                 flagFile = outSuccessPrefix + refName + '_' + repliconName[0] + '.getRepSNPList.Success'
                 replicon = repliconName[0]
                 yield([input, output, replicon, flagFile])
@@ -1017,7 +1064,7 @@ if outMerge != "":
         def snpListByCoreRep():
             for repliconName in core_replicons:
                 input  = outMerge + refName + '_' + repliconName + '_RepStats.txt'
-                output = outTempPrefix + refName + '_' + repliconName + '_SNPList.txt'
+                output = outTempPrefix + 'getRepSNPList/' + refName + '_' + repliconName + '_SNPList.txt'
                 flagFile = outSuccessPrefix + refName + '_' + repliconName + '.getRepSNPList.Success'
                 replicon = repliconName
                 yield([input, output, replicon, flagFile])
@@ -1030,13 +1077,13 @@ if outMerge != "":
             runStageCheck('getRepSNPList', flagFile, input, replicon, output)
         stage_count += len(core_replicons) 
 
-else:
+else: #    if mergeReads == "":
     if runType == "phylogeny":
         # Start of new run phylogeny analysis
         def snpListByRep():
             for repliconName in replicons:
                 input  = outPrefix + refName + '_' + repliconName[0] + '_RepStats.txt'
-                output = outTempPrefix + refName + '_' + repliconName[0] + '_SNPList.txt'
+                output = outTempPrefix + 'getRepSNPList/' + refName + '_' + repliconName[0] + '_SNPList.txt'
                 flagFile = outSuccessPrefix + refName + '_' + repliconName[0] + '.getRepSNPList.Success'
                 replicon = repliconName[0]
                 yield([input, output, replicon, flagFile])
@@ -1054,7 +1101,7 @@ else:
         def snpListByCoreRep():
             for repliconName in core_replicons:
                 input  = outPrefix + refName + '_' + repliconName + '_RepStats.txt'
-                output = outTempPrefix + refName + '_' + repliconName + '_SNPList.txt'
+                output = outTempPrefix + 'getRepSNPList/' + refName + '_' + repliconName + '_SNPList.txt'
                 flagFile = outSuccessPrefix + refName + '_' + repliconName + '.getRepSNPList.Success'
                 replicon = repliconName
                 yield([input, output, replicon, flagFile])
@@ -1078,7 +1125,7 @@ if refGenbank == True:
             bams = glob.glob(bamPatterns)        
 
         # generate data for the gene cover and depth matrices
-        @transform(getCoverage, regex(r"(.*)\/(.+)_coverage.txt"), [outTempPrefix + r'\2_CoverDepthMatrix.txt', outSuccessPrefix + r'\2.deriveAllRepGeneCover.Success'])
+        @transform(getCoverage, regex(r"(.*)\/(.+)_coverage.txt"), [outTempPrefix + r'\2/\2_CoverDepthMatrix.txt', outSuccessPrefix + r'\2.deriveAllRepGeneCover.Success'])
         def deriveAllRepGeneCover(inputs, outputs):
             output, flagFile = outputs
             input, _success = inputs
@@ -1089,7 +1136,7 @@ if refGenbank == True:
         @merge(deriveAllRepGeneCover, [outMerge + refName + "_CoverMatrix.csv", outSuccessPrefix + refName + "_CoverMatrix.mergeAllRepGeneCover.Success"])
         def mergeAllRepGeneCover(inputs, outputs):
             output, flagFile = outputs
-            runStageCheck('mergeAllRepGeneCover', flagFile, outTempPrefix, outMerge, refName)
+            runStageCheck('mergeAllRepGeneCover', flagFile, outTempPrefix, outMerge, refName, sequence_list_string)
         stage_count += 1
 
         # parse gene cover (and depth - to come) matrices to summarise gene content
@@ -1104,7 +1151,7 @@ if refGenbank == True:
 
         # get consensus sequences for merged set
         @follows(getRepSNPList)
-        @transform(bams, regex(r"(.*)\/(.+).bam"), [outTempPrefix + r"\2_cns.fq", outSuccessPrefix + r"\2.getMergeConsensus.Success"])
+        @transform(bams, regex(r"(.*)\/(.+).bam"), [outTempPrefix + r"\2/\2_cns.fq", outSuccessPrefix + r"\2.getMergeConsensus.Success"])
         def getMergeConsensus(input, outputs):
             output, flagFile = outputs
             runStageCheck('getConsensus', flagFile, reference, input, output)
@@ -1115,11 +1162,11 @@ if refGenbank == True:
             def matrixEntryByCoreRep():
                 for isolate in full_sequence_list:
                     for repliconName in core_replicons:
-                        input = outTempPrefix + refName + '_' + repliconName + '_SNPList.txt'
-                        output  = outTempPrefix + refName + '_' + repliconName + '_' + isolate + '_alleles.txt'
+                        input = outTempPrefix + 'getRepSNPList/' + refName + '_' + repliconName + '_SNPList.txt'
+                        output  = outTempPrefix + isolate + '/deriveRepAlleleMartix/' + refName + '_' + repliconName + '_' + isolate + '_alleles.txt'
                         flagFile = outSuccessPrefix + refName + '_' + repliconName + '_' + isolate + '.deriveRepAlleleMatrix.Success'
                         replicon = repliconName
-                        consensus =  outTempPrefix + isolate + '_cns.fq'
+                        consensus =  outTempPrefix + isolate + '/' + isolate + '_cns.fq'
                         repliconStats = outMerge + refName + '_' + repliconName + '_RepStats.txt'
                         merge_prefix = outMerge
                         yield([input, output, replicon, consensus,repliconStats, merge_prefix, flagFile])
@@ -1133,16 +1180,15 @@ if refGenbank == True:
 
             def matrixByCoreRep():
                 for repliconName in core_replicons:
-                    input = outTempPrefix + refName + '_' + repliconName + '_'+full_sequence_list[0]+'_alleles.txt'
-                    length_to_remove = len(full_sequence_list[0])+8
                     output  = outTempPrefix + refName + '_' + repliconName + '_alleles.csv'
                     flagFile = outSuccessPrefix + refName + '_' + repliconName + '.collateRepAlleleMatrix.Success'
-                    yield([input, output, length_to_remove, flagFile])
+                    rep_name = refName + '_' + repliconName
+                    yield([input==None, output, rep_name, flagFile])
 
             @follows(deriveRepAlleleMatrix)
             @files(matrixByCoreRep)
-            def collateRepAlleleMatrix(input, output, length_to_remove, flagFile):
-                runStageCheck('collateRepAlleleMatrix', flagFile, input, output, length_to_remove)
+            def collateRepAlleleMatrix(input, output, rep_name, flagFile):
+                runStageCheck('collateRepAlleleMatrix', flagFile, outTempPrefix, output, full_sequence_list_string, rep_name)
             stage_count += len(core_replicons)
 
         else: #runType == 'phylogeny'
@@ -1150,11 +1196,11 @@ if refGenbank == True:
             def matrixEntryByRep():
                 for isolate in full_sequence_list:
                     for repliconName in replicons:
-                        input = outTempPrefix + refName + '_' + repliconName[0] + '_SNPList.txt'
-                        output  = outTempPrefix + refName + '_' + repliconName[0] + '_' + isolate + '_alleles.txt'
+                        input = outTempPrefix + 'getRepSNPList/' + refName + '_' + repliconName[0] + '_SNPList.txt'
+                        output  = outTempPrefix + isolate + '/deriveRepAlleleMartix/' + refName + '_' + repliconName[0] + '_' + isolate + '_alleles.txt'
                         flagFile = outSuccessPrefix + refName + '_' + repliconName[0] + '_' + isolate + '.deriveRepAlleleMatrix.Success'
                         replicon = repliconName[0]
-                        consensus =  outTempPrefix + isolate + '_cns.fq'
+                        consensus =  outTempPrefix + isolate + '/' + isolate + '_cns.fq'
                         repliconStats = outMerge + refName + '_' + repliconName[0] + '_RepStats.txt'
                         merge_prefix = outMerge
                         yield([input, output, replicon, consensus,repliconStats, merge_prefix, flagFile])
@@ -1168,16 +1214,15 @@ if refGenbank == True:
 
             def matrixByRep():
                 for repliconName in replicons:
-                    input = outTempPrefix + refName + '_' + repliconName[0] + '_'+full_sequence_list[0]+'_alleles.txt'
-                    length_to_remove = len(full_sequence_list[0])+8
                     output  = outTempPrefix + refName + '_' + repliconName[0] + '_alleles.csv'
                     flagFile = outSuccessPrefix + refName + '_' + repliconName[0] + '.collateRepAlleleMatrix.Success'
-                    yield([input, output, length_to_remove, flagFile])
+                    rep_name = refName + '_' + repliconName[0]
+                    yield([input==None, output, rep_name, flagFile])
 
             @follows(deriveRepAlleleMatrix)
             @files(matrixByRep)
-            def collateRepAlleleMatrix(input, output, length_to_remove, flagFile):
-                runStageCheck('collateRepAlleleMatrix', flagFile, input, output, length_to_remove)
+            def collateRepAlleleMatrix(input, output, rep_name, flagFile):
+                runStageCheck('collateRepAlleleMatrix', flagFile, outTempPrefix, output, full_sequence_list_string, rep_name)
             stage_count += len(replicons)
 
         # parse SNP table to create alignment for tree and get coding consequences for snps
@@ -1243,8 +1288,7 @@ if refGenbank == True:
 
     else: #ie. mergeReads == "" and refGenbank == True
         # generate the gene cover and depth matrices
-        @follows(getRepSNPList)
-        @transform(getCoverage, regex(r"(.*)\/(.+)_coverage.txt"), [outTempPrefix + r'\2_CoverDepthMatrix.txt', outSuccessPrefix + r'\2.deriveAllRepGeneCover.Success'])
+        @transform(getCoverage, regex(r"(.*)\/(.+)_coverage.txt"), [outTempPrefix + r'\2/\2_CoverDepthMatrix.txt', outSuccessPrefix + r'\2.deriveAllRepGeneCover.Success'])
         def deriveAllRepGeneCover(inputs, outputs):
             output, flagFile = outputs
             input, _success = inputs
@@ -1254,7 +1298,7 @@ if refGenbank == True:
         @merge(deriveAllRepGeneCover, [outPrefix + refName + "_CoverMatrix.csv", outSuccessPrefix + refName + "_CoverMatrix.collateAllRepGeneCover.Success"])
         def collateAllRepGeneCover(inputs, outputs):
             output, flagFile = outputs
-            runStageCheck('collateAllRepGeneCover', flagFile, outTempPrefix, outPrefix, refName)
+            runStageCheck('collateAllRepGeneCover', flagFile, outTempPrefix, outPrefix, refName, sequence_list_string)
         stage_count += 1
 
         # parse gene cover (and depth - to come) matrices to summarise gene content
@@ -1272,11 +1316,11 @@ if refGenbank == True:
             def matrixEntryByCoreRep():
                 for isolate in full_sequence_list:
                     for repliconName in core_replicons:
-                        input = outTempPrefix + refName + '_' + repliconName + '_SNPList.txt'
-                        output  = outTempPrefix + refName + '_' + repliconName + '_' + isolate + '_alleles.txt'
+                        input = outTempPrefix + 'getRepSNPList/' + refName + '_' + repliconName + '_SNPList.txt'
+                        output  = outTempPrefix + isolate + '/deriveRepAlleleMartix/' + refName + '_' + repliconName + '_' + isolate + '_alleles.txt'
                         flagFile = outSuccessPrefix + refName + '_' + repliconName + '_' + isolate + '.deriveRepAlleleMatrix.Success'
                         replicon = repliconName
-                        consensus =  outTempPrefix + isolate + '_cns.fq'
+                        consensus =  outTempPrefix + isolate + '/' + isolate + '_cns.fq'
                         repliconStats = outPrefix + refName + '_' + repliconName + '_RepStats.txt'
                         merge_prefix = '-'
                         yield([input, output, replicon, consensus,repliconStats, merge_prefix, flagFile])
@@ -1290,16 +1334,15 @@ if refGenbank == True:
 
             def matrixByCoreRep():
                 for repliconName in core_replicons:
-                    input = outTempPrefix + refName + '_' + repliconName + '_'+full_sequence_list[0]+'_alleles.txt'
-                    length_to_remove = len(full_sequence_list[0])+8
                     output  = outTempPrefix + refName + '_' + repliconName + '_alleles.csv'
                     flagFile = outSuccessPrefix + refName + '_' + repliconName + '.collateRepAlleleMatrix.Success'
-                    yield([input, output, length_to_remove, flagFile])
+                    rep_name = refName + '_' + repliconName
+                    yield([input==None, output, rep_name, flagFile])
 
             @follows(deriveRepAlleleMatrix)
             @files(matrixByCoreRep)
-            def collateRepAlleleMatrix(input, output, length_to_remove, flagFile):
-                runStageCheck('collateRepAlleleMatrix', flagFile, input, output, length_to_remove)
+            def collateRepAlleleMatrix(input, output, rep_name, flagFile):
+                runStageCheck('collateRepAlleleMatrix', flagFile, outTempPrefix, output, full_sequence_list_string, rep_name)
             stage_count += len(core_replicons)
 
         else: #runType == 'phylogeny'
@@ -1307,11 +1350,11 @@ if refGenbank == True:
             def matrixEntryByRep():
                 for isolate in full_sequence_list:
                     for repliconName in replicons:
-                        input = outTempPrefix + refName + '_' + repliconName[0] + '_SNPList.txt'
-                        output  = outTempPrefix + refName + '_' + repliconName[0] + '_' + isolate + '_alleles.txt'
+                        input = outTempPrefix + 'getRepSNPList/' + refName + '_' + repliconName[0] + '_SNPList.txt'
+                        output  = outTempPrefix + isolate + '/deriveRepAlleleMartix/' + refName + '_' + repliconName[0] + '_' + isolate + '_alleles.txt'
                         flagFile = outSuccessPrefix + refName + '_' + repliconName[0] + '_' + isolate + '.deriveRepAlleleMatrix.Success'
                         replicon = repliconName[0]
-                        consensus =  outTempPrefix + isolate + '_cns.fq'
+                        consensus =  outTempPrefix + isolate + '/' + isolate + '_cns.fq'
                         repliconStats = outPrefix + refName + '_' + repliconName[0] + '_RepStats.txt'
                         merge_prefix = '-'
                         yield([input, output, replicon, consensus,repliconStats, merge_prefix, flagFile])
@@ -1325,16 +1368,15 @@ if refGenbank == True:
 
             def matrixByRep():
                 for repliconName in replicons:
-                    input = outTempPrefix + refName + '_' + repliconName[0] + '_'+full_sequence_list[0]+'_alleles.txt'
-                    length_to_remove = len(full_sequence_list[0])+8
                     output  = outTempPrefix + refName + '_' + repliconName[0] + '_alleles.csv'
                     flagFile = outSuccessPrefix + refName + '_' + repliconName[0] + '.collateRepAlleleMatrix.Success'
-                    yield([input, output, length_to_remove, flagFile])
+                    rep_name = refName + '_' + repliconName[0]
+                    yield([input==None, output, rep_name, flagFile])
 
             @follows(deriveRepAlleleMatrix)
             @files(matrixByRep)
-            def collateRepAlleleMatrix(input, output, length_to_remove, flagFile):
-                runStageCheck('collateRepAlleleMatrix', flagFile, input, output, length_to_remove)
+            def collateRepAlleleMatrix(input, output, rep_name, flagFile):
+                runStageCheck('collateRepAlleleMatrix', flagFile, outTempPrefix, output, full_sequence_list_string, rep_name)
             stage_count += len(replicons)
 
         # parse SNP table to create alignment for tree and get coding consequences for snps
@@ -1409,7 +1451,7 @@ else: # refGenbank == False
         else:
             bams = glob.glob(bamPatterns)        
         @follows(getRepSNPList)
-        @transform(bams, regex(r"(.*)\/(.+).bam"), [outTempPrefix + r"\2_cns.fq", outSuccessPrefix + r"\2.getMergeConsensus.Success"])
+        @transform(bams, regex(r"(.*)\/(.+).bam"), [outTempPrefix + r"\2/\2_cns.fq", outSuccessPrefix + r"\2.getMergeConsensus.Success"])
         def getMergeConsensus(input, outputs):
             output, flagFile = outputs
             runStageCheck('getConsensus', flagFile, reference, input, output)
@@ -1420,11 +1462,11 @@ else: # refGenbank == False
             def matrixEntryByCoreRep():
                 for isolate in full_sequence_list:
                     for repliconName in core_replicons:
-                        input = outTempPrefix + refName + '_' + repliconName + '_SNPList.txt'
-                        output  = outTempPrefix + refName + '_' + repliconName + '_' + isolate + '_alleles.txt'
+                        input = outTempPrefix + 'getRepSNPList/' + refName + '_' + repliconName + '_SNPList.txt'
+                        output  = outTempPrefix + isolate + '/deriveRepAlleleMartix/' + refName + '_' + repliconName + '_' + isolate + '_alleles.txt'
                         flagFile = outSuccessPrefix + refName + '_' + repliconName + '_' + isolate + '.deriveRepAlleleMatrix.Success'
                         replicon = repliconName
-                        consensus =  outTempPrefix + isolate + '_cns.fq'
+                        consensus =  outTempPrefix + isolate + '/' + isolate + '_cns.fq'
                         repliconStats = outMerge + refName + '_' + repliconName + '_RepStats.txt'
                         merge_prefix = outMerge
                         yield([input, output, replicon, consensus,repliconStats, merge_prefix, flagFile])
@@ -1438,16 +1480,15 @@ else: # refGenbank == False
 
             def matrixByCoreRep():
                 for repliconName in core_replicons:
-                    input = outTempPrefix + refName + '_' + repliconName + '_'+full_sequence_list[0]+'_alleles.txt'
-                    length_to_remove = len(full_sequence_list[0])+8
                     output  = outTempPrefix + refName + '_' + repliconName + '_alleles.csv'
                     flagFile = outSuccessPrefix + refName + '_' + repliconName + '.collateRepAlleleMatrix.Success'
-                    yield([input, output, length_to_remove, flagFile])
+                    rep_name = refName + '_' + repliconName
+                    yield([input==None, output, rep_name, flagFile])
 
             @follows(deriveRepAlleleMatrix)
             @files(matrixByCoreRep)
-            def collateRepAlleleMatrix(input, output, length_to_remove, flagFile):
-                runStageCheck('collateRepAlleleMatrix', flagFile, input, output, length_to_remove)
+            def collateRepAlleleMatrix(input, output, rep_name, flagFile):
+                runStageCheck('collateRepAlleleMatrix', flagFile, outTempPrefix, output, full_sequence_list_string, rep_name)
             stage_count += len(core_replicons)
 
         else: #runType == 'phylogeny'
@@ -1455,11 +1496,11 @@ else: # refGenbank == False
             def matrixEntryByRep():
                 for isolate in full_sequence_list:
                     for repliconName in replicons:
-                        input = outTempPrefix + refName + '_' + repliconName[0] + '_SNPList.txt'
-                        output  = outTempPrefix + refName + '_' + repliconName[0] + '_' + isolate + '_alleles.txt'
+                        input = outTempPrefix + 'getRepSNPList/' + refName + '_' + repliconName[0] + '_SNPList.txt'
+                        output  = outTempPrefix + isolate + '/deriveRepAlleleMartix/' + refName + '_' + repliconName[0] + '_' + isolate + '_alleles.txt'
                         flagFile = outSuccessPrefix + refName + '_' + repliconName[0] + '_' + isolate + '.deriveRepAlleleMatrix.Success'
                         replicon = repliconName[0]
-                        consensus =  outTempPrefix + isolate + '_cns.fq'
+                        consensus =  outTempPrefix + isolate + '/' + isolate + '_cns.fq'
                         repliconStats = outMerge + refName + '_' + repliconName[0] + '_RepStats.txt'
                         merge_prefix = outMerge
                         yield([input, output, replicon, consensus,repliconStats, merge_prefix, flagFile])
@@ -1473,16 +1514,15 @@ else: # refGenbank == False
 
             def matrixByRep():
                 for repliconName in replicons:
-                    input = outTempPrefix + refName + '_' + repliconName[0] + '_'+full_sequence_list[0]+'_alleles.txt'
-                    length_to_remove = len(full_sequence_list[0])+8
                     output  = outTempPrefix + refName + '_' + repliconName[0] + '_alleles.csv'
                     flagFile = outSuccessPrefix + refName + '_' + repliconName[0] + '.collateRepAlleleMatrix.Success'
-                    yield([input, output, length_to_remove, flagFile])
+                    rep_name = refName + '_' + repliconName[0]
+                    yield([input==None, output, rep_name, flagFile])
 
             @follows(deriveRepAlleleMatrix)
             @files(matrixByRep)
-            def collateRepAlleleMatrix(input, output, length_to_remove, flagFile):
-                runStageCheck('collateRepAlleleMatrix', flagFile, input, output, length_to_remove)
+            def collateRepAlleleMatrix(input, output, rep_name, flagFile):
+                runStageCheck('collateRepAlleleMatrix', flagFile, outTempPrefix, output, full_sequence_list_string, rep_name)
             stage_count += len(replicons)
 
         # parse SNP table to create alignment for tree
@@ -1548,11 +1588,11 @@ else: # refGenbank == False
             def matrixEntryByCoreRep():
                 for isolate in full_sequence_list:
                     for repliconName in core_replicons:
-                        input = outTempPrefix + refName + '_' + repliconName + '_SNPList.txt'
-                        output  = outTempPrefix + refName + '_' + repliconName + '_' + isolate + '_alleles.txt'
+                        input = outTempPrefix + 'getRepSNPList/' + refName + '_' + repliconName + '_SNPList.txt'
+                        output  = outTempPrefix + isolate + '/deriveRepAlleleMartix/' + refName + '_' + repliconName + '_' + isolate + '_alleles.txt'
                         flagFile = outSuccessPrefix + refName + '_' + repliconName + '_' + isolate + '.deriveRepAlleleMatrix.Success'
                         replicon = repliconName
-                        consensus =  outTempPrefix + isolate + '_cns.fq'
+                        consensus =  outTempPrefix + isolate + '/' + isolate + '_cns.fq'
                         repliconStats = outPrefix + refName + '_' + repliconName + '_RepStats.txt'
                         merge_prefix = '-'
                         yield([input, output, replicon, consensus,repliconStats, merge_prefix, flagFile])
@@ -1566,16 +1606,15 @@ else: # refGenbank == False
 
             def matrixByCoreRep():
                 for repliconName in core_replicons:
-                    input = outTempPrefix + refName + '_' + repliconName + '_'+full_sequence_list[0]+'_alleles.txt'
-                    length_to_remove = len(full_sequence_list[0])+8
                     output  = outTempPrefix + refName + '_' + repliconName + '_alleles.csv'
                     flagFile = outSuccessPrefix + refName + '_' + repliconName + '.collateRepAlleleMatrix.Success'
-                    yield([input, output, length_to_remove, flagFile])
+                    rep_name = refName + '_' + repliconName
+                    yield([input==None, output, rep_name, flagFile])
 
             @follows(deriveRepAlleleMatrix)
             @files(matrixByCoreRep)
-            def collateRepAlleleMatrix(input, output, length_to_remove, flagFile):
-                runStageCheck('collateRepAlleleMatrix', flagFile, input, output, length_to_remove)
+            def collateRepAlleleMatrix(input, output, rep_name, flagFile):
+                runStageCheck('collateRepAlleleMatrix', flagFile, outTempPrefix, output, full_sequence_list_string, rep_name)
             stage_count += len(core_replicons)
 
         else: #runType == 'phylogeny'
@@ -1583,11 +1622,11 @@ else: # refGenbank == False
             def matrixEntryByRep():
                 for isolate in full_sequence_list:
                     for repliconName in replicons:
-                        input = outTempPrefix + refName + '_' + repliconName[0] + '_SNPList.txt'
-                        output  = outTempPrefix + refName + '_' + repliconName[0] + '_' + isolate + '_alleles.txt'
+                        input = outTempPrefix + 'getRepSNPList/' + refName + '_' + repliconName[0] + '_SNPList.txt'
+                        output  = outTempPrefix + isolate + '/deriveRepAlleleMartix/' + refName + '_' + repliconName[0] + '_' + isolate + '_alleles.txt'
                         flagFile = outSuccessPrefix + refName + '_' + repliconName[0] + '_' + isolate + '.deriveRepAlleleMatrix.Success'
                         replicon = repliconName[0]
-                        consensus =  outTempPrefix + isolate + '_cns.fq'
+                        consensus =  outTempPrefix + isolate + '/' + isolate + '_cns.fq'
                         repliconStats = outPrefix + refName + '_' + repliconName[0] + '_RepStats.txt'
                         merge_prefix = '-'
                         yield([input, output, replicon, consensus,repliconStats, merge_prefix, flagFile])
@@ -1601,16 +1640,15 @@ else: # refGenbank == False
 
             def matrixByRep():
                 for repliconName in replicons:
-                    input = outTempPrefix + refName + '_' + repliconName[0] + '_'+full_sequence_list[0]+'_alleles.txt'
-                    length_to_remove = len(full_sequence_list[0])+8
                     output  = outTempPrefix + refName + '_' + repliconName[0] + '_alleles.csv'
                     flagFile = outSuccessPrefix + refName + '_' + repliconName[0] + '.collateRepAlleleMatrix.Success'
-                    yield([input, output, length_to_remove, flagFile])
+                    rep_name = refName + '_' + repliconName[0]
+                    yield([input==None, output, rep_name, flagFile])
 
             @follows(deriveRepAlleleMatrix)
             @files(matrixByRep)
-            def collateRepAlleleMatrix(input, output, length_to_remove, flagFile):
-                runStageCheck('collateRepAlleleMatrix', flagFile, input, output, length_to_remove)
+            def collateRepAlleleMatrix(input, output, rep_name, flagFile):
+                runStageCheck('collateRepAlleleMatrix', flagFile, outTempPrefix, output, full_sequence_list_string, rep_name)
             stage_count += len(replicons)
 
         # parse SNP table to create alignment for tree
