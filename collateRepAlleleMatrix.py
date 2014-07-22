@@ -6,10 +6,10 @@ takes the SNP allele matrix entry for each isolate and generates the full allele
 outputs matrix to user-defined file
 
 example:
-python collateRepAlleleMatrix.py <input> <output> length_to_remove 
+python collateRepAlleleMatrix.py <temp_dir> <output> sequences_string rep_name 
 
 Created:	27/2/2014
-Modified:	18/3/2014
+Modified:	21/7/2014
 author: David Edwards
 '''
 from Bio import SeqIO
@@ -19,16 +19,21 @@ from Bio.Alphabet import IUPAC
 import sys, glob
 from rubra.utils import splitPath
 
-input_file = sys.argv[1]
-length_to_remove = int(sys.argv[3])*-1
-(prefix, name, ext) = splitPath(input_file)
-input_files = prefix + '/' + name[:length_to_remove] + '*_alleles.txt'
-
+prefix = sys.argv[1]
 output_file = sys.argv[2]
+sequences_string = sys.argv[3]
+rep_name = sys.argv[4]
+
+input_files = []
+sequences = sequences_string.split(',')
+for sequence in sequences:
+    if sequence != '':
+        input_files.append((prefix+sequence+'/deriveRepAlleleMartix/'+rep_name+'_'+sequence+'_alleles.txt'))
+
 header = ''
 SNPmatrix = []
 
-for entry_file in glob.glob(input_files):
+for entry_file in input_files:
     matrix_entry_file = open(entry_file, 'r')
     matrix_entry = matrix_entry_file.readline()
     if matrix_entry.startswith('fail') != True:

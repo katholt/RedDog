@@ -1,7 +1,7 @@
 #!/bin/env python
 
 '''
-RedDog V0.4.9 160714
+RedDog V0.4.9 210714
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 License: none as yet...
@@ -210,7 +210,7 @@ for sequence in sequences:
     if readType == "IT":
         sequence_list.append(name[:-16])
     elif readType == "PE":
-        if name.find('_1.fastq') != -1:
+        if name.find('_1.fastq') != -1 and name[:-8] not in sequence_list:
             sequence_list.append(name[:-8])
         if name.find('_2.fastq') != -1 and name[:-8] not in sequence_list:
             sequence_list.append(name[:-8])            
@@ -1046,7 +1046,7 @@ if outMerge != "":
         def snpListByRep():
             for repliconName in replicons:
                 input  = outMerge + refName + '_' + repliconName[0] + '_RepStats.txt'
-                output = outTempPrefix + refName + '_' + repliconName[0] + '_SNPList.txt'
+                output = outTempPrefix + 'getRepSNPList/' + refName + '_' + repliconName[0] + '_SNPList.txt'
                 flagFile = outSuccessPrefix + refName + '_' + repliconName[0] + '.getRepSNPList.Success'
                 replicon = repliconName[0]
                 yield([input, output, replicon, flagFile])
@@ -1064,7 +1064,7 @@ if outMerge != "":
         def snpListByCoreRep():
             for repliconName in core_replicons:
                 input  = outMerge + refName + '_' + repliconName + '_RepStats.txt'
-                output = outTempPrefix + refName + '_' + repliconName + '_SNPList.txt'
+                output = outTempPrefix + 'getRepSNPList/' + refName + '_' + repliconName + '_SNPList.txt'
                 flagFile = outSuccessPrefix + refName + '_' + repliconName + '.getRepSNPList.Success'
                 replicon = repliconName
                 yield([input, output, replicon, flagFile])
@@ -1077,14 +1077,13 @@ if outMerge != "":
             runStageCheck('getRepSNPList', flagFile, input, replicon, output)
         stage_count += len(core_replicons) 
 
-
 else: #    if mergeReads == "":
     if runType == "phylogeny":
         # Start of new run phylogeny analysis
         def snpListByRep():
             for repliconName in replicons:
                 input  = outPrefix + refName + '_' + repliconName[0] + '_RepStats.txt'
-                output = outTempPrefix + refName + '_' + repliconName[0] + '_SNPList.txt'
+                output = outTempPrefix + 'getRepSNPList/' + refName + '_' + repliconName[0] + '_SNPList.txt'
                 flagFile = outSuccessPrefix + refName + '_' + repliconName[0] + '.getRepSNPList.Success'
                 replicon = repliconName[0]
                 yield([input, output, replicon, flagFile])
@@ -1102,7 +1101,7 @@ else: #    if mergeReads == "":
         def snpListByCoreRep():
             for repliconName in core_replicons:
                 input  = outPrefix + refName + '_' + repliconName + '_RepStats.txt'
-                output = outTempPrefix + refName + '_' + repliconName + '_SNPList.txt'
+                output = outTempPrefix + 'getRepSNPList/' + refName + '_' + repliconName + '_SNPList.txt'
                 flagFile = outSuccessPrefix + refName + '_' + repliconName + '.getRepSNPList.Success'
                 replicon = repliconName
                 yield([input, output, replicon, flagFile])
@@ -1126,7 +1125,7 @@ if refGenbank == True:
             bams = glob.glob(bamPatterns)        
 
         # generate data for the gene cover and depth matrices
-        @transform(getCoverage, regex(r"(.*)\/(.+)_coverage.txt"), [outTempPrefix + r'\2_CoverDepthMatrix.txt', outSuccessPrefix + r'\2.deriveAllRepGeneCover.Success'])
+        @transform(getCoverage, regex(r"(.*)\/(.+)_coverage.txt"), [outTempPrefix + r'\2/\2_CoverDepthMatrix.txt', outSuccessPrefix + r'\2.deriveAllRepGeneCover.Success'])
         def deriveAllRepGeneCover(inputs, outputs):
             output, flagFile = outputs
             input, _success = inputs
@@ -1137,7 +1136,7 @@ if refGenbank == True:
         @merge(deriveAllRepGeneCover, [outMerge + refName + "_CoverMatrix.csv", outSuccessPrefix + refName + "_CoverMatrix.mergeAllRepGeneCover.Success"])
         def mergeAllRepGeneCover(inputs, outputs):
             output, flagFile = outputs
-            runStageCheck('mergeAllRepGeneCover', flagFile, outTempPrefix, outMerge, refName)
+            runStageCheck('mergeAllRepGeneCover', flagFile, outTempPrefix, outMerge, refName, sequence_list_string)
         stage_count += 1
 
         # parse gene cover (and depth - to come) matrices to summarise gene content
@@ -1152,7 +1151,7 @@ if refGenbank == True:
 
         # get consensus sequences for merged set
         @follows(getRepSNPList)
-        @transform(bams, regex(r"(.*)\/(.+).bam"), [outTempPrefix + r"\2_cns.fq", outSuccessPrefix + r"\2.getMergeConsensus.Success"])
+        @transform(bams, regex(r"(.*)\/(.+).bam"), [outTempPrefix + r"\2/\2_cns.fq", outSuccessPrefix + r"\2.getMergeConsensus.Success"])
         def getMergeConsensus(input, outputs):
             output, flagFile = outputs
             runStageCheck('getConsensus', flagFile, reference, input, output)
@@ -1163,11 +1162,11 @@ if refGenbank == True:
             def matrixEntryByCoreRep():
                 for isolate in full_sequence_list:
                     for repliconName in core_replicons:
-                        input = outTempPrefix + refName + '_' + repliconName + '_SNPList.txt'
-                        output  = outTempPrefix + refName + '_' + repliconName + '_' + isolate + '_alleles.txt'
+                        input = outTempPrefix + 'getRepSNPList/' + refName + '_' + repliconName + '_SNPList.txt'
+                        output  = outTempPrefix + isolate + '/deriveRepAlleleMartix/' + refName + '_' + repliconName + '_' + isolate + '_alleles.txt'
                         flagFile = outSuccessPrefix + refName + '_' + repliconName + '_' + isolate + '.deriveRepAlleleMatrix.Success'
                         replicon = repliconName
-                        consensus =  outTempPrefix + isolate + '_cns.fq'
+                        consensus =  outTempPrefix + isolate + '/' + isolate + '_cns.fq'
                         repliconStats = outMerge + refName + '_' + repliconName + '_RepStats.txt'
                         merge_prefix = outMerge
                         yield([input, output, replicon, consensus,repliconStats, merge_prefix, flagFile])
@@ -1181,16 +1180,15 @@ if refGenbank == True:
 
             def matrixByCoreRep():
                 for repliconName in core_replicons:
-                    input = outTempPrefix + refName + '_' + repliconName + '_'+full_sequence_list[0]+'_alleles.txt'
-                    length_to_remove = len(full_sequence_list[0])+8
                     output  = outTempPrefix + refName + '_' + repliconName + '_alleles.csv'
                     flagFile = outSuccessPrefix + refName + '_' + repliconName + '.collateRepAlleleMatrix.Success'
-                    yield([input, output, length_to_remove, flagFile])
+                    rep_name = refName + '_' + repliconName
+                    yield([input==None, output, rep_name, flagFile])
 
             @follows(deriveRepAlleleMatrix)
             @files(matrixByCoreRep)
-            def collateRepAlleleMatrix(input, output, length_to_remove, flagFile):
-                runStageCheck('collateRepAlleleMatrix', flagFile, input, output, length_to_remove)
+            def collateRepAlleleMatrix(input, output, rep_name, flagFile):
+                runStageCheck('collateRepAlleleMatrix', flagFile, outTempPrefix, output, full_sequence_list_string, rep_name)
             stage_count += len(core_replicons)
 
         else: #runType == 'phylogeny'
@@ -1198,11 +1196,11 @@ if refGenbank == True:
             def matrixEntryByRep():
                 for isolate in full_sequence_list:
                     for repliconName in replicons:
-                        input = outTempPrefix + refName + '_' + repliconName[0] + '_SNPList.txt'
-                        output  = outTempPrefix + refName + '_' + repliconName[0] + '_' + isolate + '_alleles.txt'
+                        input = outTempPrefix + 'getRepSNPList/' + refName + '_' + repliconName[0] + '_SNPList.txt'
+                        output  = outTempPrefix + isolate + '/deriveRepAlleleMartix/' + refName + '_' + repliconName[0] + '_' + isolate + '_alleles.txt'
                         flagFile = outSuccessPrefix + refName + '_' + repliconName[0] + '_' + isolate + '.deriveRepAlleleMatrix.Success'
                         replicon = repliconName[0]
-                        consensus =  outTempPrefix + isolate + '_cns.fq'
+                        consensus =  outTempPrefix + isolate + '/' + isolate + '_cns.fq'
                         repliconStats = outMerge + refName + '_' + repliconName[0] + '_RepStats.txt'
                         merge_prefix = outMerge
                         yield([input, output, replicon, consensus,repliconStats, merge_prefix, flagFile])
@@ -1216,16 +1214,15 @@ if refGenbank == True:
 
             def matrixByRep():
                 for repliconName in replicons:
-                    input = outTempPrefix + refName + '_' + repliconName[0] + '_'+full_sequence_list[0]+'_alleles.txt'
-                    length_to_remove = len(full_sequence_list[0])+8
                     output  = outTempPrefix + refName + '_' + repliconName[0] + '_alleles.csv'
                     flagFile = outSuccessPrefix + refName + '_' + repliconName[0] + '.collateRepAlleleMatrix.Success'
-                    yield([input, output, length_to_remove, flagFile])
+                    rep_name = refName + '_' + repliconName[0]
+                    yield([input==None, output, rep_name, flagFile])
 
             @follows(deriveRepAlleleMatrix)
             @files(matrixByRep)
-            def collateRepAlleleMatrix(input, output, length_to_remove, flagFile):
-                runStageCheck('collateRepAlleleMatrix', flagFile, input, output, length_to_remove)
+            def collateRepAlleleMatrix(input, output, rep_name, flagFile):
+                runStageCheck('collateRepAlleleMatrix', flagFile, outTempPrefix, output, full_sequence_list_string, rep_name)
             stage_count += len(replicons)
 
         # parse SNP table to create alignment for tree and get coding consequences for snps
@@ -1291,8 +1288,7 @@ if refGenbank == True:
 
     else: #ie. mergeReads == "" and refGenbank == True
         # generate the gene cover and depth matrices
-        @follows(getRepSNPList)
-        @transform(getCoverage, regex(r"(.*)\/(.+)_coverage.txt"), [outTempPrefix + r'\2_CoverDepthMatrix.txt', outSuccessPrefix + r'\2.deriveAllRepGeneCover.Success'])
+        @transform(getCoverage, regex(r"(.*)\/(.+)_coverage.txt"), [outTempPrefix + r'\2/\2_CoverDepthMatrix.txt', outSuccessPrefix + r'\2.deriveAllRepGeneCover.Success'])
         def deriveAllRepGeneCover(inputs, outputs):
             output, flagFile = outputs
             input, _success = inputs
@@ -1302,7 +1298,7 @@ if refGenbank == True:
         @merge(deriveAllRepGeneCover, [outPrefix + refName + "_CoverMatrix.csv", outSuccessPrefix + refName + "_CoverMatrix.collateAllRepGeneCover.Success"])
         def collateAllRepGeneCover(inputs, outputs):
             output, flagFile = outputs
-            runStageCheck('collateAllRepGeneCover', flagFile, outTempPrefix, outPrefix, refName)
+            runStageCheck('collateAllRepGeneCover', flagFile, outTempPrefix, outPrefix, refName, sequence_list_string)
         stage_count += 1
 
         # parse gene cover (and depth - to come) matrices to summarise gene content
@@ -1320,11 +1316,11 @@ if refGenbank == True:
             def matrixEntryByCoreRep():
                 for isolate in full_sequence_list:
                     for repliconName in core_replicons:
-                        input = outTempPrefix + refName + '_' + repliconName + '_SNPList.txt'
-                        output  = outTempPrefix + refName + '_' + repliconName + '_' + isolate + '_alleles.txt'
+                        input = outTempPrefix + 'getRepSNPList/' + refName + '_' + repliconName + '_SNPList.txt'
+                        output  = outTempPrefix + isolate + '/deriveRepAlleleMartix/' + refName + '_' + repliconName + '_' + isolate + '_alleles.txt'
                         flagFile = outSuccessPrefix + refName + '_' + repliconName + '_' + isolate + '.deriveRepAlleleMatrix.Success'
                         replicon = repliconName
-                        consensus =  outTempPrefix + isolate + '_cns.fq'
+                        consensus =  outTempPrefix + isolate + '/' + isolate + '_cns.fq'
                         repliconStats = outPrefix + refName + '_' + repliconName + '_RepStats.txt'
                         merge_prefix = '-'
                         yield([input, output, replicon, consensus,repliconStats, merge_prefix, flagFile])
@@ -1338,16 +1334,15 @@ if refGenbank == True:
 
             def matrixByCoreRep():
                 for repliconName in core_replicons:
-                    input = outTempPrefix + refName + '_' + repliconName + '_'+full_sequence_list[0]+'_alleles.txt'
-                    length_to_remove = len(full_sequence_list[0])+8
                     output  = outTempPrefix + refName + '_' + repliconName + '_alleles.csv'
                     flagFile = outSuccessPrefix + refName + '_' + repliconName + '.collateRepAlleleMatrix.Success'
-                    yield([input, output, length_to_remove, flagFile])
+                    rep_name = refName + '_' + repliconName
+                    yield([input==None, output, rep_name, flagFile])
 
             @follows(deriveRepAlleleMatrix)
             @files(matrixByCoreRep)
-            def collateRepAlleleMatrix(input, output, length_to_remove, flagFile):
-                runStageCheck('collateRepAlleleMatrix', flagFile, input, output, length_to_remove)
+            def collateRepAlleleMatrix(input, output, rep_name, flagFile):
+                runStageCheck('collateRepAlleleMatrix', flagFile, outTempPrefix, output, full_sequence_list_string, rep_name)
             stage_count += len(core_replicons)
 
         else: #runType == 'phylogeny'
@@ -1355,11 +1350,11 @@ if refGenbank == True:
             def matrixEntryByRep():
                 for isolate in full_sequence_list:
                     for repliconName in replicons:
-                        input = outTempPrefix + refName + '_' + repliconName[0] + '_SNPList.txt'
-                        output  = outTempPrefix + refName + '_' + repliconName[0] + '_' + isolate + '_alleles.txt'
+                        input = outTempPrefix + 'getRepSNPList/' + refName + '_' + repliconName[0] + '_SNPList.txt'
+                        output  = outTempPrefix + isolate + '/deriveRepAlleleMartix/' + refName + '_' + repliconName[0] + '_' + isolate + '_alleles.txt'
                         flagFile = outSuccessPrefix + refName + '_' + repliconName[0] + '_' + isolate + '.deriveRepAlleleMatrix.Success'
                         replicon = repliconName[0]
-                        consensus =  outTempPrefix + isolate + '_cns.fq'
+                        consensus =  outTempPrefix + isolate + '/' + isolate + '_cns.fq'
                         repliconStats = outPrefix + refName + '_' + repliconName[0] + '_RepStats.txt'
                         merge_prefix = '-'
                         yield([input, output, replicon, consensus,repliconStats, merge_prefix, flagFile])
@@ -1373,16 +1368,15 @@ if refGenbank == True:
 
             def matrixByRep():
                 for repliconName in replicons:
-                    input = outTempPrefix + refName + '_' + repliconName[0] + '_'+full_sequence_list[0]+'_alleles.txt'
-                    length_to_remove = len(full_sequence_list[0])+8
                     output  = outTempPrefix + refName + '_' + repliconName[0] + '_alleles.csv'
                     flagFile = outSuccessPrefix + refName + '_' + repliconName[0] + '.collateRepAlleleMatrix.Success'
-                    yield([input, output, length_to_remove, flagFile])
+                    rep_name = refName + '_' + repliconName[0]
+                    yield([input==None, output, rep_name, flagFile])
 
             @follows(deriveRepAlleleMatrix)
             @files(matrixByRep)
-            def collateRepAlleleMatrix(input, output, length_to_remove, flagFile):
-                runStageCheck('collateRepAlleleMatrix', flagFile, input, output, length_to_remove)
+            def collateRepAlleleMatrix(input, output, rep_name, flagFile):
+                runStageCheck('collateRepAlleleMatrix', flagFile, outTempPrefix, output, full_sequence_list_string, rep_name)
             stage_count += len(replicons)
 
         # parse SNP table to create alignment for tree and get coding consequences for snps
@@ -1457,7 +1451,7 @@ else: # refGenbank == False
         else:
             bams = glob.glob(bamPatterns)        
         @follows(getRepSNPList)
-        @transform(bams, regex(r"(.*)\/(.+).bam"), [outTempPrefix + r"\2_cns.fq", outSuccessPrefix + r"\2.getMergeConsensus.Success"])
+        @transform(bams, regex(r"(.*)\/(.+).bam"), [outTempPrefix + r"\2/\2_cns.fq", outSuccessPrefix + r"\2.getMergeConsensus.Success"])
         def getMergeConsensus(input, outputs):
             output, flagFile = outputs
             runStageCheck('getConsensus', flagFile, reference, input, output)
@@ -1468,11 +1462,11 @@ else: # refGenbank == False
             def matrixEntryByCoreRep():
                 for isolate in full_sequence_list:
                     for repliconName in core_replicons:
-                        input = outTempPrefix + refName + '_' + repliconName + '_SNPList.txt'
-                        output  = outTempPrefix + refName + '_' + repliconName + '_' + isolate + '_alleles.txt'
+                        input = outTempPrefix + 'getRepSNPList/' + refName + '_' + repliconName + '_SNPList.txt'
+                        output  = outTempPrefix + isolate + '/deriveRepAlleleMartix/' + refName + '_' + repliconName + '_' + isolate + '_alleles.txt'
                         flagFile = outSuccessPrefix + refName + '_' + repliconName + '_' + isolate + '.deriveRepAlleleMatrix.Success'
                         replicon = repliconName
-                        consensus =  outTempPrefix + isolate + '_cns.fq'
+                        consensus =  outTempPrefix + isolate + '/' + isolate + '_cns.fq'
                         repliconStats = outMerge + refName + '_' + repliconName + '_RepStats.txt'
                         merge_prefix = outMerge
                         yield([input, output, replicon, consensus,repliconStats, merge_prefix, flagFile])
@@ -1486,16 +1480,15 @@ else: # refGenbank == False
 
             def matrixByCoreRep():
                 for repliconName in core_replicons:
-                    input = outTempPrefix + refName + '_' + repliconName + '_'+full_sequence_list[0]+'_alleles.txt'
-                    length_to_remove = len(full_sequence_list[0])+8
                     output  = outTempPrefix + refName + '_' + repliconName + '_alleles.csv'
                     flagFile = outSuccessPrefix + refName + '_' + repliconName + '.collateRepAlleleMatrix.Success'
-                    yield([input, output, length_to_remove, flagFile])
+                    rep_name = refName + '_' + repliconName
+                    yield([input==None, output, rep_name, flagFile])
 
             @follows(deriveRepAlleleMatrix)
             @files(matrixByCoreRep)
-            def collateRepAlleleMatrix(input, output, length_to_remove, flagFile):
-                runStageCheck('collateRepAlleleMatrix', flagFile, input, output, length_to_remove)
+            def collateRepAlleleMatrix(input, output, rep_name, flagFile):
+                runStageCheck('collateRepAlleleMatrix', flagFile, outTempPrefix, output, full_sequence_list_string, rep_name)
             stage_count += len(core_replicons)
 
         else: #runType == 'phylogeny'
@@ -1503,11 +1496,11 @@ else: # refGenbank == False
             def matrixEntryByRep():
                 for isolate in full_sequence_list:
                     for repliconName in replicons:
-                        input = outTempPrefix + refName + '_' + repliconName[0] + '_SNPList.txt'
-                        output  = outTempPrefix + refName + '_' + repliconName[0] + '_' + isolate + '_alleles.txt'
+                        input = outTempPrefix + 'getRepSNPList/' + refName + '_' + repliconName[0] + '_SNPList.txt'
+                        output  = outTempPrefix + isolate + '/deriveRepAlleleMartix/' + refName + '_' + repliconName[0] + '_' + isolate + '_alleles.txt'
                         flagFile = outSuccessPrefix + refName + '_' + repliconName[0] + '_' + isolate + '.deriveRepAlleleMatrix.Success'
                         replicon = repliconName[0]
-                        consensus =  outTempPrefix + isolate + '_cns.fq'
+                        consensus =  outTempPrefix + isolate + '/' + isolate + '_cns.fq'
                         repliconStats = outMerge + refName + '_' + repliconName[0] + '_RepStats.txt'
                         merge_prefix = outMerge
                         yield([input, output, replicon, consensus,repliconStats, merge_prefix, flagFile])
@@ -1521,16 +1514,15 @@ else: # refGenbank == False
 
             def matrixByRep():
                 for repliconName in replicons:
-                    input = outTempPrefix + refName + '_' + repliconName[0] + '_'+full_sequence_list[0]+'_alleles.txt'
-                    length_to_remove = len(full_sequence_list[0])+8
                     output  = outTempPrefix + refName + '_' + repliconName[0] + '_alleles.csv'
                     flagFile = outSuccessPrefix + refName + '_' + repliconName[0] + '.collateRepAlleleMatrix.Success'
-                    yield([input, output, length_to_remove, flagFile])
+                    rep_name = refName + '_' + repliconName[0]
+                    yield([input==None, output, rep_name, flagFile])
 
             @follows(deriveRepAlleleMatrix)
             @files(matrixByRep)
-            def collateRepAlleleMatrix(input, output, length_to_remove, flagFile):
-                runStageCheck('collateRepAlleleMatrix', flagFile, input, output, length_to_remove)
+            def collateRepAlleleMatrix(input, output, rep_name, flagFile):
+                runStageCheck('collateRepAlleleMatrix', flagFile, outTempPrefix, output, full_sequence_list_string, rep_name)
             stage_count += len(replicons)
 
         # parse SNP table to create alignment for tree
@@ -1596,11 +1588,11 @@ else: # refGenbank == False
             def matrixEntryByCoreRep():
                 for isolate in full_sequence_list:
                     for repliconName in core_replicons:
-                        input = outTempPrefix + refName + '_' + repliconName + '_SNPList.txt'
-                        output  = outTempPrefix + refName + '_' + repliconName + '_' + isolate + '_alleles.txt'
+                        input = outTempPrefix + 'getRepSNPList/' + refName + '_' + repliconName + '_SNPList.txt'
+                        output  = outTempPrefix + isolate + '/deriveRepAlleleMartix/' + refName + '_' + repliconName + '_' + isolate + '_alleles.txt'
                         flagFile = outSuccessPrefix + refName + '_' + repliconName + '_' + isolate + '.deriveRepAlleleMatrix.Success'
                         replicon = repliconName
-                        consensus =  outTempPrefix + isolate + '_cns.fq'
+                        consensus =  outTempPrefix + isolate + '/' + isolate + '_cns.fq'
                         repliconStats = outPrefix + refName + '_' + repliconName + '_RepStats.txt'
                         merge_prefix = '-'
                         yield([input, output, replicon, consensus,repliconStats, merge_prefix, flagFile])
@@ -1614,16 +1606,15 @@ else: # refGenbank == False
 
             def matrixByCoreRep():
                 for repliconName in core_replicons:
-                    input = outTempPrefix + refName + '_' + repliconName + '_'+full_sequence_list[0]+'_alleles.txt'
-                    length_to_remove = len(full_sequence_list[0])+8
                     output  = outTempPrefix + refName + '_' + repliconName + '_alleles.csv'
                     flagFile = outSuccessPrefix + refName + '_' + repliconName + '.collateRepAlleleMatrix.Success'
-                    yield([input, output, length_to_remove, flagFile])
+                    rep_name = refName + '_' + repliconName
+                    yield([input==None, output, rep_name, flagFile])
 
             @follows(deriveRepAlleleMatrix)
             @files(matrixByCoreRep)
-            def collateRepAlleleMatrix(input, output, length_to_remove, flagFile):
-                runStageCheck('collateRepAlleleMatrix', flagFile, input, output, length_to_remove)
+            def collateRepAlleleMatrix(input, output, rep_name, flagFile):
+                runStageCheck('collateRepAlleleMatrix', flagFile, outTempPrefix, output, full_sequence_list_string, rep_name)
             stage_count += len(core_replicons)
 
         else: #runType == 'phylogeny'
@@ -1631,11 +1622,11 @@ else: # refGenbank == False
             def matrixEntryByRep():
                 for isolate in full_sequence_list:
                     for repliconName in replicons:
-                        input = outTempPrefix + refName + '_' + repliconName[0] + '_SNPList.txt'
-                        output  = outTempPrefix + refName + '_' + repliconName[0] + '_' + isolate + '_alleles.txt'
+                        input = outTempPrefix + 'getRepSNPList/' + refName + '_' + repliconName[0] + '_SNPList.txt'
+                        output  = outTempPrefix + isolate + '/deriveRepAlleleMartix/' + refName + '_' + repliconName[0] + '_' + isolate + '_alleles.txt'
                         flagFile = outSuccessPrefix + refName + '_' + repliconName[0] + '_' + isolate + '.deriveRepAlleleMatrix.Success'
                         replicon = repliconName[0]
-                        consensus =  outTempPrefix + isolate + '_cns.fq'
+                        consensus =  outTempPrefix + isolate + '/' + isolate + '_cns.fq'
                         repliconStats = outPrefix + refName + '_' + repliconName[0] + '_RepStats.txt'
                         merge_prefix = '-'
                         yield([input, output, replicon, consensus,repliconStats, merge_prefix, flagFile])
@@ -1649,16 +1640,15 @@ else: # refGenbank == False
 
             def matrixByRep():
                 for repliconName in replicons:
-                    input = outTempPrefix + refName + '_' + repliconName[0] + '_'+full_sequence_list[0]+'_alleles.txt'
-                    length_to_remove = len(full_sequence_list[0])+8
                     output  = outTempPrefix + refName + '_' + repliconName[0] + '_alleles.csv'
                     flagFile = outSuccessPrefix + refName + '_' + repliconName[0] + '.collateRepAlleleMatrix.Success'
-                    yield([input, output, length_to_remove, flagFile])
+                    rep_name = refName + '_' + repliconName[0]
+                    yield([input==None, output, rep_name, flagFile])
 
             @follows(deriveRepAlleleMatrix)
             @files(matrixByRep)
-            def collateRepAlleleMatrix(input, output, length_to_remove, flagFile):
-                runStageCheck('collateRepAlleleMatrix', flagFile, input, output, length_to_remove)
+            def collateRepAlleleMatrix(input, output, rep_name, flagFile):
+                runStageCheck('collateRepAlleleMatrix', flagFile, outTempPrefix, output, full_sequence_list_string, rep_name)
             stage_count += len(replicons)
 
         # parse SNP table to create alignment for tree

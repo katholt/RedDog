@@ -3,13 +3,13 @@ Configuration file for RedDog.py V0.4.9
 -------------------------------
 Essential pipeline variables.
 '''
-reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_plasmid.gbk"
+reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_plasmid.fasta"
 
 sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/*.fastq.gz"
 #sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/extra/*.fastq.gz"
 
 #output = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
-output = "/scratch/VR0082/workspace/mapping/v049_test_PE_bowtie_phy"
+output = "/scratch/VR0082/workspace/mapping/v049_test_PE_bowtie_phy_fasta"
 #output = "/scratch/VR0082/workspace/mapping/v049_test_PE_bowtie_pan"
 #output = "/scratch/VR0082/workspace/mapping/v049_test_PE_bwa_pan"
 #output = "/scratch/VR0082/workspace/mapping/v049_test_PE_bwa_phy"
@@ -21,6 +21,7 @@ output = "/scratch/VR0082/workspace/mapping/v049_test_PE_bowtie_phy"
 #output = "/scratch/VR0082/workspace/mapping/v049_test_SE_bwa_phy"
 
 out_merge_target = ""
+#/scratch/VR0082/workspace/mapping/v049_test_PE_bowtie_phy"
 #out_merge_target = "/scratch/VR0082/workspace/mapping/v048_test"
 
 '''
@@ -310,7 +311,7 @@ stageDefaults = {
         "samtools-intel/0.1.19",
         "eautils-gcc/1.1.2",
         "fasttree-intel/2.1.7",
-        "bowtie2-intel/2.1.0"
+        "bowtie2-intel/2.2.3"
     ]
 }
 stages = {
@@ -332,7 +333,7 @@ stages = {
     },
     "alignBowtiePE": {
         "walltime": "03:00:00",
-        "command": "bowtie2 %type -x %ref_base -1 %seq1 -2 %seq2 | samtools view -ubS - | samtools sort - %out"
+        "command": "bowtie2 %type -x %ref_base -1 %seq1 -2 %seq2 -X 2000 | samtools view -ubS - | samtools sort - %out"
     },
     "alignBowtie": {
         "walltime": "03:00:00",
@@ -432,13 +433,13 @@ stages = {
         "walltime": "00:10:00",
 # large data sets (more than 150 samples)
 #        "walltime": "03:00:00",
-        "command": "python collateAllRepGeneCover.py %inDir %outDir %refName"
+        "command": "python collateAllRepGeneCover.py %inDir %outDir %refName %sequence_list"
     },
     "mergeAllRepGeneCover": {
         "walltime": "00:10:00",
 # large data sets
 #        "walltime": "03:00:00",
-        "command": "python mergeAllRepGeneCover.py %inDir %outDir %refName"
+        "command": "python mergeAllRepGeneCover.py %inDir %outDir %refName %sequence_list"
     },
     "parseGeneContent": {
         "walltime": "00:10:00",
@@ -450,7 +451,7 @@ stages = {
         "command": "python deriveRepAlleleMatrix.py %in %out %ref %replicon %consensus %repStats %merge_prefix"
     },
     "collateRepAlleleMatrix": {
-        "command": "python collateRepAlleleMatrix.py %in %out %length"
+        "command": "python collateRepAlleleMatrix.py %in %out %sequence_list %rep_name"
     },
     "getDifferenceMatrix": {
         "walltime": "00:10:00",
@@ -483,3 +484,5 @@ stages = {
         "command": "rm -rf %directory"
     }
 }
+
+#end of config file
