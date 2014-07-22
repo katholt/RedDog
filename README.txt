@@ -1,6 +1,7 @@
-RedDog V0.4.9 090714
+RedDog V0.4.9 220714
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
+License: none as yet...
 
 Description: 
 This program implements a workflow pipeline for short read length
@@ -18,7 +19,8 @@ IMPORTANT: See config file/instructions for input options/requirements
 
 current version:
 V0.4.9      splitting location of intermediate files in temp folder to improve stability for large runs (DE)
-            inclusion of more checkpoints (DE)
+            changed -X switch in bowtie2 PE mapping from 500 (default) to 1500 (DE)
+            removal of some redundant scripts and stages in config file (DE)
 
 previous versions:
 V0.1        converted to vcf output via mpileup instead of depreciated pileup (DE)
@@ -148,14 +150,14 @@ V0.5.1      Any fixes from final testing (DE)
 V1.0        First Public Release of RedDog 
 
 (Post-release) 
-            reanalysis without mapping
-                (with/without a GenBank file,
-                restore of read sets removed by user,
-                merging of prior runs,
-                recalculated/user-edited 'stats.txt' option) 
-            add merging of bams for both pangenome and phylogenetic mapping
-            reanalysis without mapping - merging of bams
-            further analysis options 
+    add merging of bams for both pangenome and phylogenetic mapping
+    reanalysis without mapping
+        with/without a GenBank file,
+        restore of read sets removed by user,
+        merging of prior runs,
+        recalculated/user-edited 'stats.txt' option 
+        merging of bams
+    further analysis options 
 
 NOTE: with a workaround, some reanalysis without mapping IS possible. Email me for details (DE)
 
@@ -165,4 +167,3 @@ If you wish to see other options added, email me (DE) with suggestions:
 
 (DE) My (ongoing) thanks to the "alpha-testers" for their feedback and patience.
 
-License: none as yet...

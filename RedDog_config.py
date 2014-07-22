@@ -3,25 +3,14 @@ Configuration file for RedDog.py V0.4.9
 -------------------------------
 Essential pipeline variables.
 '''
-reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_plasmid.fasta"
+reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_plasmid.gbk"
 
 sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/*.fastq.gz"
 #sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/extra/*.fastq.gz"
 
 #output = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
-output = "/scratch/VR0082/workspace/mapping/v049_test_PE_bowtie_phy_fasta"
-#output = "/scratch/VR0082/workspace/mapping/v049_test_PE_bowtie_pan"
-#output = "/scratch/VR0082/workspace/mapping/v049_test_PE_bwa_pan"
-#output = "/scratch/VR0082/workspace/mapping/v049_test_PE_bwa_phy"
-#output = "/scratch/VR0082/workspace/mapping/v049_test_IT_bowtie_pan"
-#output = "/scratch/VR0082/workspace/mapping/v049_test_IT_bowtie_phy"
-#output = "/scratch/VR0082/workspace/mapping/v049_test_SE_bowtie_phy"
-#output = "/scratch/VR0082/workspace/mapping/v049_test_SE_bowtie_pan"
-#output = "/scratch/VR0082/workspace/mapping/v049_test_SE_bwa_pan"
-#output = "/scratch/VR0082/workspace/mapping/v049_test_SE_bwa_phy"
 
 out_merge_target = ""
-#/scratch/VR0082/workspace/mapping/v049_test_PE_bowtie_phy"
 #out_merge_target = "/scratch/VR0082/workspace/mapping/v048_test"
 
 '''
@@ -333,7 +322,7 @@ stages = {
     },
     "alignBowtiePE": {
         "walltime": "03:00:00",
-        "command": "bowtie2 %type -x %ref_base -1 %seq1 -2 %seq2 -X 2000 | samtools view -ubS - | samtools sort - %out"
+        "command": "bowtie2 %type -x %ref_base -1 %seq1 -2 %seq2 -X 1500 | samtools view -ubS - | samtools sort - %out"
     },
     "alignBowtie": {
         "walltime": "03:00:00",
