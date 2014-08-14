@@ -927,17 +927,23 @@ else: # runType == "phylogeny"
                 output = outTempPrefix + seqName + '/callRepSNPs/' + seqName + '_' + repliconName[0] + '_raw.bcf'
                 flagFile = outSuccessPrefix + seqName + '_' + repliconName[0] + '.callRepSNPs.Success'
                 replicon = repliconName[0]
-                yield([sortedBam, output, replicon, flagFile])
+                yield([sortedBam, [output, flagFile], replicon])
 
     # Call SNPs for all replicon(s)
     @follows(indexFilteredBam)
     @follows(indexRef)
     @files(snpsByReplicons)
-    def callRepSNPs(sortedBam, output, replicon, flagFile):
-        runStageCheck('callRepSNPs', flagFile, reference, sortedBam, replicon, output)
+    def callRepSNPs(input, outputs, replicon):
+        output, flagFile  = outputs
+        runStageCheck('callRepSNPs', flagFile, reference, input, replicon, output)
     stage_count += (len(sequence_list)*len(replicons)) 
 
-# cp
+# checkpoint_callRepSNPs
+    @merge(callRepSNPs, [outTempPrefix+'checkpoint.txt', outTempPrefix + "callRepSNPs.checkpoint.Success"])
+    def checkpoint_callRepSNPs(inputs,outputs):
+        output, flagFile = outputs
+        runStageCheck('checkpoint', flagFile, outTempPrefix, 'callRepSNPs')
+    stage_count += 1
 
     #create inputs for filter variants on Q30
     def q30FilterByReplicons():
@@ -952,7 +958,7 @@ else: # runType == "phylogeny"
     
     # Filter variants on Q30
     @follows(getCoverByRep)
-    @follows(callRepSNPs)
+    @follows(checkpoint_callRepSNPs)
     @files(q30FilterByReplicons)
     def q30VarFilter(rawBCF, output, coverFile, replicon, flagFile):
         cover = getCover(coverFile, replicon)

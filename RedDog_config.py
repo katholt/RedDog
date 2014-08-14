@@ -9,7 +9,7 @@ sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/*.fastq.g
 #sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/extra/*.fastq.gz"
 
 #output = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
-
+output ="/scratch/VR0082/workspace/mapping/v05_crash_test"
 out_merge_target = ""
 #out_merge_target = "/scratch/VR0082/workspace/mapping/v048_test"
 
@@ -322,7 +322,7 @@ stages = {
     },
     "alignBowtiePE": {
         "walltime": "03:00:00",
-        "command": "bowtie2 %type -x %ref_base -1 %seq1 -2 %seq2 -X 1500 | samtools view -ubS - | samtools sort - %out"
+        "command": "time bowtie2 %type -x %ref_base -1 %seq1 -2 %seq2 -X 1500 | samtools view -ubS - | samtools sort - %out"
     },
     "alignBowtie": {
         "walltime": "03:00:00",
@@ -361,7 +361,11 @@ stages = {
     },
     "callRepSNPs": {
         "walltime": "01:00:00",
-        "command": "samtools mpileup -uD -f %ref %bam -r %replicon | bcftools view -bvcg - > %out"
+        "command": "time samtools mpileup -uD -f %ref %bam -r %replicon | bcftools view -bvcg - > %out"
+    },
+    "checkpoint": {
+        "walltime": "00:10:00",
+        "command": "python checkpoint.py %outTemp %stage"
     },
     "getConsensus": {
         "walltime": "01:00:00",
@@ -369,7 +373,7 @@ stages = {
     },
     "getCoverage": {
         "walltime": "01:00:00",
-        "command": "samtools mpileup %bam | cut - -f 1-4 > %out"
+        "command": "time samtools mpileup %bam | cut - -f 1-4 > %out"
     },
     "getCoverByRep": {
         "command": "python getCoverByRep.py %ref %coverage %out"
