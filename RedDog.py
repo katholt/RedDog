@@ -939,7 +939,7 @@ else: # runType == "phylogeny"
     stage_count += (len(sequence_list)*len(replicons)) 
 
 # checkpoint_callRepSNPs
-    @merge(callRepSNPs, [outTempPrefix+'checkpoint.txt', outTempPrefix + "callRepSNPs.checkpoint.Success"])
+    @merge(callRepSNPs, [outTempPrefix+'checkpoint.txt', outSuccessPrefix + "callRepSNPs.checkpoint.Success"])
     def checkpoint_callRepSNPs(inputs,outputs):
         output, flagFile = outputs
         runStageCheck('checkpoint', flagFile, outTempPrefix, 'callRepSNPs')
