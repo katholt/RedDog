@@ -841,6 +841,8 @@ if runType == "pangenome":
         runStageCheck('callRepSNPs', flagFile, reference, sortedBam, repliconName, output)
     stage_count += (len(sequence_list)*len(core_replicons)) 
 
+# cp
+
     #create inputs for filter variants on Q30
     def q30FilterByCoreReplicons():
         for repliconName in core_replicons:
@@ -902,6 +904,8 @@ if runType == "pangenome":
         runStageCheck('deriveRepStats', flagFile, coverFile, repliconName, depthFail, coverFail, runType, mappedFail, check_reads_mapped)
     stage_count += (len(sequence_list)*len(core_replicons)) 
 
+# cp
+
     def inputByCoreRep():
         for repliconName in core_replicons:
             output = outPrefix + refName + '_' + repliconName + '_RepStats.txt'
@@ -932,6 +936,8 @@ else: # runType == "phylogeny"
     def callRepSNPs(sortedBam, output, replicon, flagFile):
         runStageCheck('callRepSNPs', flagFile, reference, sortedBam, replicon, output)
     stage_count += (len(sequence_list)*len(replicons)) 
+
+# cp
 
     #create inputs for filter variants on Q30
     def q30FilterByReplicons():
@@ -995,6 +1001,8 @@ else: # runType == "phylogeny"
     def deriveRepStats(coverFile, output, replicon, depthFail, coverFail, flagFile):
         runStageCheck('deriveRepStats', flagFile, coverFile, replicon, depthFail, coverFail, runType, mappedFail, check_reads_mapped)
     stage_count += (len(sequence_list)*len(replicons)) 
+
+# cp
 
     def inputByRep():
         for repliconName in replicons:
@@ -1114,6 +1122,8 @@ else: #    if mergeReads == "":
             runStageCheck('getRepSNPList', flagFile, input, replicon, output)
         stage_count += len(core_replicons) 
 
+# cp
+
 if refGenbank == True:
     if outMerge != "":
         bamPatterns = outMergeBam + '*.bam'
@@ -1157,6 +1167,8 @@ if refGenbank == True:
             runStageCheck('getConsensus', flagFile, reference, input, output)
         stage_count += len(bams)
 
+# cp
+ 
         if runType == 'pangenome':
             # generate the allele matrix entry for each isolate for each replicon
             def matrixEntryByCoreRep():
@@ -1177,6 +1189,8 @@ if refGenbank == True:
             def deriveRepAlleleMatrix(input, output, replicon, consensus, repliconStats, merge_prefix, flagFile):
                 runStageCheck('deriveRepAlleleMatrix', flagFile, input, output, reference, replicon, consensus, repliconStats, merge_prefix)
             stage_count += (len(full_sequence_list)*len(core_replicons))
+
+# cp
 
             def matrixByCoreRep():
                 for repliconName in core_replicons:
@@ -1211,6 +1225,8 @@ if refGenbank == True:
             def deriveRepAlleleMatrix(input, output, replicon, consensus, repliconStats, merge_prefix, flagFile):
                 runStageCheck('deriveRepAlleleMatrix', flagFile, input, output, reference, replicon, consensus, repliconStats, merge_prefix)
             stage_count += (len(full_sequence_list)*len(replicons))
+
+# cp
 
             def matrixByRep():
                 for repliconName in replicons:
@@ -1332,6 +1348,8 @@ if refGenbank == True:
                 runStageCheck('deriveRepAlleleMatrix', flagFile, input, output, reference, replicon, consensus, repliconStats, merge_prefix)
             stage_count += (len(full_sequence_list)*len(core_replicons))
 
+# cp
+
             def matrixByCoreRep():
                 for repliconName in core_replicons:
                     output  = outTempPrefix + refName + '_' + repliconName + '_alleles.csv'
@@ -1365,6 +1383,8 @@ if refGenbank == True:
             def deriveRepAlleleMatrix(input, output, replicon, consensus, repliconStats, merge_prefix, flagFile):
                 runStageCheck('deriveRepAlleleMatrix', flagFile, input, output, reference, replicon, consensus, repliconStats, merge_prefix)
             stage_count += (len(full_sequence_list)*len(replicons))
+
+# cp
 
             def matrixByRep():
                 for repliconName in replicons:
@@ -1457,6 +1477,8 @@ else: # refGenbank == False
             runStageCheck('getConsensus', flagFile, reference, input, output)
         stage_count += len(bams)
 
+# cp
+
         if runType == 'pangenome':
             # generate the allele matrix entry for each isolate for each replicon
             def matrixEntryByCoreRep():
@@ -1477,6 +1499,8 @@ else: # refGenbank == False
             def deriveRepAlleleMatrix(input, output, replicon, consensus, repliconStats, merge_prefix, flagFile):
                 runStageCheck('deriveRepAlleleMatrix', flagFile, input, output, reference, replicon, consensus, repliconStats, merge_prefix)
             stage_count += (len(full_sequence_list)*len(core_replicons))
+
+# cp
 
             def matrixByCoreRep():
                 for repliconName in core_replicons:
@@ -1511,6 +1535,8 @@ else: # refGenbank == False
             def deriveRepAlleleMatrix(input, output, replicon, consensus, repliconStats, merge_prefix, flagFile):
                 runStageCheck('deriveRepAlleleMatrix', flagFile, input, output, reference, replicon, consensus, repliconStats, merge_prefix)
             stage_count += (len(full_sequence_list)*len(replicons))
+
+# cp
 
             def matrixByRep():
                 for repliconName in replicons:
@@ -1604,6 +1630,8 @@ else: # refGenbank == False
                 runStageCheck('deriveRepAlleleMatrix', flagFile, input, output, reference, replicon, consensus, repliconStats, merge_prefix)
             stage_count += (len(full_sequence_list)*len(core_replicons))
 
+# cp
+
             def matrixByCoreRep():
                 for repliconName in core_replicons:
                     output  = outTempPrefix + refName + '_' + repliconName + '_alleles.csv'
@@ -1637,6 +1665,8 @@ else: # refGenbank == False
             def deriveRepAlleleMatrix(input, output, replicon, consensus, repliconStats, merge_prefix, flagFile):
                 runStageCheck('deriveRepAlleleMatrix', flagFile, input, output, reference, replicon, consensus, repliconStats, merge_prefix)
             stage_count += (len(full_sequence_list)*len(replicons))
+
+# cp
 
             def matrixByRep():
                 for repliconName in replicons:
