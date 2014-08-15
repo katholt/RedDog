@@ -1,17 +1,19 @@
 '''
-Configuration file for RedDog.py V0.4.9
+Configuration file for RedDog.py V0.5
 -------------------------------
 Essential pipeline variables.
 '''
-reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_plasmid.gbk"
+reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_plasmid.fasta"
 
-sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/*.fastq.gz"
-#sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/extra/*.fastq.gz"
+#sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/*.fastq.gz"
+sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/extra/*.fastq.gz"
 
 #output = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
-output ="/scratch/VR0082/workspace/mapping/v05_crash_test"
-out_merge_target = ""
-#out_merge_target = "/scratch/VR0082/workspace/mapping/v048_test"
+#output ="/scratch/VR0082/workspace/mapping/v05_crash_test"
+output ="/scratch/VR0082/workspace/mapping/v05_crash_test_2"
+
+out_merge_target = "/scratch/VR0082/workspace/mapping/v05_crash_test"
+#out_merge_target = ""
 
 '''
 Notes:
@@ -106,8 +108,8 @@ The user can override the run type, by setting it below. The run types are descr
 more detail in the instructions.
 
 '''
-runType = ""
-#runType = "pangenome"
+#runType = ""
+runType = "pangenome"
 #runType = "phylogeny"
 
 '''
@@ -258,7 +260,9 @@ and downsteam analysis carried out on this matrix.
 conservation = 0.95
 
 '''
+########################
 Rubra pipeline variables (do not delete!):
+########################
 - logDir: the directory where batch queue scripts, stdout and sterr dumps are stored.
 - logFile: the file used to log all jobs that are run.
 - style: the default style, one of 'flowchart', 'print', 'run', 'touchfiles'. Can be 
@@ -360,6 +364,7 @@ stages = {
         "command": "samtools faidx %ref"
     },
     "callRepSNPs": {
+#        "walltime": "00:01:00",
         "walltime": "01:00:00",
         "command": "time samtools mpileup -uD -f %ref %bam -r %replicon | bcftools view -bvcg - > %out"
     },
