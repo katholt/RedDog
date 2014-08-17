@@ -5,16 +5,14 @@ Essential pipeline variables.
 '''
 reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_plasmid.fasta"
 
-#sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/*.fastq.gz"
-sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/extra/*.fastq.gz"
+sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/*.fastq.gz"
+#sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/extra/*.fastq.gz"
 
-#output = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
-#output ="/scratch/VR0082/workspace/mapping/v05_crash_test"
-output ="/scratch/VR0082/workspace/mapping/v05_crash_test_2"
+output = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
 
-out_merge_target = "/scratch/VR0082/workspace/mapping/v05_crash_test"
-#out_merge_target = ""
 
+out_merge_target = ""
+#out_merge_target = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
 '''
 Notes:
 
@@ -108,8 +106,8 @@ The user can override the run type, by setting it below. The run types are descr
 more detail in the instructions.
 
 '''
-#runType = ""
-runType = "pangenome"
+runType = ""
+#runType = "pangenome"
 #runType = "phylogeny"
 
 '''
@@ -286,7 +284,7 @@ pipeline = {
     "logDir": "log",
     "logFile": "pipeline.log",
     "style": "print",
-    "procs": 30,
+    "procs": 100,
     "paired": True,
     "verbose": 1,
     "end": ["deleteDir"],
@@ -326,10 +324,14 @@ stages = {
     },
     "alignBowtiePE": {
         "walltime": "03:00:00",
+# large file size (any read set >800MB)
+#        "walltime": "06:00:00",
         "command": "time bowtie2 %type -x %ref_base -1 %seq1 -2 %seq2 -X 1500 | samtools view -ubS - | samtools sort - %out"
     },
     "alignBowtie": {
         "walltime": "03:00:00",
+# large file size (any read set >800MB)
+#        "walltime": "06:00:00",
         "command": "bowtie2 %type -x %ref_base -U %seq | samtools view -ubS - | samtools sort - %out"
     },
     "buildBWAIndex": {
@@ -337,14 +339,20 @@ stages = {
         "command": "bwa index -a is %ref"
     },
     "alignSequence": {
+# large file size (any read set >800MB)
+#        "walltime": "02:00:00",
         "command": "bwa aln %ref %seq > %out"
     },
     "alignBWAPE": {
         "walltime": "03:00:00",
+# large file size (any read set >800MB)
+#        "walltime": "06:00:00",
         "command": "bwa sampe %ref %align1 %align2 %seq1 %seq2 | samtools view -ubS - | samtools sort - %out"
     },
     "alignBWASE": {
-        "walltime": "02:00:00",
+        "walltime": "03:00:00",
+# large file size (any read set >800MB)
+#        "walltime": "06:00:00",
         "command": "bwa samse %ref %align %seq | samtools view -ubS - | samtools sort - %out"
     },
     "indexBam": {
@@ -364,8 +372,9 @@ stages = {
         "command": "samtools faidx %ref"
     },
     "callRepSNPs": {
-#        "walltime": "00:01:00",
         "walltime": "01:00:00",
+# large file size (any read set >800MB)
+#        "walltime": "03:00:00",
         "command": "time samtools mpileup -uD -f %ref %bam -r %replicon | bcftools view -bvcg - > %out"
     },
     "checkpoint": {
@@ -374,10 +383,14 @@ stages = {
     },
     "getConsensus": {
         "walltime": "01:00:00",
+# large file size (any read set >800MB)
+#        "walltime": "06:00:00",
         "command": "samtools mpileup -q 20 -uB -f %ref %bam | bcftools view -c - | vcfutils.pl vcf2fq > %output"
     },
     "getCoverage": {
         "walltime": "01:00:00",
+# large file size (any read set >800MB)
+#        "walltime": "06:00:00",
         "command": "time samtools mpileup %bam | cut - -f 1-4 > %out"
     },
     "getCoverByRep": {
@@ -396,7 +409,7 @@ stages = {
         "command": "python getVcfStats.py %vcfFile %out"
     },
     "deriveRepStats": {
-        "walltime": "00:10:00",
+        "walltime": "00:20:00",
         "command": "python deriveRepStats.py %coverFile %replicon %depth %cover %runType %map %check"
     },
     "deriveAllStats": {
@@ -454,27 +467,27 @@ stages = {
     "getDifferenceMatrix": {
         "walltime": "00:10:00",
 # large data sets
-#        "walltime": "06:00:00",
+#        "walltime": "04:00:00",
         "command": "python make_distance_matrix.py %in"
     },
     "parseSNPs": {
 # large data sets
-#        "walltime": "08:00:00",
+#        "walltime": "03:00:00",
 #        "memInGB": 8,
         "command": "python parseSNPtable.py -m cons,aln,coding -s %input -c %conservation -r %genbank -q %replicon -d %dir"
     },
     "parseSNPsNoGBK": {
         "walltime": "00:10:00",
 # large data sets
-#        "walltime": "08:00:00",
+#        "walltime": "03:00:00",
 #        "memInGB": 8,
         "command": "python parseSNPtable.py -m cons,aln -s %input -c %conservation -d %dir"
     },
     "makeTree": {
         "walltime": "00:15:00",
 # large data sets
-#        "walltime": "12:00:00",
-#        "memInGB": 16,
+#        "walltime": "06:00:00",
+#        "memInGB": 8,
         "command": "FastTree -gtr -gamma -nt %input > %output"
     },
     "deleteDir": {
