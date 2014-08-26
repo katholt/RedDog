@@ -1,16 +1,16 @@
 ##########################################################################
-## Script to check for errors in the RedDog pipeline log files          ##
+## Script to check for errors in the RedDog and BlueDog pipeline        ##
 ## Lesley Raven - 01/06/2014                                            ##
 ##########################################################################
 
 ### Enter location of your log directory
-log_dir=log
 
+log_dir=log
 if [ -s tmp_log.txt ]; then rm tmp_log.txt; fi
 
 ### Check for errors
 echo "Checking $log_dir...."
-grep -r 'EOF\|CANCELLED\|FAILED\|EXIT\|LIMIT\|TIME\|KILLED\|Error\|Warning\|EOF\|malformatted\|died\|error while loading\|cutoff is higher' $log_dir | sed 's/:/\t\t/g' >> tmp_log.txt
+grep -r 'EOF\\|CANCELLED\\|FAILED\\|EXIT\\|LIMIT\\|TIME\\|KILLED\\|Error\\|Warning\\|EOF\\|malformatted\\|died\\|error while loading\\|cutoff is higher' $log_dir | sed 's/:/\\t\\t/g' >> tmp_log.txt
 
 ### Print summary of errors
 n_err=`cat tmp_log.txt | wc -l`
