@@ -1,35 +1,30 @@
-echo "" > tmp_log.txt
+##########################################################################
+## Script to check for errors in the RedDog pipeline log files          ##
+## Lesley Raven - 01/06/2014                                            ##
+##########################################################################
 
-##Enter location of your log directory
-
+### Enter location of your log directory
 log_dir=log
 
-## Check for errors
+if [ -s tmp_log.txt ]; then rm tmp_log.txt; fi
 
+### Check for errors
+echo "Checking $log_dir...."
+grep -r 'EOF\|CANCELLED\|FAILED\|EXIT\|LIMIT\|TIME\|KILLED\|Error\|Warning\|EOF\|malformatted\|died\|error while loading\|cutoff is higher' $log_dir | sed 's/:/\t\t/g' >> tmp_log.txt
+
+### Print summary of errors
+n_err=`cat tmp_log.txt | wc -l`
 echo ""
-
-echo Checking $log_dir....
-
-grep ­r
-
-'EOF\|CANCELLED\|FAILED\|EXIT\|LIMIT\|TIME\|KILLED\|Error\|Warning\|EOF\|malformatted\|died\|error\
-
-while\ loading\|cutoff\ is\ higher' $log_dir/* | sed 's/:/\t\t/g' >> tmp_log.txt
-
-## Print summary of errors
-
+if [ -s tmp_log.txt ]
+        then
+	echo "You have $n_err errors! :("
+        echo ""
+        cat tmp_log.txt | cut -f3-20 | sort | uniq -c
+        echo ""
+        echo "See tmp_log.txt for file names"
+        else
+	echo "You have NO errors! YAYE!"
+        if [ -s tmp_log.txt ]; then rm tmp_log.txt; fi
+        fi
 echo ""
-
-n_err=`cat tmp_log.txt | wc ­l`
-
-time if [ ­s tmp_log.txt ]
-
-echo ""
-
-echo See tmp_log.txt for file names
-
-echo ""
-
-## Clean Files
-
-#rm tmp_log
+if grep -q 'IO Error' tmp_log.txt; then echo "IO Error: Check <2Tb used on disk, re-run pipeline the communication has been disrupted"; else :;fi
