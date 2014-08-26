@@ -1,0 +1,35 @@
+echo "" > tmp_log.txt
+
+##Enter location of your log directory
+
+log_dir=log
+
+## Check for errors
+
+echo ""
+
+echo Checking $log_dir....
+
+grep ­r
+
+'EOF\|CANCELLED\|FAILED\|EXIT\|LIMIT\|TIME\|KILLED\|Error\|Warning\|EOF\|malformatted\|died\|error\
+
+while\ loading\|cutoff\ is\ higher' $log_dir/* | sed 's/:/\t\t/g' >> tmp_log.txt
+
+## Print summary of errors
+
+echo ""
+
+n_err=`cat tmp_log.txt | wc ­l`
+
+time if [ ­s tmp_log.txt ]
+
+echo ""
+
+echo See tmp_log.txt for file names
+
+echo ""
+
+## Clean Files
+
+#rm tmp_log
