@@ -1,5 +1,5 @@
 '''
-Configuration file for RedDog.py V0.5
+Configuration file for RedDog.py V0.5.1
 -------------------------------
 Essential pipeline variables.
 '''
@@ -326,7 +326,7 @@ stages = {
         "walltime": "03:00:00",
 # large file size (any read set >800MB)
 #        "walltime": "06:00:00",
-        "command": "time bowtie2 %type -x %ref_base -1 %seq1 -2 %seq2 -X 1500 | samtools view -ubS - | samtools sort - %out"
+        "command": "bowtie2 %type -x %ref_base -1 %seq1 -2 %seq2 -X 1500 | samtools view -ubS - | samtools sort - %out"
     },
     "alignBowtie": {
         "walltime": "03:00:00",
@@ -375,7 +375,7 @@ stages = {
         "walltime": "01:00:00",
 # large file size (any read set >800MB)
 #        "walltime": "03:00:00",
-        "command": "time samtools mpileup -uD -f %ref %bam -r %replicon | bcftools view -bvcg - > %out"
+        "command": "samtools mpileup -uD -f %ref %bam -r %replicon | bcftools view -bvcg - > %out"
     },
     "checkpoint": {
         "walltime": "00:10:00",
