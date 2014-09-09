@@ -259,6 +259,12 @@ if mapping == 'bowtie':
 else:
     bowtie_map_type = "-"
 
+if mapping == 'bowtie':
+    try:
+        bowtie_X_value = pipeline_options.bowtie_X_value
+    except:
+        bowtie_X_value = 2000
+
 try:
     minDepth = pipeline_options.minimum_depth
 except:
@@ -568,7 +574,7 @@ if mapping == 'bowtie':
             out = prefix + '/' + name
             seq1, [seq2] = inputs
             base = outTempPrefix + refName
-            runStageCheck('alignBowtiePE', flagFile, bowtie_map_type, base, seq1, seq2, out)
+            runStageCheck('alignBowtiePE', flagFile, bowtie_map_type, base, seq1, seq2, bowtie_X_value, out)
         stage_count += len(sequence_list) 
 
         # Index sorted BAM alignments using samtools

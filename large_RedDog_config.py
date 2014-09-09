@@ -185,6 +185,12 @@ bowtie_map_type = "--sensitive-local"
 #bowtie_map_type = "--very-sensitive-local"
 
 '''
+The default maximum length for bowtie2 to consider pair-ended reads discontinuous
+is 1500 - you can change this with bowite_X_value
+'''
+bowtie_X_value = 1500
+
+'''
 You can also "remove" any reads: these will be marked as "failed"
 This only works during a "merge run"
 eg. replace a set of reads with their qc-ed version
@@ -324,7 +330,7 @@ stages = {
     },
     "alignBowtiePE": {
         "walltime": "06:00:00",
-        "command": "bowtie2 %type -x %ref_base -1 %seq1 -2 %seq2 -X 1500 | samtools view -ubS - | samtools sort - %out"
+        "command": "bowtie2 %type -x %ref_base -1 %seq1 -2 %seq2 -X %Xvalue | samtools view -ubS - | samtools sort - %out"
     },
     "alignBowtie": {
         "walltime": "06:00:00",

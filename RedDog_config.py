@@ -8,8 +8,8 @@ reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_pl
 sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/*.fastq.gz"
 #sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/extra/*.fastq.gz"
 
-output = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
-
+#output = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
+output = "/scratch/VR0082/workspace/mapping/v052_test"
 
 out_merge_target = ""
 #out_merge_target = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
@@ -183,6 +183,11 @@ http://bowtie-bio.sourceforge.net/bowtie2/manual.shtml
 #bowtie_map_type = "--fast-local"
 bowtie_map_type = "--sensitive-local"
 #bowtie_map_type = "--very-sensitive-local"
+'''
+The default maximum length for bowtie2 to consider pair-ended reads contiguous
+is 1500 - you can change this with bowtie_X_value
+'''
+bowtie_X_value = 1500
 
 '''
 You can also "remove" any reads: these will be marked as "failed"
@@ -326,7 +331,7 @@ stages = {
         "walltime": "03:00:00",
 # large file size (any read set >800MB)
 #        "walltime": "06:00:00",
-        "command": "bowtie2 %type -x %ref_base -1 %seq1 -2 %seq2 -X 1500 | samtools view -ubS - | samtools sort - %out"
+        "command": "bowtie2 %type -x %ref_base -1 %seq1 -2 %seq2 -X %Xvalue | samtools view -ubS - | samtools sort - %out"
     },
     "alignBowtie": {
         "walltime": "03:00:00",
