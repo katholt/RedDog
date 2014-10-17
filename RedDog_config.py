@@ -3,13 +3,16 @@ Configuration file for RedDog.py V0.5.1
 -------------------------------
 Essential pipeline variables.
 '''
-reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_plasmid.fasta"
+reference = ""
+#reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_plasmid.fasta"
 
-sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/*.fastq.gz"
+sequences = ""
+#sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/*.fastq.gz"
 #sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/extra/*.fastq.gz"
 
+output = ""
 #output = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
-output = "/scratch/VR0082/workspace/mapping/v052_test"
+#output = "/scratch/VR0082/workspace/mapping/v052_test"
 
 out_merge_target = ""
 #out_merge_target = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
