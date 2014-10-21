@@ -1,7 +1,7 @@
 #!/bin/env python
 
 '''
-RedDog V0.5.1 150914
+RedDog V0.5.1 201014
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 License: none as yet...

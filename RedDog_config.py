@@ -188,9 +188,9 @@ bowtie_map_type = "--sensitive-local"
 #bowtie_map_type = "--very-sensitive-local"
 '''
 The default maximum length for bowtie2 to consider pair-ended reads contiguous
-is 1500 - you can change this with bowtie_X_value
+is 2000 - you can change this with bowtie_X_value
 '''
-bowtie_X_value = 1500
+bowtie_X_value = 2000
 
 '''
 You can also "remove" any reads: these will be marked as "failed"
@@ -464,7 +464,7 @@ stages = {
         "walltime": "00:10:00",
 # large data sets
 #        "walltime": "01:00:00",
-        "command": "python parseGeneContent.py -g %input -o %out -s %out2"
+        "command": "python parseGeneContent.py -g %input -s %out -o %out2"
     },
     "deriveRepAlleleMatrix": {
         "command": "python deriveRepAlleleMatrix.py %in %out %ref %replicon %consensus %repStats %merge_prefix"

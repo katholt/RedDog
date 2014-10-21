@@ -7,13 +7,14 @@
 # could also calculate pan and core rarefaction curve data
 # could also accept depth file and use this along with % coverage to call presence/absence
 # could also accept RAST annotation file and output product identifiers etc along with genes (esp in gene summary table)
+#
+# Authors: Kat Holt, David Edwards
+# created: ?
+# last modified: 20141020
+#
 import string, re
 import os, sys, subprocess
-import StringIO
-import collections
 from optparse import OptionParser
-from datat import Datat
-from datat import load_csv
 
 def main():
 
@@ -58,8 +59,21 @@ if __name__ == "__main__":
 			if (count > 0):
 				# otherwise exclude gene from outputs
 				if options.out !="":
-					o.write(line)
+					# convert to presence/absence
+					output = fields[0]
+					for i in range(1,len(fields)):
+						if (float(fields[i]) >= float(options.cutoff)):
+							# gene is present
+							output += ',1'
+						else:
+							# gene is absent
+							output += ',0'
+					output += '\n'
+					o.write(output)
 				if options.summary !="":
 					s.write(gene + "," + str(count) + "\n")
+	f.close()
+	o.close()
+	s.close()
 				
 				

@@ -1,4 +1,4 @@
-RedDog V0.5.1 150914
+RedDog V0.5.1 201014
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 License: none as yet...
@@ -18,10 +18,12 @@ Note: for Illumina paired-end or single reads, or Ion Torrent single reads.
 IMPORTANT: See config file/instructions for input options/requirements
 
 current version:
-V0.5.1      Run report to provide settings for merge runs (continuity checks) (DE)
-            Implement any changes to run report from user feedback (DE)
-            Changes to input sequences pattern recognition (DE)
-            add -X option for bowtie2 mapping (DE) 
+V0.5.1      added -X option for bowtie2 mapping (DE)
+            fixed parseGeneContent output (DE)
+            added fixed and extended parseSNPtable (DE)
+            added scripts for tutorial (filterCoords.py, get_cover.py, getRecomb.R, plotTree.R) (DE)
+            changed getDifferenceMatrix to optional output in pipe, changed script to take options (DE)
+            added option for VCF output of filtered hets (DE)
 
 previous versions:
 V0.1        converted to vcf output via mpileup instead of depreciated pileup (DE)
@@ -146,13 +148,17 @@ V0.5        added check for deletion of previous run success file on merge run (
             includes changes to complex stages - flagFiles behaviour (DE)
 
 next planned updates
-V0.5.2      Any fixes from final testing (DE)
+V0.5.2      Run report to provide settings for merge runs (continuity checks) (DE)
+            Implement any changes to run report from user feedback (DE)
+            Changes to input sequences pattern recognition (DE)
+V0.5.3      Any fixes from final testing (DE)
             Improve on all comments in programming (DE)
             Add licensing information to all scripts (DE)
 
 V1.0        First Public Release of RedDog 
 
-(Post-release) 
+(Post-release)
+    extend parseGeneContent functions 
     add merging of bams for both pangenome and phylogenetic mapping
     reanalysis without mapping
         with/without a GenBank file,

@@ -7,11 +7,16 @@
 # The table is then parsed as specified by the modules in -m, these include:
 #   aln - convert to fasta alignment
 #   filter - filter SNPs that are included/excluded in regions specified via -x (genbank, gff or 2-column CSV table format)
+#   clean - filter out any pairs of SNPs with -P bp between them (default 3bp, minimum 2bp) and any trio or more of SNPs within -W bp in any isolate (default 10bp, minimum 3bp or -P if greater than 3)
 #   cons - filter SNP positions that are not conserved above a cutoff specified via -c (e.g. -c 0.99 -> all snps with >1% missing alleles is filtered out)
+#   core - filter SNPs not in genes that are conserved with % coverage cutoff, specified via -Z, obtained from the gene cover table, specified via -z, across all core isolates, specified via -L. As for -l, outgroups are ignored.   
+#   vcf - convert snp table to vcf format (requires -v name of reference mapped, optional -V name of isolate mapped, otherwise -v used)
+#         can also produce VCF with SNPs filtered out at each stage (set '-A True' and add vcf after each filtering step)
 #   fasttree - submit a fasttree job to SLURM
 #   rax - submit threaded RAxML jobs to SLURM (can specify walltime, memory, threads, number of boostraps and number of replicate runs)
 # Any number of these modules can be supplied in any order; the order they are given is the order they will be run
 #   specify modules in a comma-separated list, e.g. '-m filter,cons,aln,rax' will run region filtering, then conservation filter, then make a fasta alignment and use this as input to 5 raxml jobs with 100 bootstraps using 8 threads
+#   clean should only be run after any recombinant regions have been indentified for exclusion
 #
 # This version also handles multiple sequence genbank files for coding entries. The sequence in the genbank relevant to the SNP table must be specified (-q queryseq).  
 # It is also quicker generating coding consequences, and now uses much less memory (about twice the size of the allele table) 
@@ -24,16 +29,23 @@
 # Example command on barcoo:
 '''
 module load python-gcc/2.7.5
-python /vlsci/VR0082/shared/code/holtlab/parseSNPtable_multigbk.py -s snps.csv -p prefix -r genbank -q queryseq -m aln, coding, rax
+python /vlsci/VR0082/shared/code/holtlab/parseSNPtable_multigbk.py -s snps.csv -p prefix -r genbank -q queryseq -m aln,coding,rax
 '''
 #
-# Last modified - May 27, 2014
+# Last modified - Oct 7, 2014
 # Changes:
 #	 15/10/13 - added strain subset option
 #    25/03/14 - added multiple sequence genbank file handling 
 #             - improved 'coding' option performance
-#    27/05/24 - changes to improve memory performance and filter of regions (especially overlapping regions)
+#    27/05/14 - changes to improve memory performance and filter of regions (especially overlapping regions)
 #			  - also added -d directory option
+#		08/14 - update to RAXML submission
+#	 12/09/14 - fix for filter of regions: filtered table now passed back correctly
+#			  - also updated inital SNP table reading message
+#	 28/09/14 - added cleaning (filtering) of erroneous SNPs
+#    01/10/14 - added output of SNP table to vcf format
+#    03/10/14 - fixed minor error in output of compound vcf format for Gingr
+#    07/10/14 - added filtering for core SNPs as specified by Gene Coverage table from RedDog
 
 import os, sys, subprocess, string, re, random
 import collections
@@ -50,32 +62,51 @@ from Bio.Align import MultipleSeqAlignment
 #import resource
 
 def main():
-
 	usage = "usage: %prog [options]"
 	parser = OptionParser(usage=usage)
 
-
+	# output options
 	parser.add_option("-p", "--prefix", action="store", dest="prefix", help="prefix to add to output files (default none)", default="")
 	parser.add_option("-d", "--directory", action="store", dest="directory", help="directory to send output files (default none)", default="")
 	
 	# modules to run
-	parser.add_option("-m", "--modules", action="store", dest="modules", help="modules to run, comma separated list in order (aln,fasttree,filter,cons,aln,fasttree,rax,coding)", default="aln")
+	parser.add_option("-m", "--modules", action="store", dest="modules", help="modules to run, comma separated list in order (default aln, e.g. filter,vcf,cons,vcf,aln,fasttree,rax,core,vcf,aln,fasttree,rax,coding)", default="aln")
 
-	# snp filtering
+	# snptable reading
 	parser.add_option("-s", "--snptable", action="store", dest="snptable", help="SNP table (CSV)", default="")
-	parser.add_option("-x", "--regions", action="store", dest="regions", help="file of regions to include/exclude (gbk)", default="")
-	parser.add_option("-y", "--include", action="store", dest="include", help="include (default exclude)", default="exclude")
 	parser.add_option("-g", "--gapchar", action="store", dest="gapchar", help="gap character (default -, could be N)", default="-")
-	parser.add_option("-c", "--conservation", action="store", dest="conservation", help="minimum conservation across samples required to retain SNP locus (default 0.99)", default="0.99")
 	parser.add_option("-o", "--outgroup", action="store", dest="outgroup", help="comma separated list; outgroup strains (alleles will be included but not sites that vary only in outgroups)", default="")
 	parser.add_option("-l", "--subset", action="store", dest="subset", help="file containing list of strains to include (one per line), otherwise all strains included", default="")
+
+	# region filtering
+	parser.add_option("-x", "--regions", action="store", dest="regions", help="file of regions to include/exclude (gbk)", default="")
+	parser.add_option("-y", "--include", action="store", dest="include", help="include (default exclude)", default="exclude")
+
+	# conservation filtering
+	parser.add_option("-c", "--conservation", action="store", dest="conservation", help="minimum conservation across samples required to retain SNP locus (default 0.99)", default="0.99")
+
+	# snp cleaning
+	parser.add_option("-P", "--pairs", action="store", dest="pairs", help="maximum distance between pairs of SNPs to remove (default 3bp, minimum 2bp)", default="3")
+	parser.add_option("-W", "--window", action="store", dest="window", help="snp window to check clusters with more than three SNPs (default 10bp, minimum 3bp or -P if greater than 3)", default="10")	
 	
-	# coding consequences
+	# core gene filtering and/or coding consequences
 	parser.add_option("-r", "--refseq", action="store", dest="refseq", help="reference sequence file (gbk)", default="")
 	parser.add_option("-q", "--queryseq", action="store", dest="queryseq", help="query sequence in reference sequence file (multisequence gbk)", default="")
+
+	# core gene filtering
+	parser.add_option("-L", "--core_strains", action="store", dest="core_strains", help="file containing list of strains to include in core genome (one per line, outgroup[s] ignored), otherwise all strains sans outgroup(s) included", default="")
+	parser.add_option("-z", "--gene_summary", action="store", dest="gene_summary", help="gene summary table (CSV)", default="")
+	parser.add_option("-Z", "--core_coverage", action="store", dest="core_coverage", help="minimum % coverage of each gene (as ratio) across core_isolates required to retain SNP locus (default 0.90 - 90%)", default="0.9")
+
+	# coding consequences
 	parser.add_option("-f", "--genefeatures", action="store", dest="genefeatures", help="feature types for protein coding genes (default CDS; can be multiple comma-sep)", default="CDS")
 	parser.add_option("-e", "--excludefeatures", action="store", dest="excludefeatures", help="feature types to exclude (default gene,misc_feature)", default="gene,misc_feature")
 	parser.add_option("-i", "--identifier", action="store", dest="identifier", help="unique identifier for features (locus_tag)", default="locus_tag")
+
+    # snptable to vcf
+	parser.add_option("-v", "--reference_name", action="store", dest="reference_name", help="name of reference mapped (required, use MT for PLINK", default="")
+	parser.add_option("-V", "--ref_isolate_name", action="store", dest="ref_isolate_name", help="name of the isolate used for reference (default reference_name)", default="")
+	parser.add_option("-A", "--add_vcf", action="store_true", dest="add_vcf", help="Set to get VCF with PASS/FAIL for all SNPs in first SNP table [post-isolate/outgroup filtering] (default False, need at least one 'vcf' module assigned to -m)", default=False)
 
 	# rax parameters
 	parser.add_option("-t", "--walltime", action="store", dest="walltime", help="walltime for raxml jobs (default 5-12:0, ie 5.5. days)", default="5-12:0")
@@ -86,11 +117,9 @@ def main():
 
 	return parser.parse_args()
 
-
 if __name__ == "__main__":
 
 	(options, args) = main()
-	
 	nt = ["A","C","G","T"]
 
 	def isVar(alleles):
@@ -102,9 +131,7 @@ if __name__ == "__main__":
 	
 	# read csv; return as dictionary of dictionaries and list of strains
 	def readSNPTable(infile,outgroup_list,strain_list_file,pre):
-		
 		print "\nReading SNP table from " + infile
-		
 		outgroups = [] # list of outgroups provided
 		outgroups_used = [] # list of outgroups encountered
 		if options.outgroup != "":
@@ -126,7 +153,6 @@ if __name__ == "__main__":
 			pre += "_" + str(len(strainlist)) + "strains"
 		else:
 			print "    including all strains"
-		
 		snptable = []
 		strains = [] # strains from header
 		ignored = []
@@ -143,7 +169,6 @@ if __name__ == "__main__":
 #				print 'Memory usage: %s (kb)' % resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
 			if fields == []:
 				fields = lines[i].rstrip().split(',')
-
 			if len(strains)==0:
 				strains = fields
 				if len(strainlist) == 0:
@@ -165,7 +190,6 @@ if __name__ == "__main__":
 				while lines[i][j] != ',':
 					snp += lines[i][j]
 					j+=1
-
 				alleles_ingroup = [] # alleles for this snp
 				alleles_outgroup = [] # alleles for outgroups
 				for k in range(1,len(fields)):
@@ -196,9 +220,9 @@ if __name__ == "__main__":
 			if strain in strainlist or strain in outgroups_used:
 				strains_used.append(strain) 			
 
-		print "\n... finished reading " + str(len(snptable)) + " variable SNPs in " + str(len(strainlist)) + " ingroup strains"
+		print "\n... finished reading " + str(len(snptable) + len(ignored)) + " SNPs in total"
+		print "... keeping " + str(len(snptable)) + " variable SNPs in " + str(len(strainlist)) + " ingroup strains"
 		print "... ignoring " + str(len(ignored)) + " SNPs that are non-variable among these ingroup strains"
-		
 		return(snptable, strains_used, pre) # include outgroups that appear in the snptable in strainlist
 	
 	def printFasta(snptable, strains, outfile):
@@ -241,30 +265,25 @@ if __name__ == "__main__":
 				posincodon = 2
 		else:
 			DoError("Unrecognised gene strand:" + genestrand)
-
 		# extract codon sequence from reference genome
 		codonseq = [ str(sequence[codon[0]-1]), str(sequence[codon[1]-1]) , str(sequence[codon[2]-1]) ] # codon sequence
 		if genestrand == -1:
 			# complement the reverse strand
 			codonseq = [ complement[codonseq[0]], complement[codonseq[1]] , complement[codonseq[2]] ] # codon sequence
-
 		# insert ancestral base
 		if genestrand == 1:
 			codonseq[posincodon-1] = ancestral # replace snp within codon
 		elif genestrand == -1:
 			codonseq[posincodon-1] = complement[ancestral] # replace snp within codon
 		ancestral_codon = Seq(''.join(codonseq),IUPAC.unambiguous_dna)
-
 		# mutate with current SNP
 		if genestrand == 1:
 			codonseq[posincodon-1] = derived # replace snp within codon
 		elif genestrand == -1:
 			codonseq[posincodon-1] = complement[derived] # replace snp within codon
 		derived_codon = Seq(''.join(codonseq),IUPAC.unambiguous_dna)
-
 		ancestralAA = ancestral_codon.translate()
 		derivedAA = derived_codon.translate()
-
 		return(ancestral_codon,derived_codon,ancestralAA,derivedAA,posingene,posincodon)
 
 	def runCoding(pre, snptable, options, complement):
@@ -273,7 +292,6 @@ if __name__ == "__main__":
 		else:
 			genefeatures = options.genefeatures.split(",")
 			excludefeatures = options.excludefeatures.split(",")
-
 			# order SNPs
 			snp_list_ordered = []
 			snp_list_paired = []
@@ -282,7 +300,6 @@ if __name__ == "__main__":
 			snp_list_paired.sort(key=operator.itemgetter(1))
 			for snp in range(len(snptable)):
 				snp_list_ordered.append(snp_list_paired[snp][0])
-
 			print "\nReading gene features from reference " + options.refseq
 			# check coding consequences and generate genbank file of SNP loci
 			## READ IN GENBANK FILE 
@@ -310,7 +327,6 @@ if __name__ == "__main__":
 			if Passed==True:
 				print "Determining coding changes"
 				## GET CONSEQUENCES FOR SNPS and WRITE SNP ANNOTATION FILE
-
 				# first make index for features
 				feature_list = []
 				feature_count = 0
@@ -338,7 +354,6 @@ if __name__ == "__main__":
 						slice1 += 1
 						feature_slice[slice1].append([feature_list[feature_count][0],feature_list[feature_count][1],feature_list[feature_count][2]])
 					feature_count += 1
-
 				o = open(pre + "_consequences.txt","w")
 				o.write("\t".join(["SNP","ref","alt","change","gene","ancestralCodon","derivedCodon","ancestralAA","derivedAA","product","ntInGene","codonInGene","posInCodon","\n"])) # header
 				intergenic_count = 0
@@ -407,8 +422,6 @@ if __name__ == "__main__":
 				print "... coding consequences written to file " + pre + "_consequences.txt"
 				print "... SNP loci annotated in genbank file " + pre + ".gbk"
 
-
-
 	def runFasttree(pre, snptable, strains):
 		aln = pre + ".mfasta"
 		if not os.path.exists(aln):
@@ -442,7 +455,7 @@ if __name__ == "__main__":
 			# prepare job script
 			jobscript = pre + "_rax_" + str(rep) + ".sh"
 			o = file(jobscript, "w")
-			print "\nRunning RAxML 7.7.2 (PTHREADS) on " + aln + ", using job script: " + jobscript
+			print "\nRunning RAxML 7.7.2 (PTHREADS-SSE3) on " + aln + ", using job script: " + jobscript
 			rax_pre = pre + "_" + str(rep)
 			if os.path.exists("RAxML_info."+rax_pre):
 				rax_pre = pre + "_" + str(rep) + "_" + str(seed) # make sure output is unique
@@ -457,7 +470,7 @@ if __name__ == "__main__":
 			o.write("\ncd " + os.getcwd())
 			o.write("\nmodule load raxml-intel/7.7.2\n")
 			#o.write("raxmlHPC -s " + aln)
-			o.write("raxmlHPC-PTHREADS -T " + options.threads + " -s " + aln)
+			o.write("raxmlHPC-PTHREADS-SSE3 -T " + options.threads + " -s " + aln)
 			o.write(" -n " + rax_pre + " -f a -m GTRGAMMA -x " + str(seed) )
 			o.write(" -N " + options.N + " -p " + str(p) + "\n")
 			o.close()
@@ -494,11 +507,13 @@ if __name__ == "__main__":
 				e = file(options.regions, "r")
 				for line in e:
 					fields = line.rstrip().split(delim)
-					region_start = min(int(fields[start]),int(fields[stop]))
+					region_start = min(int(fields[start]),int(fields[stop]))						
 					region_stop = max(int(fields[start]),int(fields[stop]))
+					if region_start == int(fields[stop]):
+						region_start += 1
+						region_stop += 1
 					regions.append([region_start,region_stop])
 				e.close()
-
 			region_list = []
 			regions.sort(key=operator.itemgetter(1))
 			regions.sort(key=operator.itemgetter(0))
@@ -518,7 +533,6 @@ if __name__ == "__main__":
 			for region in region_list:
 				total_masked_bases += region[1] - region[0]
 			last_region_call = region_list[-1][1]
-			
 			region_slice = []
 			if len(region_list) > 0:
 				slice_size = (last_region_call + 1)/len(region_list)+1
@@ -535,7 +549,6 @@ if __name__ == "__main__":
 				while slice1 < slice2:
 					slice1 += 1
 					region_slice[slice1].append([region[0],region[1]])
-
 			# filter snps
 			o = file(pre + "_regionFiltered.csv","w")
 			o.write(",".join(["Pos"] + strainlist) + "\n") # write header
@@ -545,12 +558,10 @@ if __name__ == "__main__":
 				print "located in excluded regions",
 			else:
 				print "located outside included regions",
-			print "totalling " + str(total_masked_bases) + " bases",
+			print "totalling " + str(total_masked_bases) + " bases\n",
 			print "specified in file " + options.regions
-
 			snpcount = 0
 			to_remove = [] # list of snps to remove
-
 			for snp in snptable:
 				snp_slice = int(snp[0])/slice_size
 				if options.include != "include":
@@ -563,7 +574,6 @@ if __name__ == "__main__":
 						for region in region_slice[snp_slice]:
 							if int(snp[0]) >= region[0] and int(snp[0]) < region[1]:
 								keep = False
-
 				elif options.include == "include":
 					if int(snp[0]) > last_region_call:
 						keep = False
@@ -581,7 +591,7 @@ if __name__ == "__main__":
 					o.write("\n")
 					snpcount += 1
 				else:
-					to_remove.append(snp)
+					to_remove.append(int(snp[0]))
 			o.close()
 			pre += "_regionFiltered"
 			print "... " + str(snpcount) + " SNPs passed filter; printed to " + pre + ".csv"
@@ -589,10 +599,9 @@ if __name__ == "__main__":
 			if to_remove != []:
 				filtered_snptable = []
 				for snp in range(len(snptable)):
-					if snp not in to_remove:
+					if int(snptable[snp][0]) not in to_remove:
 						filtered_snptable.append(snptable[snp])
 				snptable = filtered_snptable
-
 		return pre, snptable
 	
 	def filterCons(snptable, strainlist, pre, options, outgroups):
@@ -640,28 +649,387 @@ if __name__ == "__main__":
 					if snp not in to_remove:
 						filtered_snptable.append(snptable[snp])
 				snptable = filtered_snptable
-
 		except:
 			print "\nCouldn't filter SNPs based on missing alleles, couldn't understand the proportion given: -c " + options.conservation
 		return pre, snptable
-		
+
+	def cleanSNPs(snptable, strainlist, pre, options):
+		try:
+			pairs = int(options.pairs)
+			if pairs < 2:
+				pairs = 2
+			window = int(options.window)
+			if window < pairs:
+				window = pairs
+			if window == 2:
+				window += 1
+			print "\nFiltering SNP pairs within " + str(pairs) + "bp (minimum 2bp)"
+			print "Also filtering when 3 or more SNPs found within window of " + str(window) + "bp (minimum 3 bp or -P, if greater than 3)"
+			to_remove = []
+			for j in range(1,len(strainlist)):
+				all_snps = [] #all snps for one strain
+				for i in range(len(snptable)-1):
+					if snptable[i][1][j] != snptable[i][1][0]:
+						if snptable[i][1][j] in nt:
+							all_snps.append(i)
+				if len(all_snps) >= 2: #check pairs of snps
+					for i in range(len(all_snps)-1):
+						if  int(snptable[all_snps[i+1]][0]) - int(snptable[all_snps[i]][0]) < pairs:
+							if all_snps[i] not in to_remove:
+								to_remove.append(all_snps[i])
+							if all_snps[i+1] not in to_remove:
+								to_remove.append(all_snps[i+1])
+				if len(all_snps) >= 3: #check triplets of SNPs (or more) within window
+					for i in range(len(all_snps)-2):
+						a = 1
+						while (i+a < len(all_snps)) and (int(snptable[all_snps[i+a]][0]) - int(snptable[all_snps[i]][0]) < window):
+							a += 1
+						if a > 2:
+							for b in range(a):
+								if all_snps[i+b] not in to_remove:
+									to_remove.append(all_snps[i+b])
+			if to_remove != []:
+				filtered_snptable = []
+				for snp in range(len(snptable)):
+					if snp not in to_remove:
+						filtered_snptable.append(snptable[snp])
+				snptable = filtered_snptable
+			pre += "_cleanP" + str(pairs) + "W" + str(window)
+			outfile = pre + ".csv"
+			o = open(outfile,"w")	
+			o.write(",".join(["Pos"] + strainlist) + "\n") # write header
+			for snp in range(len(snptable)):
+				o.write(snptable[snp][0])
+				for strain in range(len(strainlist)):
+					o.write(","+snptable[snp][1][strain])
+				o.write("\n")
+			print "\n... " + str(len(to_remove)) + " SNPs failed one or both filters"
+			print "... " + str(len(snptable)) + " SNPs passed filters; printed to " + pre + ".csv"
+		except:
+			print "\nCouldn't filter SNPs based on pairs/window, couldn't understand the option(s) given: -P " + options.pairs + ", and/or -W " + options.window
+		return pre, snptable
+
+	def printVCF(snptable, strains, outfile, options, add_vcf):
+		print "\nPrinting alignment to VCF file " + outfile + ".vcf"
+		try:
+			if options.reference_name == "":
+				print "\nNo reference name provided, can't create VCF"
+				if add_vcf:
+					return ""				
+			else:
+				reference_name = options.reference_name
+				if options.ref_isolate_name == "":
+					ref_isolate_name = options.reference_name
+				vcf_output = ('##fileformat=VCFv4.1\n##source=parseSNPtable '+ outfile +'\n'
+					+'##INFO=<ID=WT,Number=1,Type=Integer,Description="Number of samples called reference (wild-type)">\n' 
+					+'##INFO=<ID=HOM,Number=1,Type=Integer,Description="Number of samples called variant">\n'
+					+'##INFO=<ID=NC,Number=1,Type=Integer,Description="Number of samples not called">\n'
+					+'##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">\n'
+					+'#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t'+ref_isolate_name)
+				outfile += ".vcf"
+				for i in range(1,len(strains)):
+					vcf_output += ("\t" + strains[i])
+				vcf_output += "\n"
+				for i in range(len(snptable)): # cycle over SNPs
+					output_line = (reference_name +'\t'+str(snptable[i][0])+'\t.\t')
+					variants = []
+					ref_count = 0
+					alt_count = 0
+					null_count = 0
+					for j in range(len(snptable[i][1])):
+						if snptable[i][1][j] in nt:
+							if snptable[i][1][j] not in variants:
+								variants.append(snptable[i][1][j])
+					output_line += (variants[0] + '\t')
+					if len(variants) > 1:
+						output_line += variants[1]
+					elif len(variants) == 1:
+						output_line += '.'
+					if len(variants) > 2:
+						for alt in range(2, len(variants)):
+							output_line += (','+variants[alt])
+					output_line += '\t.\tPASS\t'
+					for j in range(len(snptable[i][1])):
+						if snptable[i][1][j] not in variants:
+							null_count += 1
+						elif snptable[i][1][j] != variants[0]:
+							alt_count += 1
+						else:
+							ref_count += 1
+					output_line += ('WT='+ str(ref_count) +';HOM='+ str(alt_count) +';NC='+ str(null_count) +'\tGT')
+					for j in range(len(snptable[i][1])):
+						if snptable[i][1][j] not in variants:
+							output_line += '\t.'
+						else:
+							output_line += ('\t' + str(variants.index(snptable[i][1][j])))
+					output_line += '\n'
+					vcf_output += output_line
+				o = file(outfile,"w")
+				o.write(vcf_output)
+				o.close()
+				print "\n... done"
+				if add_vcf:
+					return outfile
+
+		except:
+			print "\nCouldn't print VCF, check option -v has been set correctly"
+
+	def mergeVCF(vcf_to_add, pre):
+		print "\nCreating merged VCF with PASS/FAIL information..."
+		snp_filter = "PASS"
+		vcf_out = []
+		vcf_out = getVCF(vcf_out, vcf_to_add[-1], snp_filter)
+		for i in range(len(vcf_to_add)-1):
+			snp_filter = "N:R"+str(len(vcf_to_add)-(i+1))
+			vcf_out = getVCF(vcf_out, vcf_to_add[len(vcf_to_add)-(i+2)], snp_filter)
+		o = file(pre + '_gnr.vcf',"w")
+		for line in vcf_out:
+			o.write(line)
+		o.close()
+		print "\n... done"
+
+	def getVCF(vcf_in, vcf_new, snp_filter):
+		new_vcf = file(vcf_new, "r")
+		if vcf_in == []:
+			vcf_out = new_vcf.readlines()
+			new_vcf.close()
+		else:
+			vcf_add = new_vcf.readlines()
+			new_vcf.close()
+			vcf_out = []
+			header_count = 0
+			for line in vcf_in:
+				if line.startswith("#"):
+					header_count += 1
+			for i in range(header_count):
+				if i != 1 and i != header_count-1: 
+					vcf_out.append(vcf_in[i])
+				elif i == 1:##source
+					new_vcf_out = vcf_in[i][:-1]
+					source = vcf_add[i].split('=')
+					new_vcf_out += ' + '+source[-1]
+					vcf_out.append(new_vcf_out)
+				else:
+					new_vcf_out = '##FILTER=<ID='+snp_filter.lstrip('N:')+',Description="SNP filtered out in round '+snp_filter.lstrip('N:R')+'">\n'
+					vcf_out.append(new_vcf_out)
+					vcf_out.append(vcf_in[i])
+			i = header_count
+			j = header_count
+			while i < len(vcf_in) and j < len(vcf_add):
+				snp_in = vcf_in[i].split('\t')
+				snp_add = vcf_add[j].split('\t')
+				if int(snp_add[1]) == int(snp_in[1]):
+					vcf_out.append(vcf_in[i])
+					i += 1
+					j += 1
+				elif int(snp_add[1]) > int(snp_in[1]): #this shouldn't occur, but just in case
+					vcf_out.append(vcf_in[i])
+					i += 1
+				elif int(snp_add[1]) < int(snp_in[1]):
+					for k in range(len(snp_add)):
+						if k != 6 and k != 0:
+							new_vcf_out += '\t' + snp_add[k]
+						elif k != 0:
+							new_vcf_out += '\t' + snp_filter
+						else: 
+							new_vcf_out = snp_add[k]
+					vcf_out.append(new_vcf_out)
+					j += 1
+			if i >= len(vcf_in):
+				while j < len(vcf_add):
+					snp_add = vcf_add[j].split('\t')
+					for k in range(len(snp_add)):
+						if k != 6 and k != 0:
+							new_vcf_out += '\t' + snp_add[k]
+						elif k != 0:
+							new_vcf_out += '\t' + snp_filter
+						else: 
+							new_vcf_out = snp_add[k]
+					vcf_out.append(new_vcf_out)
+					j += 1
+			elif j >= len(vcf_add): # Again, shouldn't happen, but just in case
+				while i < len(vcf_in):
+					vcf_out.append(vcf_in[i])
+					i += 1
+		return vcf_out
+
+	def filterCore(snptable, strains, pre, options, outgroups):
+		if options.refseq=="":
+			print "\nNo reference genbank file specified (-r), can't do core SNP filtering"
+		else:
+			try:
+				print "\nFiltering SNPs based on genes in core genome in core strains..."
+				core_strains_file_name = options.core_strains
+				core_strains = []
+				if core_strains_file_name == "":
+					for strain in strains:
+						if strain not in outgroups:
+							core_strains.append(strain)
+				else:
+					core_strains_file = open(core_strains_file_name, 'r')
+					for line in core_strains_file:
+						core_strain = line.rstrip('\n')
+						if core_strain not in outgroups and core_strain in strains:
+							if core_strain not in core_strains:
+								core_strains.append(core_strain)
+					core_strains_file.close()
+				print "\nReading gene features from reference " + options.refseq
+				## READ IN GENBANK FILE 
+				Ref_Passed = True
+				handle = open(options.refseq,"r")
+				if options.queryseq=="":
+					try:
+						record = SeqIO.read(handle, "genbank")
+						sequence = record.seq
+						geneannot = record.features
+						mapped = record.name
+					except:
+						Ref_Passed = False
+						print "\nCheck reference sequence for multiple records: can't do core SNP filtering"
+				else:
+					records = SeqIO.parse(handle, "genbank")
+					Ref_Passed = False
+					mapped = options.queryseq
+					for item in records:
+						if item.name == mapped:
+							record = item
+							sequence = SeqRecord(item.seq)
+							geneannot = item.features
+							Ref_Passed = True
+					if Ref_Passed == False:
+						print "\nCheck reference sequence: queryseq (-q) not found"
+				handle.close()
+				if Ref_Passed==True:
+					gene_list = []
+					gene_position = []
+					for f in geneannot:
+						if f.type == "CDS":
+							start = f.location.nofuzzy_start
+							stop = f.location.nofuzzy_end
+							sysid = mapped+";"+str(start+1)+'-'+str(stop+1)
+							f.qualifiers['sysid'] = [sysid]
+							if 'locus_tag' in f.qualifiers:
+								locus_tag = f.qualifiers['locus_tag'][0]
+							else:
+								#if the locus_tag is missing from the genbank record make up a tag as RedDog does
+								locus_tag = "tag_" + str(start)+'-'+str(stop)
+							gene_list.append(locus_tag)
+							gene_position.append([start, stop])
+					if options.gene_summary == "":
+						print "\nNo gene coverage file specified (-z), can't do core SNP filtering"
+					else:						
+						core_coverage = float(options.core_coverage)
+						if core_coverage < 0 or core_coverage > 1:
+							print "\nCore coverage (-Z) outside expect range (0 to 1), can't do core SNP filtering"
+						else:
+							core_strain_index = []
+							ordered_core_genes = []
+							gene_summary = open(options.gene_summary, 'r')
+							for line in gene_summary:
+								# header
+								line = line.rstrip('\n')
+								if line.startswith("replicon__gene"):
+									mapped_strains = line.split(',')
+									for i in range(1,len(mapped_strains)):
+										if mapped_strains[i] in core_strains:
+											core_strain_index.append(i)
+									core_count_test = len(core_strain_index)
+								#core genes
+								if line.startswith(mapped):
+									entry = line.split(',')
+									core_count = 0
+									for i in core_strain_index:
+										if float(entry[i])/100 >= core_coverage:
+											core_count += 1
+									if core_count == core_count_test:
+										tag = entry[0].split('__')
+										locus_tag = tag[1]
+										i = gene_list.index(locus_tag)
+										start = min(gene_position[i][0],gene_position[i][1])
+										stop = max(gene_position[i][0],gene_position[i][1])
+										if start == gene_position[i][1]: #ie if gene in reverse position
+											start += 1
+											stop += 1
+										ordered_core_genes.append([start,stop])
+							gene_summary.close()
+							ordered_core_genes.sort(key=operator.itemgetter(1))
+							ordered_core_genes.sort(key=operator.itemgetter(0))
+							ordered_snp_list = []
+							for snp in range(len(snptable)): # cycle over SNPs
+								ordered_snp_list.append([int(snptable[snp][0]),snp])
+							ordered_snp_list.sort(key=operator.itemgetter(0))
+
+							to_remove = []
+							i = 0
+							j = 0
+							while i < len(ordered_snp_list) and j < len(ordered_core_genes):
+								if ordered_snp_list[i][0] < ordered_core_genes[j][0]:
+									to_remove.append(ordered_snp_list[i][1])
+									i += 1
+								elif ordered_snp_list[i][0] < ordered_core_genes[j][1]:
+									i += 1
+								else:
+									j += 1
+							if i < len(ordered_snp_list):
+								while i < len(ordered_snp_list):
+									to_remove.append(ordered_snp_list[i][1])
+									i += 1
+							if to_remove != []:
+								filtered_snptable = []
+								for snp in range(len(snptable)):
+									if snp not in to_remove:
+										filtered_snptable.append(snptable[snp])
+								snptable = filtered_snptable
+							pre += "_core" + str(core_coverage)
+							outfile = pre + ".csv"
+							o = open(outfile,"w")	
+							o.write(",".join(["Pos"] + strains) + "\n") # write header
+							for snp in range(len(snptable)):
+								o.write(snptable[snp][0])
+								for strain in range(len(strains)):
+									o.write(","+snptable[snp][1][strain])
+								o.write("\n")
+							o.close()
+							print "\n... " + str(len(to_remove)) + " SNPs removed as not in core genes"
+							print "... " + str(len(snptable)) + " SNPs passed filter; printed to " + outfile
+			except:
+				print "\nCouldn't filter SNPs based on genes in core genome, check the following option(s):"
+				if options.core_strains != "":
+					print "    core_strains  -L " + options.core_strains
+				print "    gene_summary  -z " + options.gene_summary
+				print "    core_coverage -Z " + options.core_coverage
+		return pre, snptable
+
 	# run module and return updated values for snptable, strains and pre
 	# aln,fasttree,filter,rax,coding
-	def runModule(m, snptable, strains, pre, options, complement, outgroups):
+	def runModule(m, snptable, strains, pre, options, complement, outgroups, add_vcf, vcf_to_add):
 		if m == "aln":
 			# print mfasta alignment of the current table
 			printFasta(snptable, strains, pre + ".mfasta")
 		elif m == "cons":
 			pre, snptable = filterCons(snptable, strains, pre, options, outgroups)
+		elif m == "core":
+			pre, snptable = filterCore(snptable, strains, pre, options, outgroups)
 		elif m == "fasttree":
 			runFasttree(pre, snptable, strains)
 		elif m == "filter":
 			pre, snptable = filter(snptable, strains, pre, options) # return filtered snp table
+		elif m == "clean":
+			pre, snptable = cleanSNPs(snptable, strains, pre, options)
+		elif m == "vcf":
+			if add_vcf:
+				vcf = printVCF(snptable, strains, pre, options, add_vcf)
+				if vcf != "":	
+					vcf_to_add.append(vcf)
+				else:
+					print "\nVCF not added: check -v option"
+			else:
+				printVCF(snptable, strains, pre, options, add_vcf)
 		elif m == "rax":
 			runRax(pre, options, snptable, strains)
 		elif m == "coding":
 			runCoding(pre, snptable, options, complement)
-		return pre, snptable
+		return pre, snptable, vcf_to_add
 		
 	### MAIN PROCESS
 		
@@ -685,10 +1053,28 @@ if __name__ == "__main__":
 
 	# read in raw SNP table
 	snptable, strains, pre = readSNPTable(options.snptable,options.outgroup,options.subset,pre)
+
+	#create vcf of raw SNP table if needed
+	vcf_to_add = []
+	add_vcf = options.add_vcf
+	if add_vcf:
+		vcf = printVCF(snptable, strains, pre, options, add_vcf)
+		if vcf != "":	
+			vcf_to_add.append(vcf)
+		else:
+			print "\nFirst VCF not added; 'add_vcf' set to 'False': check -v option"
+			add_vcf = False
 	
 	# run modules in order
 	for m in options.modules.split(","):
-		pre, snptable = runModule(m, snptable, strains, pre, options, complement, outgroups)
-		
+		pre, snptable, vcf_to_add = runModule(m, snptable, strains, pre, options, complement, outgroups, add_vcf, vcf_to_add)
+
+	#create combined VCF of with PASS/FAIL if needed
+	if add_vcf and len(vcf_to_add) == 1:
+		print "\nOnly one VCF added: ensure at least one 'vcf' module in -m after a filtering stage (filter, cons or clean)"
+	if add_vcf and len(vcf_to_add) == 0:
+		print "\nNo VCF added: check option reference name -v"
+	elif add_vcf:
+		mergeVCF(vcf_to_add, pre)		
 	print ""
 #	print ('Memory usage: %s (kb)' % resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
