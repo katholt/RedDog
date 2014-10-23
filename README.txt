@@ -24,6 +24,7 @@ V0.5.1      added -X option for bowtie2 mapping (DE)
             added scripts for tutorial (filterCoords.py, get_cover.py, getRecomb.R, plotTree.R) (DE)
             changed getDifferenceMatrix to optional output in pipe, changed script to take options (DE)
             added option for VCF output of filtered hets (DE)
+            update to use SamTools v1.1 (DE)
 
 previous versions:
 V0.1        converted to vcf output via mpileup instead of depreciated pileup (DE)
