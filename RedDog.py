@@ -1,7 +1,7 @@
 #!/bin/env python
 
 '''
-RedDog V0.5.1 201014
+RedDog V0.5.1 281014
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 License: none as yet...
@@ -271,6 +271,15 @@ except:
     minDepth = 5
 
 try:
+    HetsVCF = pipeline_options.HetsVCF
+    if HetsVCF != True and HetsVCF != False:
+        print "\nUnrecogised HetsVCF option"
+        print "Pipeline Stopped: please check 'HetsVCF' in the options file\n"
+        sys.exit()
+except:
+    HetsVCF = False
+
+try:
     coverFail = pipeline_options.cover_fail
 except:
     coverFail = 50
@@ -386,6 +395,15 @@ if conservation > 1.0 or conservation < 0.0:
     print "Pipeline Stopped: please change 'conservation' to a value between 0 and 1\n"
     sys.exit()
 
+try:
+    DifferenceMatrix = pipeline_options.DifferenceMatrix
+    if DifferenceMatrix != True and DifferenceMatrix != False:
+        print "\nUnrecogised DifferenceMatrix option"
+        print "Pipeline Stopped: please check 'DifferenceMatrix' in the options file\n"
+        sys.exit()
+except:
+    HetsVCF = False
+
 full_sequence_list = []
 if outMerge == '':
     for item in sequence_list:
@@ -428,7 +446,6 @@ for sequence in sequence_list:
 sequence_list_string.rstrip()
 
 success_count = len(glob.glob(outSuccessPrefix+"*.Success"))
-
 
 #Phew! Now that's all set up, we can begin...
 #but first, output run conditions to user and get confirmation to run
@@ -889,7 +906,7 @@ if runType == "pangenome":
         output, flagFile = outputs
         (prefix, name, ext) = splitPath(vcfFile) 
         prefix += '/hets/'       
-        runStageCheck('finalFilter', flagFile, vcfFile, output, prefix)
+        runStageCheck('finalFilter', flagFile, vcfFile, output, prefix, HetsVCF)
     stage_count += (len(sequence_list)*len(core_replicons)) 
 
     # set up for getting vcf statistics
@@ -1002,7 +1019,7 @@ else: # runType == "phylogeny"
         vcfFile, _Success = inputs
         (prefix, name, ext) = splitPath(vcfFile) 
         prefix += '/hets/'       
-        runStageCheck('finalFilter', flagFile, vcfFile, output, prefix)
+        runStageCheck('finalFilter', flagFile, vcfFile, output, prefix, HetsVCF)
     stage_count += (len(sequence_list)*len(replicons)) 
 
     # set up for getting vcf statistics
@@ -1343,18 +1360,19 @@ if refGenbank == True:
                 stage_count += len(core_replicons)
             
             # create distance matrices based on pair-wise differences in SNPs
-            @follows(parseSNPs_95)
-            @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_SNP_diff.nxs", outSuccessPrefix + r"\2_alleles.getDifferenceMatrix.Success"])        
-            def getDifferenceMatrix(inputs, outputs):
-                output, flagFile = outputs
-                input, _success = inputs
-                runStageCheck('getDifferenceMatrix', flagFile, input)
-            if runType == "phylogeny":
-                stage_count += len(replicons)
-            else:
-                stage_count += len(core_replicons)
+            if DifferenceMatrix:
+                @follows(parseSNPs_95)
+                @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_SNP_diff.nxs", outSuccessPrefix + r"\2_alleles.getDifferenceMatrix.Success"])        
+                def getDifferenceMatrix(inputs, outputs):
+                    output, flagFile = outputs
+                    input, _success = inputs
+                    runStageCheck('getDifferenceMatrix', flagFile, input)
+                if runType == "phylogeny":
+                    stage_count += len(replicons)
+                else:
+                    stage_count += len(core_replicons)
 
-        else:        
+        elif DifferenceMatrix:        
             # create distance matrices based on pair-wise differences in SNPs
             @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_SNP_diff.nxs", outSuccessPrefix + r"\2_alleles.getDifferenceMatrix.Success"])        
             def getDifferenceMatrix(inputs, outputs):
@@ -1517,18 +1535,19 @@ if refGenbank == True:
                 stage_count += len(core_replicons)
             
             # create distance matrices based on pair-wise differences in SNPs
-            @follows(parseSNPs_95)
-            @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_SNP_diff.nxs", outSuccessPrefix + r"\2_alleles.getDifferenceMatrix.Success"])        
-            def getDifferenceMatrix(inputs, outputs):
-                output, flagFile = outputs
-                input, _success = inputs
-                runStageCheck('getDifferenceMatrix', flagFile, input)
-            if runType == "phylogeny":
-                stage_count += len(replicons)
-            else:
-                stage_count += len(core_replicons)
+            if DifferenceMatrix:
+                @follows(parseSNPs_95)
+                @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_SNP_diff.nxs", outSuccessPrefix + r"\2_alleles.getDifferenceMatrix.Success"])        
+                def getDifferenceMatrix(inputs, outputs):
+                    output, flagFile = outputs
+                    input, _success = inputs
+                    runStageCheck('getDifferenceMatrix', flagFile, input)
+                if runType == "phylogeny":
+                    stage_count += len(replicons)
+                else:
+                    stage_count += len(core_replicons)
 
-        else:        
+        elif DifferenceMatrix:        
             # create distance matrices based on pair-wise differences in SNPs
             @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_SNP_diff.nxs", outSuccessPrefix + r"\2_alleles.getDifferenceMatrix.Success"])        
             def getDifferenceMatrix(inputs, outputs):
@@ -1686,17 +1705,19 @@ else: # refGenbank == False
                 stage_count += len(core_replicons)
             
             # create distance matrices based on pair-wise differences in SNPs
-            @follows(parseSNPsNoGBK_95)
-            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_SNP_diff.nxs", outSuccessPrefix + r"\2_alleles.getDifferenceMatrix.Success"])        
-            def getDifferenceMatrix(inputs, outputs):
-                output, flagFile = outputs
-                input, _success = inputs
-                runStageCheck('getDifferenceMatrix', flagFile, input)
-            if runType == "phylogeny":
-                stage_count += len(replicons)
-            else:
-                stage_count += len(core_replicons)
-        else:        
+            if DifferenceMatrix:
+                @follows(parseSNPsNoGBK_95)
+                @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_SNP_diff.nxs", outSuccessPrefix + r"\2_alleles.getDifferenceMatrix.Success"])        
+                def getDifferenceMatrix(inputs, outputs):
+                    output, flagFile = outputs
+                    input, _success = inputs
+                    runStageCheck('getDifferenceMatrix', flagFile, input)
+                if runType == "phylogeny":
+                    stage_count += len(replicons)
+                else:
+                    stage_count += len(core_replicons)
+
+        elif DifferenceMatrix:        
             # create distance matrices based on pair-wise differences in SNPs
             @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_SNP_diff.nxs", outSuccessPrefix + r"\2_alleles.getDifferenceMatrix.Success"])        
             def getDifferenceMatrix(inputs, outputs):
@@ -1832,18 +1853,19 @@ else: # refGenbank == False
                 stage_count += len(core_replicons)
             
             # create distance matrices based on pair-wise differences in SNPs
-            @follows(parseSNPsNoGBK_95)
-            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_SNP_diff.nxs", outSuccessPrefix + r"\2_alleles.getDifferenceMatrix.Success"])        
-            def getDifferenceMatrix(inputs, outputs):
-                output, flagFile = outputs
-                input, _success = inputs
-                runStageCheck('getDifferenceMatrix', flagFile, input)
-            if runType == "phylogeny":
-                stage_count += len(replicons)
-            else:
-                stage_count += len(core_replicons)
+            if DifferenceMatrix:
+                @follows(parseSNPsNoGBK_95)
+                @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_SNP_diff.nxs", outSuccessPrefix + r"\2_alleles.getDifferenceMatrix.Success"])        
+                def getDifferenceMatrix(inputs, outputs):
+                    output, flagFile = outputs
+                    input, _success = inputs
+                    runStageCheck('getDifferenceMatrix', flagFile, input)
+                if runType == "phylogeny":
+                    stage_count += len(replicons)
+                else:
+                    stage_count += len(core_replicons)
 
-        else:        
+        elif DifferenceMatrix:        
             # create distance matrices based on pair-wise differences in SNPs
             @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_SNP_diff.nxs", outSuccessPrefix + r"\2_alleles.getDifferenceMatrix.Success"])        
             def getDifferenceMatrix(inputs, outputs):
@@ -1873,76 +1895,147 @@ if success_count > 0:
 
 # *** Clean up *** 
 if outMerge != "":
-    if refGenbank == False:
-        # delete output directory to finish
-        @follows(getDifferenceMatrix, makeTree)
-        @files(input==None, outMerge + "finish.deleteDir.Success")
-        def deleteDir(input, flagFile):            
-            if stage_count > getSuccessCount(outSuccessPrefix):
-                print "\nSome stages have completed without success"
-                print "Pipeline Stopped: check for errors in the log files\n"
-            else:
-                make_sequence_list(outMerge, full_sequence_list)
-                make_run_report(outMerge, merge_run, version, run_history, 
-                                pipeline_options.reference, refName, refGenbank, replicons, 
-                                full_sequence_list, readType, runType, core_replicons, 
-                                mapping, bowtie_map_type, replaceReads, minDepth, 
-                                coverFail, depthFail, mappedFail, sdOutgroupMultiplier, 
-                                check_reads_mapped, conservation)
-                runStageCheck('deleteDir', flagFile, outPrefix)
-
+    if not refGenbank:
+        if DifferenceMatrix:
+            # delete output directory to finish
+            @follows(getDifferenceMatrix, makeTree)
+            @files(input==None, outMerge + "finish.deleteDir.Success")
+            def deleteDir(input, flagFile):            
+                if stage_count > getSuccessCount(outSuccessPrefix):
+                    print "\nSome stages have completed without success"
+                    print "Pipeline Stopped: check for errors in the log files\n"
+                else:
+                    make_sequence_list(outMerge, full_sequence_list)
+                    make_run_report(outMerge, merge_run, version, run_history, 
+                                    pipeline_options.reference, refName, refGenbank, replicons, 
+                                    full_sequence_list, readType, runType, core_replicons, 
+                                    mapping, bowtie_map_type, replaceReads, minDepth, 
+                                    coverFail, depthFail, mappedFail, sdOutgroupMultiplier, 
+                                    check_reads_mapped, conservation)
+                    runStageCheck('deleteDir', flagFile, outPrefix)
+        else:
+            # delete output directory to finish
+            @follows(makeTree)
+            @files(input==None, outMerge + "finish.deleteDir.Success")
+            def deleteDir(input, flagFile):            
+                if stage_count > getSuccessCount(outSuccessPrefix):
+                    print "\nSome stages have completed without success"
+                    print "Pipeline Stopped: check for errors in the log files\n"
+                else:
+                    make_sequence_list(outMerge, full_sequence_list)
+                    make_run_report(outMerge, merge_run, version, run_history, 
+                                    pipeline_options.reference, refName, refGenbank, replicons, 
+                                    full_sequence_list, readType, runType, core_replicons, 
+                                    mapping, bowtie_map_type, replaceReads, minDepth, 
+                                    coverFail, depthFail, mappedFail, sdOutgroupMultiplier, 
+                                    check_reads_mapped, conservation)
+                    runStageCheck('deleteDir', flagFile, outPrefix)
     else:
-        # delete output directory to finish
-        @follows(parseGeneContent, getDifferenceMatrix, makeTree)
-        @files(input==None, outMerge + "finish.deleteDir.Success")
-        def deleteDir(input, flagFile):
-            if stage_count > getSuccessCount(outSuccessPrefix):
-                print "\nSome stages have completed without success"
-                print "Pipeline Stopped: check for errors in the log files\n"
-            else:
-                make_sequence_list(outMerge, full_sequence_list)
-                make_run_report(outMerge, merge_run, version, run_history, 
-                                pipeline_options.reference, refName, refGenbank, replicons, 
-                                full_sequence_list, readType, runType, core_replicons, 
-                                mapping, bowtie_map_type, replaceReads, minDepth, 
-                                coverFail, depthFail, mappedFail, sdOutgroupMultiplier, 
-                                check_reads_mapped, conservation)
-                runStageCheck('deleteDir', flagFile, outPrefix)    
+        if DifferenceMatrix:
+            # delete output directory to finish
+            @follows(parseGeneContent, getDifferenceMatrix, makeTree)
+            @files(input==None, outMerge + "finish.deleteDir.Success")
+            def deleteDir(input, flagFile):
+                if stage_count > getSuccessCount(outSuccessPrefix):
+                    print "\nSome stages have completed without success"
+                    print "Pipeline Stopped: check for errors in the log files\n"
+                else:
+                    make_sequence_list(outMerge, full_sequence_list)
+                    make_run_report(outMerge, merge_run, version, run_history, 
+                                    pipeline_options.reference, refName, refGenbank, replicons, 
+                                    full_sequence_list, readType, runType, core_replicons, 
+                                    mapping, bowtie_map_type, replaceReads, minDepth, 
+                                    coverFail, depthFail, mappedFail, sdOutgroupMultiplier, 
+                                    check_reads_mapped, conservation)
+                    runStageCheck('deleteDir', flagFile, outPrefix)
+        else:
+            # delete output directory to finish
+            @follows(parseGeneContent, makeTree)
+            @files(input==None, outMerge + "finish.deleteDir.Success")
+            def deleteDir(input, flagFile):
+                if stage_count > getSuccessCount(outSuccessPrefix):
+                    print "\nSome stages have completed without success"
+                    print "Pipeline Stopped: check for errors in the log files\n"
+                else:
+                    make_sequence_list(outMerge, full_sequence_list)
+                    make_run_report(outMerge, merge_run, version, run_history, 
+                                    pipeline_options.reference, refName, refGenbank, replicons, 
+                                    full_sequence_list, readType, runType, core_replicons, 
+                                    mapping, bowtie_map_type, replaceReads, minDepth, 
+                                    coverFail, depthFail, mappedFail, sdOutgroupMultiplier, 
+                                    check_reads_mapped, conservation)
+                    runStageCheck('deleteDir', flagFile, outPrefix)    
 
 else:
-    if refGenbank == False:
-        # delete outTemp directory to finish
-        @follows(getDifferenceMatrix, makeTree)
-        @files(input==None, outPrefix + "finish.deleteDir.Success")
-        def deleteDir(input, flagFile):
-            if stage_count > getSuccessCount(outSuccessPrefix):
-                print "\nSome stages have completed without success"
-                print "Pipeline Stopped: check for errors in the log files\n"
-            else:
-                make_sequence_list(outPrefix, full_sequence_list)
-                make_run_report(outPrefix, merge_run, version, run_history, 
-                                pipeline_options.reference, refName, refGenbank, replicons, 
-                                full_sequence_list, readType, runType, core_replicons, 
-                                mapping, bowtie_map_type, replaceReads, minDepth, 
-                                coverFail, depthFail, mappedFail, sdOutgroupMultiplier, 
-                                check_reads_mapped, conservation)
-                runStageCheck('deleteDir', flagFile, outTempPrefix)
+    if not refGenbank:
+        if DifferenceMatrix:
+            # delete outTemp directory to finish
+            @follows(getDifferenceMatrix, makeTree)
+            @files(input==None, outPrefix + "finish.deleteDir.Success")
+            def deleteDir(input, flagFile):
+                if stage_count > getSuccessCount(outSuccessPrefix):
+                    print "\nSome stages have completed without success"
+                    print "Pipeline Stopped: check for errors in the log files\n"
+                else:
+                    make_sequence_list(outPrefix, full_sequence_list)
+                    make_run_report(outPrefix, merge_run, version, run_history, 
+                                    pipeline_options.reference, refName, refGenbank, replicons, 
+                                    full_sequence_list, readType, runType, core_replicons, 
+                                    mapping, bowtie_map_type, replaceReads, minDepth, 
+                                    coverFail, depthFail, mappedFail, sdOutgroupMultiplier, 
+                                    check_reads_mapped, conservation)
+                    runStageCheck('deleteDir', flagFile, outTempPrefix)
+        else:
+            # delete outTemp directory to finish
+            @follows(makeTree)
+            @files(input==None, outPrefix + "finish.deleteDir.Success")
+            def deleteDir(input, flagFile):
+                if stage_count > getSuccessCount(outSuccessPrefix):
+                    print "\nSome stages have completed without success"
+                    print "Pipeline Stopped: check for errors in the log files\n"
+                else:
+                    make_sequence_list(outPrefix, full_sequence_list)
+                    make_run_report(outPrefix, merge_run, version, run_history, 
+                                    pipeline_options.reference, refName, refGenbank, replicons, 
+                                    full_sequence_list, readType, runType, core_replicons, 
+                                    mapping, bowtie_map_type, replaceReads, minDepth, 
+                                    coverFail, depthFail, mappedFail, sdOutgroupMultiplier, 
+                                    check_reads_mapped, conservation)
+                    runStageCheck('deleteDir', flagFile, outTempPrefix)
     else:
-        # delete outTemp directory to finish
-        @follows(parseGeneContent, getDifferenceMatrix, makeTree)
-        @files(input==None, outPrefix + "finish.deleteDir.Success")
-        def deleteDir(input, flagFile):
-            if stage_count > getSuccessCount(outSuccessPrefix):
-                print "\nSome stages have completed without success"
-                print "Pipeline Stopped: check for errors in the log files\n"
-            else:
-                make_sequence_list(outPrefix, full_sequence_list)
-                make_run_report(outPrefix, merge_run, version, run_history, 
-                                pipeline_options.reference, refName, refGenbank, replicons, 
-                                full_sequence_list, readType, runType, core_replicons, 
-                                mapping, bowtie_map_type, replaceReads, minDepth, 
-                                coverFail, depthFail, mappedFail, sdOutgroupMultiplier, 
-                                check_reads_mapped, conservation)
-                runStageCheck('deleteDir', flagFile, outTempPrefix)
+        if DifferenceMatrix:
+            # delete outTemp directory to finish
+            @follows(parseGeneContent, getDifferenceMatrix, makeTree)
+            @files(input==None, outPrefix + "finish.deleteDir.Success")
+            def deleteDir(input, flagFile):
+                if stage_count > getSuccessCount(outSuccessPrefix):
+                    print "\nSome stages have completed without success"
+                    print "Pipeline Stopped: check for errors in the log files\n"
+                else:
+                    make_sequence_list(outPrefix, full_sequence_list)
+                    make_run_report(outPrefix, merge_run, version, run_history, 
+                                    pipeline_options.reference, refName, refGenbank, replicons, 
+                                    full_sequence_list, readType, runType, core_replicons, 
+                                    mapping, bowtie_map_type, replaceReads, minDepth, 
+                                    coverFail, depthFail, mappedFail, sdOutgroupMultiplier, 
+                                    check_reads_mapped, conservation)
+                    runStageCheck('deleteDir', flagFile, outTempPrefix)
+        else:
+            # delete outTemp directory to finish
+            @follows(parseGeneContent, makeTree)
+            @files(input==None, outPrefix + "finish.deleteDir.Success")
+            def deleteDir(input, flagFile):
+                if stage_count > getSuccessCount(outSuccessPrefix):
+                    print "\nSome stages have completed without success"
+                    print "Pipeline Stopped: check for errors in the log files\n"
+                else:
+                    make_sequence_list(outPrefix, full_sequence_list)
+                    make_run_report(outPrefix, merge_run, version, run_history, 
+                                    pipeline_options.reference, refName, refGenbank, replicons, 
+                                    full_sequence_list, readType, runType, core_replicons, 
+                                    mapping, bowtie_map_type, replaceReads, minDepth, 
+                                    coverFail, depthFail, mappedFail, sdOutgroupMultiplier, 
+                                    check_reads_mapped, conservation)
+                    runStageCheck('deleteDir', flagFile, outTempPrefix)
 
 #end of pipeline
