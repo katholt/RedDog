@@ -1,4 +1,4 @@
-RedDog V0.5 150814
+RedDog V0.5.1 291014
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 License: none as yet...
@@ -18,9 +18,13 @@ Note: for Illumina paired-end or single reads, or Ion Torrent single reads.
 IMPORTANT: See config file/instructions for input options/requirements
 
 current version:
-V0.5        added check for deletion of previous run success file on merge run (DE)
-            added checkpoints for better pipeline running - will halt on errors as expected (DE)
-            includes changes to complex stages - flagFiles behaviour (DE)
+V0.5.1      added -X option for bowtie2 mapping (DE)
+            fixed parseGeneContent output (DE)
+            updated to fixed and extended parseSNPtable (DE)
+            added scripts for tutorial (filterCoords.py, get_cover.py, getRecomb.R, plotTree.R) (DE)
+            changed getDifferenceMatrix to optional output in pipe, changed script to take options (DE)
+            added option for VCF output of filtered hets (DE)
+            implemented changes to run report from user feedback (DE)
 
 previous versions:
 V0.1        converted to vcf output via mpileup instead of depreciated pileup (DE)
@@ -140,19 +144,23 @@ V0.4.8      include post-run report file function (DE)
 V0.4.9      splitting location of intermediate files in temp folder to improve stability for large runs (DE)
             changed -X switch in bowtie2 PE mapping from 500 (default) to 1500 (DE)
             removal of some redundant scripts and stages in config file (DE)
+V0.5        added check for deletion of previous run success file on merge run (DE)
+            added checkpoints for better pipeline running - will halt on errors as expected (DE)
+            includes changes to complex stages - flagFiles behaviour (DE)
 
 next planned updates
-V0.5.1      Run report to provide settings for merge runs (continuity checks) (DE)
-            Implement any changes to run report from user feedback (DE)
+V0.5.2      Run report to provide settings for merge runs (continuity checks) (DE)
+            Changes to input sequences pattern recognition (DE)
+            update to use SAMtools v1.1 [need to test alternative bcftools approaches](DE)
+
+V0.5.3      Any fixes from final testing (DE)
             Improve on all comments in programming (DE)
             Add licensing information to all scripts (DE)
-            Changes to input sequences pattern recognition (DE)
-
-V0.5.1      Any fixes from final testing (DE)
 
 V1.0        First Public Release of RedDog 
 
-(Post-release) 
+(Post-release)
+    extend parseGeneContent functions 
     add merging of bams for both pangenome and phylogenetic mapping
     reanalysis without mapping
         with/without a GenBank file,

@@ -1,18 +1,21 @@
 '''
-Configuration file for RedDog.py V0.5
+Configuration file for RedDog.py V0.5.1
 -------------------------------
 Essential pipeline variables.
 '''
-reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_plasmid.fasta"
+reference = ""
+#reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_plasmid.fasta"
 
-sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/*.fastq.gz"
+sequences = ""
+#sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/*.fastq.gz"
 #sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/extra/*.fastq.gz"
 
-output = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
-
+output = ""
+#output = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
 
 out_merge_target = ""
 #out_merge_target = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
+
 '''
 Notes:
 
@@ -185,6 +188,12 @@ bowtie_map_type = "--sensitive-local"
 #bowtie_map_type = "--very-sensitive-local"
 
 '''
+The default maximum length for bowtie2 to consider pair-ended reads discontinuous
+is 2000 - you can change this with bowite_X_value
+'''
+bowtie_X_value = 2000
+
+'''
 You can also "remove" any reads: these will be marked as "failed"
 This only works during a "merge run"
 eg. replace a set of reads with their qc-ed version
@@ -202,6 +211,15 @@ Default value:
 
 '''
 minimum_depth = 5
+
+'''
+HetsVCF
+The pipeline filters out heterozygous SNP calls.
+To capture these SNPs in the form of a VCF (one per isolate),
+set the following to 'True'
+'''
+HetsVCF = False
+#HetsVCF = True
 
 '''
 Values for calling the pass/fail and ingroup/outgroup status of strains
@@ -256,6 +274,14 @@ and downsteam analysis carried out on this matrix.
 
 '''
 conservation = 0.95
+
+'''
+Difference Matrix
+The pipeline can produce a difference matrix. Currently this is a pairwise difference count.
+To get the difference matrix, set the following to 'True'.
+'''
+DifferenceMatrix = False
+#DifferenceMatrix = True
 
 '''
 ########################
@@ -324,7 +350,7 @@ stages = {
     },
     "alignBowtiePE": {
         "walltime": "06:00:00",
-        "command": "time bowtie2 %type -x %ref_base -1 %seq1 -2 %seq2 -X 1500 | samtools view -ubS - | samtools sort - %out"
+        "command": "bowtie2 %type -x %ref_base -1 %seq1 -2 %seq2 -X %Xvalue | samtools view -ubS - | samtools sort - %out"
     },
     "alignBowtie": {
         "walltime": "06:00:00",
@@ -364,7 +390,7 @@ stages = {
     },
     "callRepSNPs": {
         "walltime": "03:00:00",
-        "command": "time samtools mpileup -uD -f %ref %bam -r %replicon | bcftools view -bvcg - > %out"
+        "command": "samtools mpileup -uD -f %ref %bam -r %replicon | bcftools view -bvcg - > %out"
     },
     "checkpoint": {
         "walltime": "00:10:00",
@@ -387,7 +413,7 @@ stages = {
     },
     "finalFilter": {
         "walltime": "00:10:00",
-        "command": "python finalFilter.py %vcfFile %out %het"
+        "command": "python finalFilter.py %vcfFile %out %het %flag"
     },
     "getVcfStats": {
         "walltime": "00:10:00",
@@ -435,7 +461,7 @@ stages = {
     },
     "parseGeneContent": {
         "walltime": "01:00:00",
-        "command": "python parseGeneContent.py -g %input -o %out -s %out2"
+        "command": "python parseGeneContent.py -g %input -s %out -o %out2"
     },
     "deriveRepAlleleMatrix": {
         "command": "python deriveRepAlleleMatrix.py %in %out %ref %replicon %consensus %repStats %merge_prefix"
@@ -444,8 +470,8 @@ stages = {
         "command": "python collateRepAlleleMatrix.py %in %out %sequence_list %rep_name"
     },
     "getDifferenceMatrix": {
-        "walltime": "04:00:00",
-        "command": "python make_distance_matrix.py %in"
+        "walltime": "06:00:00",
+        "command": "python make_distance_matrix.py -i %in"
     },
     "parseSNPs": {
         "walltime": "03:00:00",
