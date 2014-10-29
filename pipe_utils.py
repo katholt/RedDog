@@ -1,5 +1,5 @@
 # Various useful utilities for the pipeline.
-# First command (splitPath) is from Rubra
+# First command (splitPath) is taken from Rubra
 import sys
 import os.path
 import glob
@@ -137,7 +137,11 @@ def make_run_report(out_directory,
                     mappedFail, 
                     sd_out, 
                     check_reads_mapped, 
-                    conservation):
+                    conservation,
+                    modules,
+                    bowtie_X,
+                    read_history,
+                    sequence_list):
 
     timestamp = str(datetime.datetime.now())
     output = "RedDog " +  version + " " + timestamp +"\n"
@@ -152,6 +156,10 @@ def make_run_report(out_directory,
     else:
         output += "Run History:\nRun\tdate/time\tsequences\n"
         output += "first\t" + timestamp + "\t" + str(len(sequences)) +"\n"
+
+    output += "\nModules:\n"
+    for module in modules:
+        output += "\t" + module + "\n"
 
     output += "\nReference: " + reference + "\n"
     if refGenbank:
@@ -174,12 +182,13 @@ def make_run_report(out_directory,
         type_out = "Ion Torrent single-end"
 
     output += "Sequence Type: " + type_out + "\n"
-    output += "Sequences: "+out_directory+"full_sequence_list.txt\n"
+    output += "Sequences List: " + out_directory + "full_sequence_list.txt\n"
     output += "Run type: " + run_type + "\n"
 
     output += "Mapping: " + mapping + "\n"
     if mapping == 'bowtie':
         output += "bowtie mapping preset: " + bowtie_preset + "\n"
+        output += "bowtie X option: " + str(bowtie_X) + "\n"
 
     if merge_run and replace_reads != '-':
         output += "\nSequences failed by user:\n"
@@ -215,6 +224,9 @@ def make_run_report(out_directory,
             ratio_of_replicons.append(final_ratio)
             for i in range(0, len(list_of_replicons)):
                 output += list_of_replicons[i] + "\t" + str(ratio_of_replicons[i]*100) + "\n"
+    else:
+        output += "Reads mapped: off\n"
+
 
     output += "\nAllele conservation ratio: " + str(conservation) + "\n"
     output += "\nOutgroup calling\nStandard Deviations from mean SNP count: " + str(sd_out) + "\n"
@@ -280,6 +292,25 @@ def make_run_report(out_directory,
                 output += "There are " + str(len(warnings)) + " consensus warning files for " + replicon[0] + ":\n"
                 for warning in warnings:
                     output += warning + "\n"
+    output += "\n"
+
+    if merge_run and read_history != "-":
+        output += read_history
+        for sequence in sequence_list:
+            (prefix, name, ext) = splitPath(sequence)
+            output += name + ext + "\t" + prefix + "\t" + timestamp + "\t" + read_type + "\t" + mapping +"\n"
+    elif merge_run and read_history == "-":
+        output += "Read History:\nreads\tfull path\tdate/time\tread type\tmapping\n"
+        output += "Note: prior run information unavailable\n"
+        for sequence in sequence_list:
+            (prefix, name, ext) = splitPath(sequence)
+            output += name + ext + "\t" + prefix + "\t" + timestamp + "\t" + read_type + "\t" + mapping +"\n"
+    else:
+        output += "Read History:\nreads\tfull path\tdate/time\tread type\tmapping\n"
+        for sequence in sequence_list:
+            (prefix, name, ext) = splitPath(sequence)
+            output += name + ext + "\t" + prefix + "\t" + timestamp + "\t" + read_type + "\t" + mapping +"\n"
+    output += "\n"
 
     report_file = open((out_directory + refName + '_run_report.txt') , "w")
     report_file.write(output)
@@ -293,6 +324,20 @@ def get_run_report(run_report):
     history = ''
     for line in lines:
         if line.startswith('Run History:'):
+            keep = True
+        if line == '\n':
+            keep = False
+        if keep == True:
+            history += line
+    return history
+
+def get_read_report(run_report):
+    report_file = open(run_report, "rU")
+    lines = report_file.readlines()
+    keep = False
+    history = ''
+    for line in lines:
+        if line.startswith('Read History:'):
             keep = True
         if line == '\n':
             keep = False

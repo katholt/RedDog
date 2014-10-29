@@ -217,6 +217,8 @@ To capture these SNPs in the form of a VCF (one per isolate),
 set the following to 'True'
 '''
 HetsVCF = False
+#HetsVCF = True
+
 '''
 Values for calling the pass/fail and ingroup/outgroup status of strains
 suggested (default) values
@@ -277,6 +279,8 @@ The pipeline can produce a difference matrix. Currently this is a pairwise diffe
 To get the difference matrix, set the following to 'True'.
 '''
 DifferenceMatrix = False
+#DifferenceMatrix = True
+
 '''
 ########################
 Rubra pipeline variables (do not delete!):
@@ -319,8 +323,7 @@ stageDefaults = {
     "modules": [
         "python-gcc/2.7.5",
         "bwa-intel/0.6.2",
-        "samtools-intel/1.1",
-        "bcftools-intel/1.1",
+        "samtools-intel/0.1.19",
         "eautils-gcc/1.1.2",
         "fasttree-intel/2.1.7",
         "bowtie2-intel/2.2.3"
@@ -489,7 +492,7 @@ stages = {
         "walltime": "00:10:00",
 # large data sets
 #        "walltime": "04:00:00",
-        "command": "python make_distance_matrix.py %in"
+        "command": "python make_distance_matrix.py -i %in"
     },
     "parseSNPs": {
 # large data sets

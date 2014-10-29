@@ -21,12 +21,14 @@ outFile = sys.argv[2]
 (prefix,middle,ext) = splitPath(outFile)
 
 outHetFile = sys.argv[3] + '/' + middle[:-3] + "het.txt"
+
 HetsVCF = sys.argv[4]
-if HetsVCF:
-	hetVcfOut = open(outHetPosFile,"w")
 vcfIn = open(inFile)
 vcfOut = open(outFile, "w")
 hetOut = open(outHetFile, "w")
+if HetsVCF:
+    outHetPosFile = prefix + '/' + middle[:-3] + "het.vcf"
+    hetVcfOut = open(outHetPosFile,"w")
 hetCount = 0
 
 for line in vcfIn:

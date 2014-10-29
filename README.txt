@@ -1,4 +1,4 @@
-RedDog V0.5.1 281014
+RedDog V0.5.1 291014
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 License: none as yet...
@@ -20,11 +20,11 @@ IMPORTANT: See config file/instructions for input options/requirements
 current version:
 V0.5.1      added -X option for bowtie2 mapping (DE)
             fixed parseGeneContent output (DE)
-            added fixed and extended parseSNPtable (DE)
+            updated to fixed and extended parseSNPtable (DE)
             added scripts for tutorial (filterCoords.py, get_cover.py, getRecomb.R, plotTree.R) (DE)
             changed getDifferenceMatrix to optional output in pipe, changed script to take options (DE)
             added option for VCF output of filtered hets (DE)
-            update to use SAMtools v1.1 (DE)
+            implemented changes to run report from user feedback (DE)
 
 previous versions:
 V0.1        converted to vcf output via mpileup instead of depreciated pileup (DE)
@@ -150,8 +150,9 @@ V0.5        added check for deletion of previous run success file on merge run (
 
 next planned updates
 V0.5.2      Run report to provide settings for merge runs (continuity checks) (DE)
-            Implement any changes to run report from user feedback (DE)
             Changes to input sequences pattern recognition (DE)
+            update to use SAMtools v1.1 [need to test alternative bcftools approaches](DE)
+
 V0.5.3      Any fixes from final testing (DE)
             Improve on all comments in programming (DE)
             Add licensing information to all scripts (DE)

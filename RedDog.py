@@ -1,7 +1,7 @@
 #!/bin/env python
 
 '''
-RedDog V0.5.1 281014
+RedDog V0.5.1 291014
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 License: none as yet...
@@ -31,9 +31,11 @@ import sys
 import glob
 from rubra.utils import pipeline_options
 from rubra.utils import (runStageCheck, splitPath)
-from pipe_utils import (getValue, getCover, isGenbank, isFasta, chromInfoFasta, chromInfoGenbank, make_sequence_list, getSuccessCount, make_run_report, get_run_report)
+from pipe_utils import (isGenbank, isFasta, chromInfoFasta, chromInfoGenbank, getValue, getCover, make_sequence_list, getSuccessCount, make_run_report, get_run_report, get_read_report)
 
 version = "V0.5.1"
+
+modules = pipeline_options.stageDefaults['modules']
 
 # determine the reference file,
 # list of sequence files, and list of chromosmes.
@@ -198,7 +200,7 @@ if mapping == 'bwa' and readType == 'SE':
 elif mapping == 'bwa' and readType == 'PE':
     mapping_out = 'BWA V0.6.2 sampe'
 elif mapping == 'bowtie':
-    mapping_out = 'Bowtie2 V2.1.0'
+    mapping_out = 'Bowtie2 V2.2.3'
 else:
     print "\nUnrecognised mapping option"
     print "Pipeline Stopped: please check 'mapping' in the options file\n"
@@ -259,11 +261,10 @@ if mapping == 'bowtie':
 else:
     bowtie_map_type = "-"
 
-if mapping == 'bowtie':
-    try:
-        bowtie_X_value = pipeline_options.bowtie_X_value
-    except:
-        bowtie_X_value = 2000
+try:
+    bowtie_X_value = pipeline_options.bowtie_X_value
+except:
+    bowtie_X_value = 2000
 
 try:
     minDepth = pipeline_options.minimum_depth
@@ -344,11 +345,14 @@ if outMerge != '':
         sys.exit()    
     if os.path.exists(outMerge + refName + '_run_report.txt'):
         run_history = get_run_report(outMerge + refName + '_run_report.txt')
+        read_history = get_read_report(outMerge + refName + '_run_report.txt')
     else:
         run_history = '-'
+        read_history = '_'
 else:
     merge_run = False
     run_history = '-'
+    read_history = '-'
 
 if outPrefix == outMerge:
     print "\nOutput folder and out_merge_target for run are the same"
@@ -1911,7 +1915,8 @@ if outMerge != "":
                                     full_sequence_list, readType, runType, core_replicons, 
                                     mapping, bowtie_map_type, replaceReads, minDepth, 
                                     coverFail, depthFail, mappedFail, sdOutgroupMultiplier, 
-                                    check_reads_mapped, conservation)
+                                    check_reads_mapped, conservation, modules, bowtie_X_value, 
+                                    read_history, sequences)
                     runStageCheck('deleteDir', flagFile, outPrefix)
         else:
             # delete output directory to finish
@@ -1928,7 +1933,8 @@ if outMerge != "":
                                     full_sequence_list, readType, runType, core_replicons, 
                                     mapping, bowtie_map_type, replaceReads, minDepth, 
                                     coverFail, depthFail, mappedFail, sdOutgroupMultiplier, 
-                                    check_reads_mapped, conservation)
+                                    check_reads_mapped, conservation, modules, bowtie_X_value, 
+                                    read_history, sequences)
                     runStageCheck('deleteDir', flagFile, outPrefix)
     else:
         if DifferenceMatrix:
@@ -1946,7 +1952,8 @@ if outMerge != "":
                                     full_sequence_list, readType, runType, core_replicons, 
                                     mapping, bowtie_map_type, replaceReads, minDepth, 
                                     coverFail, depthFail, mappedFail, sdOutgroupMultiplier, 
-                                    check_reads_mapped, conservation)
+                                    check_reads_mapped, conservation, modules, bowtie_X_value, 
+                                    read_history, sequences)
                     runStageCheck('deleteDir', flagFile, outPrefix)
         else:
             # delete output directory to finish
@@ -1963,7 +1970,8 @@ if outMerge != "":
                                     full_sequence_list, readType, runType, core_replicons, 
                                     mapping, bowtie_map_type, replaceReads, minDepth, 
                                     coverFail, depthFail, mappedFail, sdOutgroupMultiplier, 
-                                    check_reads_mapped, conservation)
+                                    check_reads_mapped, conservation, modules, bowtie_X_value, 
+                                    read_history, sequences)
                     runStageCheck('deleteDir', flagFile, outPrefix)    
 
 else:
@@ -1983,7 +1991,8 @@ else:
                                     full_sequence_list, readType, runType, core_replicons, 
                                     mapping, bowtie_map_type, replaceReads, minDepth, 
                                     coverFail, depthFail, mappedFail, sdOutgroupMultiplier, 
-                                    check_reads_mapped, conservation)
+                                    check_reads_mapped, conservation, modules, bowtie_X_value, 
+                                    read_history, sequences)
                     runStageCheck('deleteDir', flagFile, outTempPrefix)
         else:
             # delete outTemp directory to finish
@@ -2000,7 +2009,8 @@ else:
                                     full_sequence_list, readType, runType, core_replicons, 
                                     mapping, bowtie_map_type, replaceReads, minDepth, 
                                     coverFail, depthFail, mappedFail, sdOutgroupMultiplier, 
-                                    check_reads_mapped, conservation)
+                                    check_reads_mapped, conservation, modules, bowtie_X_value, 
+                                    read_history, sequences)
                     runStageCheck('deleteDir', flagFile, outTempPrefix)
     else:
         if DifferenceMatrix:
@@ -2018,7 +2028,8 @@ else:
                                     full_sequence_list, readType, runType, core_replicons, 
                                     mapping, bowtie_map_type, replaceReads, minDepth, 
                                     coverFail, depthFail, mappedFail, sdOutgroupMultiplier, 
-                                    check_reads_mapped, conservation)
+                                    check_reads_mapped, conservation, modules, bowtie_X_value, 
+                                    read_history, sequences)
                     runStageCheck('deleteDir', flagFile, outTempPrefix)
         else:
             # delete outTemp directory to finish
@@ -2035,7 +2046,8 @@ else:
                                     full_sequence_list, readType, runType, core_replicons, 
                                     mapping, bowtie_map_type, replaceReads, minDepth, 
                                     coverFail, depthFail, mappedFail, sdOutgroupMultiplier, 
-                                    check_reads_mapped, conservation)
+                                    check_reads_mapped, conservation, modules, bowtie_X_value, 
+                                    read_history, sequences)
                     runStageCheck('deleteDir', flagFile, outTempPrefix)
 
 #end of pipeline

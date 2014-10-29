@@ -3,16 +3,19 @@ Configuration file for RedDog.py V0.5.1
 -------------------------------
 Essential pipeline variables.
 '''
-reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_plasmid.fasta"
+reference = ""
+#reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_plasmid.fasta"
 
-sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/*.fastq.gz"
+sequences = ""
+#sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/*.fastq.gz"
 #sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/extra/*.fastq.gz"
 
-output = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
-
+output = ""
+#output = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
 
 out_merge_target = ""
 #out_merge_target = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
+
 '''
 Notes:
 
@@ -210,6 +213,15 @@ Default value:
 minimum_depth = 5
 
 '''
+HetsVCF
+The pipeline filters out heterozygous SNP calls.
+To capture these SNPs in the form of a VCF (one per isolate),
+set the following to 'True'
+'''
+HetsVCF = False
+#HetsVCF = True
+
+'''
 Values for calling the pass/fail and ingroup/outgroup status of strains
 suggested (default) values
         cover_fail = 50
@@ -262,6 +274,14 @@ and downsteam analysis carried out on this matrix.
 
 '''
 conservation = 0.95
+
+'''
+Difference Matrix
+The pipeline can produce a difference matrix. Currently this is a pairwise difference count.
+To get the difference matrix, set the following to 'True'.
+'''
+DifferenceMatrix = False
+#DifferenceMatrix = True
 
 '''
 ########################
@@ -393,7 +413,7 @@ stages = {
     },
     "finalFilter": {
         "walltime": "00:10:00",
-        "command": "python finalFilter.py %vcfFile %out %het"
+        "command": "python finalFilter.py %vcfFile %out %het %flag"
     },
     "getVcfStats": {
         "walltime": "00:10:00",
@@ -450,8 +470,8 @@ stages = {
         "command": "python collateRepAlleleMatrix.py %in %out %sequence_list %rep_name"
     },
     "getDifferenceMatrix": {
-        "walltime": "04:00:00",
-        "command": "python make_distance_matrix.py %in"
+        "walltime": "06:00:00",
+        "command": "python make_distance_matrix.py -i %in"
     },
     "parseSNPs": {
         "walltime": "03:00:00",
