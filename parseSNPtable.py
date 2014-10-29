@@ -95,7 +95,7 @@ def main():
 
 	# core gene filtering
 	parser.add_option("-L", "--core_strains", action="store", dest="core_strains", help="file containing list of strains to include in core genome (one per line, outgroup[s] ignored), otherwise all strains sans outgroup(s) included", default="")
-	parser.add_option("-z", "--gene_summary", action="store", dest="gene_summary", help="gene summary table (CSV)", default="")
+	parser.add_option("-z", "--gene_coverage", action="store", dest="gene_coverage", help="gene coverage table (CSV)", default="")
 	parser.add_option("-Z", "--core_coverage", action="store", dest="core_coverage", help="minimum % coverage of each gene (as ratio) across core_isolates required to retain SNP locus (default 0.90 - 90%)", default="0.9")
 
 	# coding consequences
@@ -915,7 +915,7 @@ if __name__ == "__main__":
 								locus_tag = "tag_" + str(start)+'-'+str(stop)
 							gene_list.append(locus_tag)
 							gene_position.append([start, stop])
-					if options.gene_summary == "":
+					if options.gene_coverage == "":
 						print "\nNo gene coverage file specified (-z), can't do core SNP filtering"
 					else:						
 						core_coverage = float(options.core_coverage)
@@ -924,8 +924,8 @@ if __name__ == "__main__":
 						else:
 							core_strain_index = []
 							ordered_core_genes = []
-							gene_summary = open(options.gene_summary, 'r')
-							for line in gene_summary:
+							gene_coverage = open(options.gene_coverage, 'r')
+							for line in gene_coverage:
 								# header
 								line = line.rstrip('\n')
 								if line.startswith("replicon__gene"):
@@ -951,7 +951,7 @@ if __name__ == "__main__":
 											start += 1
 											stop += 1
 										ordered_core_genes.append([start,stop])
-							gene_summary.close()
+							gene_coverage.close()
 							ordered_core_genes.sort(key=operator.itemgetter(1))
 							ordered_core_genes.sort(key=operator.itemgetter(0))
 							ordered_snp_list = []
@@ -996,7 +996,7 @@ if __name__ == "__main__":
 				print "\nCouldn't filter SNPs based on genes in core genome, check the following option(s):"
 				if options.core_strains != "":
 					print "    core_strains  -L " + options.core_strains
-				print "    gene_summary  -z " + options.gene_summary
+				print "    gene_coverage  -z " + options.gene_coverage
 				print "    core_coverage -Z " + options.core_coverage
 		return pre, snptable
 
