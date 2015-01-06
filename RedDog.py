@@ -1,7 +1,7 @@
 #!/bin/env python
 
 '''
-RedDog V0.5.1 291014
+RedDog V0.5.2 070115
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 License: none as yet...
@@ -33,7 +33,7 @@ from rubra.utils import pipeline_options
 from rubra.utils import (runStageCheck, splitPath)
 from pipe_utils import (isGenbank, isFasta, chromInfoFasta, chromInfoGenbank, getValue, getCover, make_sequence_list, getSuccessCount, make_run_report, get_run_report, get_read_report)
 
-version = "V0.5.1"
+version = "V0.5.2"
 
 modules = pipeline_options.stageDefaults['modules']
 
@@ -406,7 +406,7 @@ try:
         print "Pipeline Stopped: please check 'DifferenceMatrix' in the options file\n"
         sys.exit()
 except:
-    HetsVCF = False
+    DifferenceMatrix = False
 
 full_sequence_list = []
 if outMerge == '':

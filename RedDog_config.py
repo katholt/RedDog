@@ -1,5 +1,5 @@
 '''
-Configuration file for RedDog.py V0.5.1
+Configuration file for RedDog.py V0.5.2
 -------------------------------
 Essential pipeline variables.
 '''
@@ -323,7 +323,8 @@ stageDefaults = {
     "modules": [
         "python-gcc/2.7.5",
         "bwa-intel/0.6.2",
-        "samtools-intel/0.1.19",
+        "samtools-intel/1.1",
+        "bcftools-intel/1.1",
         "eautils-gcc/1.1.2",
         "fasttree-intel/2.1.7",
         "bowtie2-intel/2.2.3"
@@ -399,7 +400,7 @@ stages = {
         "walltime": "01:00:00",
 # large file size (any read set >800MB)
 #        "walltime": "03:00:00",
-        "command": "samtools mpileup -uD -f %ref %bam -r %replicon | bcftools view -bvcg - > %out"
+        "command": "samtools mpileup -u -t DP -f %ref %bam -r %replicon | bcftools call -O b -cv - > %out"
     },
     "checkpoint": {
         "walltime": "00:10:00",
@@ -409,7 +410,7 @@ stages = {
         "walltime": "01:00:00",
 # large file size (any read set >800MB)
 #        "walltime": "06:00:00",
-        "command": "samtools mpileup -q 20 -uB -f %ref %bam | bcftools view -c - | vcfutils.pl vcf2fq > %output"
+        "command": "samtools mpileup -q 20 -ugB -f %ref %bam | bcftools call -c - | vcfutils.pl vcf2fq > %output"
     },
     "getCoverage": {
         "walltime": "01:00:00",
