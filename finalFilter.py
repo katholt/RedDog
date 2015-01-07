@@ -21,7 +21,7 @@ outFile = sys.argv[2]
 (prefix,middle,ext) = splitPath(outFile)
 
 outHetFile = sys.argv[3] + '/' + middle[:-3] + "het.txt"
-if sys.argv[4] = "True":
+if sys.argv[4] == "True":
     HetsVCF = True
 else:
     HetsVCF = False

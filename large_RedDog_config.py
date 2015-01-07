@@ -194,6 +194,17 @@ is 2000 - you can change this with bowite_X_value
 bowtie_X_value = 2000
 
 '''
+bcftools SNP calling
+
+consensus caller ["c"] (original) or multiallelic caller ["m"] (new bcftools v1+) 
+
+Note: for now (v0.5.2), the default will be consensus. 
+On release of RedDog the default will be multiallelic.
+'''
+SNPcaller = "c"
+#SNPcaller = "m"
+
+'''
 You can also "remove" any reads: these will be marked as "failed"
 This only works during a "merge run"
 eg. replace a set of reads with their qc-ed version
@@ -391,7 +402,7 @@ stages = {
     },
     "callRepSNPs": {
         "walltime": "03:00:00",
-        "command": "samtools mpileup -u -t DP -f %ref %bam -r %replicon | bcftools call -O b -cv - > %out"
+        "command": "samtools mpileup -u -t DP -f %ref %bam -r %replicon | bcftools call -O b %option - > %out"
     },
     "checkpoint": {
         "walltime": "00:10:00",
@@ -399,7 +410,7 @@ stages = {
     },
     "getConsensus": {
         "walltime": "06:00:00",
-        "command": "samtools mpileup -q 20 -ugB -f %ref %bam | bcftools call -c - | vcfutils.pl vcf2fq > %output"
+        "command": "samtools mpileup -q 20 -ugB -f %ref %bam | bcftools call %option - | vcfutils.pl vcf2fq > %output"
     },
     "getCoverage": {
         "walltime": "06:00:00",

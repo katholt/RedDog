@@ -43,13 +43,13 @@ try:
     reference = pipeline_options.reference
 except:
     print "\nNo Reference supplied"
-    print "Pipeline Stopped: please supply a reference\n"
+    print "Pipeline Stopped: please supply a reference in the config file\n"
     sys.exit()    
 
 #check that a reference has been given in the options file
 if reference == "":
     print "\nNo Reference supplied"
-    print "Pipeline Stopped: please supply a reference\n"
+    print "Pipeline Stopped: please supply a reference in the config file\n"
     sys.exit()    
 
 #check whether reference file exists
@@ -120,7 +120,7 @@ if runType != "":
         pass
     else:
         print "\nUnrecognised run type"
-        print "Pipeline Stopped: please check 'runType' in the options file\n"
+        print "Pipeline Stopped: please check 'runType' in the config file\n"
         sys.exit()
 
 # if no runType entered, work out default runType on number of replicons in reference
@@ -131,7 +131,7 @@ if runType == "":
         runType = "phylogeny"
 if len(replicons) < 1:
     print "\nNo chromosomes found in reference"
-    print "Pipeline Stopped: please check 'reference' in the options file\n"
+    print "Pipeline Stopped: please check 'reference' in the config file\n"
     sys.exit()
 
 repliconNames = []
@@ -163,7 +163,7 @@ if sequences == []:
         sys.exit()
     else:
         print "\nNo matching sequences found"
-        print "Pipeline Stopped: please check 'sequences' in options\n"
+        print "Pipeline Stopped: please check 'sequences' in the config file\n"
         sys.exit()
 
 for sequence in sequences:
@@ -183,7 +183,7 @@ if readType == 'IT' or readType == 'PE' or readType == 'SE':
     pass
 else:
     print "\nUnrecognised read type"
-    print "Pipeline Stopped: please check 'readType' in options\n"
+    print "Pipeline Stopped: please check 'readType' in the config file\n"
     sys.exit()
 
 mapping_out = ""
@@ -203,8 +203,18 @@ elif mapping == 'bowtie':
     mapping_out = 'Bowtie2 V2.2.3'
 else:
     print "\nUnrecognised mapping option"
-    print "Pipeline Stopped: please check 'mapping' in the options file\n"
+    print "Pipeline Stopped: please check 'mapping' in the config file\n"
     sys.exit()
+
+try:
+    SNPcaller = pipeline_options.SNPcaller
+    if not(SNPcaller != 'c' or SNPcaller != 'm'):
+        print "\nUnrecognised SNPcaller option"
+        print "Pipeline Stopped: please check 'SNPcaller' in the config file\n"
+    else:
+        SNPcaller = '-' + SNPcaller
+except:
+    SNPcaller = '-c'
 
 sequence_list = []
 for sequence in sequences:
@@ -256,7 +266,7 @@ if mapping == 'bowtie':
         pass        
     else:
         print "\nUnrecogised Bowtie2 mapping option"
-        print "Pipeline Stopped: please check 'bowtie_map_type' in the options file\n"
+        print "Pipeline Stopped: please check 'bowtie_map_type' in the config file\n"
         sys.exit()
 else:
     bowtie_map_type = "-"
@@ -275,7 +285,7 @@ try:
     HetsVCF = pipeline_options.HetsVCF
     if HetsVCF != True and HetsVCF != False:
         print "\nUnrecogised HetsVCF option"
-        print "Pipeline Stopped: please check 'HetsVCF' in the options file\n"
+        print "Pipeline Stopped: please check 'HetsVCF' in the config file\n"
         sys.exit()
 except:
     HetsVCF = False
@@ -317,7 +327,7 @@ except:
 
 if outPrefix == "":
     print "\nNo Output folder given"
-    print "Pipeline Stopped: please check 'output' in the options file\n"
+    print "Pipeline Stopped: please check 'output' in the config file\n"
     sys.exit()
 
 if outPrefix[-1] != '/':
@@ -332,7 +342,7 @@ try:
     outMerge = pipeline_options.out_merge_target
 except:
     print "\n'out_merge_target' not set"
-    print "Pipeline Stopped: please set 'out_merge_target'\n"
+    print "Pipeline Stopped: please set 'out_merge_target' in the config file\n"
     sys.exit()    
 
 if outMerge != '':
@@ -356,7 +366,7 @@ else:
 
 if outPrefix == outMerge:
     print "\nOutput folder and out_merge_target for run are the same"
-    print "Pipeline Stopped: please check 'output' and 'out_merge_target' in the options file\n"
+    print "Pipeline Stopped: please check 'output' and 'out_merge_target' in the config file\n"
     sys.exit()
 
 if os.path.isdir(outPrefix) and not(os.path.exists(outSuccessPrefix + "dir.makeDir.Success")):
@@ -403,7 +413,7 @@ try:
     DifferenceMatrix = pipeline_options.DifferenceMatrix
     if DifferenceMatrix != True and DifferenceMatrix != False:
         print "\nUnrecogised DifferenceMatrix option"
-        print "Pipeline Stopped: please check 'DifferenceMatrix' in the options file\n"
+        print "Pipeline Stopped: please check 'DifferenceMatrix' in the config file\n"
         sys.exit()
 except:
     DifferenceMatrix = False
@@ -815,7 +825,8 @@ stage_count += len(sequence_list)
 def getConsensus(inputs, outputs):
     output, flagFile = outputs
     bamFile, _success = inputs
-    runStageCheck('getConsensus', flagFile, reference, bamFile, output)
+    bcf_option = SNPcaller
+    runStageCheck('getConsensus', flagFile, reference, bamFile, bcf_option, output)
 stage_count += len(sequence_list) 
 
 # Get coverage from BAM
@@ -873,7 +884,8 @@ if runType == "pangenome":
     @files(snpsByCoreReplicons)
     def callRepSNPs(input, outputs, repliconName):
         output, flagFile  = outputs
-        runStageCheck('callRepSNPs', flagFile, reference, input, repliconName, output)
+        bcf_option = SNPcaller + 'v'
+        runStageCheck('callRepSNPs', flagFile, reference, input, repliconName, bcf_option, output)
     stage_count += (len(sequence_list)*len(core_replicons)) 
 
 # checkpoint_callRepSNPs
@@ -985,7 +997,8 @@ else: # runType == "phylogeny"
     @files(snpsByReplicons)
     def callRepSNPs(input, outputs, replicon):
         output, flagFile  = outputs
-        runStageCheck('callRepSNPs', flagFile, reference, input, replicon, output)
+        bcf_option = SNPcaller + 'v'
+        runStageCheck('callRepSNPs', flagFile, reference, input, replicon, bcf_option, output)
     stage_count += (len(sequence_list)*len(replicons)) 
 
 # checkpoint_callRepSNPs
@@ -1240,7 +1253,8 @@ if refGenbank == True:
         @transform(bams, regex(r"(.*)\/(.+).bam"), [outTempPrefix + r"\2/\2_cns.fq", outSuccessPrefix + r"\2.getMergeConsensus.Success"])
         def getMergeConsensus(input, outputs):
             output, flagFile = outputs
-            runStageCheck('getConsensus', flagFile, reference, input, output)
+            bcf_option = SNPcaller
+            runStageCheck('getConsensus', flagFile, reference, input, bcf_option, output)
         stage_count += len(bams)
 
 # checkpoint_getMergeConsensus
@@ -1589,7 +1603,8 @@ else: # refGenbank == False
         @transform(bams, regex(r"(.*)\/(.+).bam"), [outTempPrefix + r"\2/\2_cns.fq", outSuccessPrefix + r"\2.getMergeConsensus.Success"])
         def getMergeConsensus(input, outputs):
             output, flagFile = outputs
-            runStageCheck('getConsensus', flagFile, reference, input, output)
+            bcf_option = SNPcaller
+            runStageCheck('getConsensus', flagFile, reference, input, bcf_option, output)
         stage_count += len(bams)
 
 # checkpoint_getMergeConsensus

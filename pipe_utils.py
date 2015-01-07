@@ -149,13 +149,13 @@ def make_run_report(out_directory,
 
     if merge_run and run_history != "-":
         output += run_history
-        output += "merge\t" + timestamp + "\t" + str(len(sequences)) + "\n"
+        output += "merge\t" + timestamp + "\t" + str(len(sequences)) + "\t" + version + "\n"
     elif merge_run and run_history == "-":
-        output += "Run History:\nRun\tdate/time\tsequences\n"
-        output += "merge\t" + timestamp + "\t" + str(len(sequences)) +"\n"
+        output += "Run History:\nRun\tdate/time\tsequences\tversion\n"
+        output += "merge\t" + timestamp + "\t" + str(len(sequences)) + "\t" + version + "\n"
     else:
-        output += "Run History:\nRun\tdate/time\tsequences\n"
-        output += "first\t" + timestamp + "\t" + str(len(sequences)) +"\n"
+        output += "Run History:\nRun\tdate/time\tsequences\tversion\n"
+        output += "first\t" + timestamp + "\t" + str(len(sequences)) + "\t" + version + "\n"
 
     output += "\nModules:\n"
     for module in modules:
@@ -306,10 +306,10 @@ def make_run_report(out_directory,
             (prefix, name, ext) = splitPath(sequence)
             output += name + ext + "\t" + prefix + "\t" + timestamp + "\t" + read_type + "\t" + mapping +"\n"
     else:
-        output += "Read History:\nreads\tfull path\tdate/time\tread type\tmapping\n"
+        output += "Read History:\nreads\tfull path\tdate/time\tread type\tmapping\tversion\n"
         for sequence in sequence_list:
             (prefix, name, ext) = splitPath(sequence)
-            output += name + ext + "\t" + prefix + "\t" + timestamp + "\t" + read_type + "\t" + mapping +"\n"
+            output += name + ext + "\t" + prefix + "\t" + timestamp + "\t" + read_type + "\t" + mapping + "\t" + version + "\n"
     output += "\n"
 
     report_file = open((out_directory + refName + '_run_report.txt') , "w")

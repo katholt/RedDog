@@ -1,4 +1,4 @@
-RedDog V0.5.2 111214
+RedDog V0.5.2 070115
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 License: none as yet...

@@ -3,19 +3,29 @@ Configuration file for RedDog.py V0.5.2
 -------------------------------
 Essential pipeline variables.
 '''
-reference = ""
+#reference = ""
 #reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_plasmid.fasta"
 
-sequences = ""
+#sequences = ""
 #sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/*.fastq.gz"
 #sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/extra/*.fastq.gz"
 
-output = ""
+#output = ""
 #output = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
 #output = "/scratch/VR0082/workspace/mapping/v052_test"
 
 out_merge_target = ""
 #out_merge_target = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
+
+reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_plasmid.fasta"
+sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/*.fastq.gz"
+output = "/scratch/VR0082/workspace/mapping/samtools_test_v52"
+
+#output = "/scratch/VR0082/workspace/mapping/samtools_test_temp"
+#out_merge_target = "/scratch/VR0082/workspace/mapping/samtools_test_v51_merge"
+#out_merge_target = "/scratch/VR0082/workspace/mapping/samtools_test_v52"
+#sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/extra/*.fastq.gz"
+
 '''
 Notes:
 
@@ -191,6 +201,17 @@ The default maximum length for bowtie2 to consider pair-ended reads contiguous
 is 2000 - you can change this with bowtie_X_value
 '''
 bowtie_X_value = 2000
+
+'''
+bcftools SNP calling
+
+consensus caller ["c"] (original) or multiallelic caller ["m"] (new bcftools v1+) 
+
+Note: for now (v0.5.2), the default will be consensus. 
+On release of RedDog the default will be multiallelic.
+'''
+SNPcaller = "c"
+#SNPcaller = "m"
 
 '''
 You can also "remove" any reads: these will be marked as "failed"
@@ -400,7 +421,7 @@ stages = {
         "walltime": "01:00:00",
 # large file size (any read set >800MB)
 #        "walltime": "03:00:00",
-        "command": "samtools mpileup -u -t DP -f %ref %bam -r %replicon | bcftools call -O b -cv - > %out"
+        "command": "samtools mpileup -u -t DP -f %ref %bam -r %replicon | bcftools call -O b %option - > %out"
     },
     "checkpoint": {
         "walltime": "00:10:00",
@@ -410,7 +431,7 @@ stages = {
         "walltime": "01:00:00",
 # large file size (any read set >800MB)
 #        "walltime": "06:00:00",
-        "command": "samtools mpileup -q 20 -ugB -f %ref %bam | bcftools call -c - | vcfutils.pl vcf2fq > %output"
+        "command": "samtools mpileup -q 20 -ugB -f %ref %bam | bcftools call %option - | vcfutils.pl vcf2fq > %output"
     },
     "getCoverage": {
         "walltime": "01:00:00",
