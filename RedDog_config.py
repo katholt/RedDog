@@ -207,8 +207,10 @@ bcftools SNP calling
 
 consensus caller ["c"] (original) or multiallelic caller ["m"] (new bcftools v1+) 
 
-Note: for now (v0.5.2), the default will be consensus. 
-On release of RedDog the default will be multiallelic.
+Note: multiallelic caller is used only for calling unique SNPs from the BAM files.
+The consensus sequences used to populate the allele table based on these SNPs are 
+still generated using the original consensus caller - this will be changed if/when 
+a vcf2fq program is available for multiallelic-generated VCFs
 '''
 SNPcaller = "c"
 #SNPcaller = "m"
@@ -431,7 +433,7 @@ stages = {
         "walltime": "01:00:00",
 # large file size (any read set >800MB)
 #        "walltime": "06:00:00",
-        "command": "samtools mpileup -q 20 -ugB -f %ref %bam | bcftools call %option - | vcfutils.pl vcf2fq > %output"
+        "command": "samtools mpileup -q 20 -ugB -f %ref %bam | bcftools call -c - | vcfutils.pl vcf2fq > %output"
     },
     "getCoverage": {
         "walltime": "01:00:00",

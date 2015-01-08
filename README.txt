@@ -1,4 +1,4 @@
-RedDog V0.5.2 070115
+RedDog V0.5.2 080115
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 License: none as yet...
@@ -20,7 +20,8 @@ IMPORTANT: See config file/instructions for input options/requirements
 current version:
 V0.5.2      Run report to provide settings for merge runs (continuity checks) (DE)
             Changes to input sequences pattern recognition (DE)
-            update to use SAMtools v1.1 (DE)
+            update to use SAMtools v1+ (DE)
+                includes addition of multiallelic SNP calling option - bcftools (DE)
 
 previous versions:
 V0.1        converted to vcf output via mpileup instead of depreciated pileup (DE)

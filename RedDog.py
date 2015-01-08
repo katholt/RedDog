@@ -1,7 +1,7 @@
 #!/bin/env python
 
 '''
-RedDog V0.5.2 070115
+RedDog V0.5.2 080115
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 License: none as yet...
@@ -825,8 +825,7 @@ stage_count += len(sequence_list)
 def getConsensus(inputs, outputs):
     output, flagFile = outputs
     bamFile, _success = inputs
-    bcf_option = SNPcaller
-    runStageCheck('getConsensus', flagFile, reference, bamFile, bcf_option, output)
+    runStageCheck('getConsensus', flagFile, reference, bamFile, output)
 stage_count += len(sequence_list) 
 
 # Get coverage from BAM
@@ -1253,8 +1252,7 @@ if refGenbank == True:
         @transform(bams, regex(r"(.*)\/(.+).bam"), [outTempPrefix + r"\2/\2_cns.fq", outSuccessPrefix + r"\2.getMergeConsensus.Success"])
         def getMergeConsensus(input, outputs):
             output, flagFile = outputs
-            bcf_option = SNPcaller
-            runStageCheck('getConsensus', flagFile, reference, input, bcf_option, output)
+            runStageCheck('getConsensus', flagFile, reference, input, output)
         stage_count += len(bams)
 
 # checkpoint_getMergeConsensus
@@ -1603,8 +1601,7 @@ else: # refGenbank == False
         @transform(bams, regex(r"(.*)\/(.+).bam"), [outTempPrefix + r"\2/\2_cns.fq", outSuccessPrefix + r"\2.getMergeConsensus.Success"])
         def getMergeConsensus(input, outputs):
             output, flagFile = outputs
-            bcf_option = SNPcaller
-            runStageCheck('getConsensus', flagFile, reference, input, bcf_option, output)
+            runStageCheck('getConsensus', flagFile, reference, input, output)
         stage_count += len(bams)
 
 # checkpoint_getMergeConsensus
