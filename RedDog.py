@@ -1,7 +1,7 @@
 #!/bin/env python
 
 '''
-RedDog V0.5.2 080115
+RedDog V0.5.2 060215
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 License: none as yet...
@@ -345,6 +345,7 @@ except:
     print "Pipeline Stopped: please set 'out_merge_target' in the config file\n"
     sys.exit()    
 
+continuity_test = False
 if outMerge != '':
     merge_run = True
     if outMerge[-1] != '/':
@@ -354,9 +355,29 @@ if outMerge != '':
         print "Pipeline Stopped: please delete this file before restarting\n"
         sys.exit()    
     if os.path.exists(outMerge + refName + '_run_report.txt'):
-        run_history = get_run_report(outMerge + refName + '_run_report.txt')
-        read_history = get_read_report(outMerge + refName + '_run_report.txt')
+        (read_history, 
+        run_history, 
+        old_ref_name, 
+        old_ref_format, 
+        old_replicon_count, 
+        old_core_replicon_list, 
+        old_run_type, 
+        old_bowtie_preset, 
+        old_bowtie_X, 
+        old_user_failed_list, 
+        old_min_depth, 
+        old_cover_fail, 
+        old_depth_fail, 
+        old_mapped_fail, 
+        old_replicon_test_list, 
+        old_replicon_percent_list, 
+        old_conservation,
+        old_sd_out,
+        old_replicon_list) = get_run_report_data(outMerge + refName + '_run_report.txt')
+        continuity_test = True
     else:
+        print "Merge Run: No prior run report found"
+        print "No continuity tests will be done...\n"
         run_history = '-'
         read_history = '_'
 else:
@@ -458,6 +479,231 @@ sequence_list_string = ""
 for sequence in sequence_list:
     sequence_list_string += sequence + ","
 sequence_list_string.rstrip()
+
+# test for continuity with prior run for merge runs
+if outMerge != '' and continuity_test:
+    #Fatal differences
+    if refName != old_ref_name:
+        print "\nReference name is different from prior run(s)"
+        print "Pipeline Stopped: please use correct reference\n"
+        sys.exit()
+    if refGenbank and old_ref_format != 'Genbank'
+        print "\nExpected FASTA reference, not Genbank"
+        print "Pipeline Stopped: please use correct reference\n"
+        sys.exit()
+    if not refGenbank and old_ref_format == 'Genbank'
+        print "\nExpected Genbank reference, not FASTA"
+        print "Pipeline Stopped: please use correct reference\n"
+        sys.exit()
+    if len(replicons) != old_replicon_count:
+        print "\nDifferent number of replicons found in reference"
+        print "Pipeline Stopped: please use correct reference\n"
+        sys.exit()
+    if runType != old_run_type:
+        print "\nExpected " + runType + " run; " + old_run_type + " run specified":
+        print "Pipeline Stopped: please specify same run type as previously ("+old_run_type+")\n"
+        sys.exit()
+    replicon_fail = False
+    if runType == 'pangenome':
+        for replicon in old_core_replicon_list:
+            if replicon not in core_replicons:
+                replicon_fail = True
+
+        for replicon in core_replicons:
+            if replicon not in old_core_replicon_list:
+                replicon_fail = True
+
+        if replicion_fail:
+            print "\nCore replicons have changed since last run"
+            print "Pipeline Stopped: please specify reference with same replicons as previously used\n"
+            sys.exit()
+
+        if old_mapped_fail != 'off':
+            replicon_test = ""
+            for replicon in old_replicon_test_list:
+                replicon_test += (replicon + ",")
+            if len(old_replicon_test_list) > 1:
+                replicon_test += 'x,'
+
+            check_test = True
+
+            if not check_reads_mapped.startswith(replicon_test):
+                check_test = False
+
+            if len(old_replicon_test_list) > 1:
+                replicon_value_test = []
+                for number in range(len(old_replicon_percent_list)-1):
+                    replicon_value_test.append(float(old_replicon_percent_list[number])/100)
+                all_values = check_reads_mapped.split(',x,')
+                values = all_values.split(',')
+                if len(values) != len(replicon_value_test):
+                    check_test = False
+                for number in range(len(values)):
+                    if float(values[number]) != replicon_value_test[number]:
+                        check_test = False
+            if not check_test:
+                print "\n'check_reads_mapped' has changed since last run"
+                print "Pipeline Stopped: please provide same 'check_reads_mapped' as previously used\n"
+                sys.exit()
+    else:
+        replicon_names = []
+        for replicon in replicons:
+            replicon_names.append(replicon[0])
+            if replicon[0] not in old_replicon_list:
+                replicon_fail = True
+        for replicon in old_replicon_list:
+            if replicon not in replicon_names:
+                replicon_fail = True
+        if replicion_fail:
+            print "\nReplicons have changed since last run"
+            print "Pipeline Stopped: please specify reference with same replicons as previously\n"
+            sys.exit()
+
+    if old_bowtie_preset != bowtie_map_type:
+        print "\n'bowtie_map_type' has changed since last run"
+        value_change = False
+        attempts_count = 0
+        while value_change == False:
+            keyboard_entry = raw_input('\nDo you wish to use: \n[1] the new value ('+bowtie_map_type +'), or\n[2] the old value? ('+old_bowtie_preset+')\nNote: this only affects new read sets\n')
+
+            if keyboard_entry == '1' or keyboard_entry == '2':
+                value_change = True
+                if keyboard_entry == '2':
+                    bowtie_map_type = old_bowtie_preset
+            else:
+                attempts_count +=1
+                if attempts_count >= 3:
+                    print "\nPipeline Stopped: too many tries\n"
+                    sys.exit()
+                else:
+                    print "Please enter either '1' for new value, or '2' for old value"
+
+    if old_bowtie_X != bowtie_X_value:
+        print "\n'bowtie_X_value' has changed since last run"
+        value_change = False
+        attempts_count = 0
+        while value_change == False:
+            keyboard_entry = raw_input('\nDo you wish to use: \n[1] the new value ('+bowtie_X_value +'), or\n[2] the old value? ('+old_bowtie_X+')\nNote: this only affects new read sets\n')
+            if keyboard_entry == '1' or keyboard_entry == '2':
+                value_change = True
+                if keyboard_entry == '2':
+                    bowtie_X_value = old_bowtie_X
+            else:
+                attempts_count +=1
+                if attempts_count >= 3:
+                    print "\nPipeline Stopped: too many tries\n"
+                    sys.exit()
+                else:
+                    print "Please enter either '1' for new value, or '2' for old value"
+
+    if old_min_depth != minDepth:
+        print "\n'minimum_depth' for SNP calling has changed since last run"
+        value_change = False
+        attempts_count = 0
+        while value_change == False:
+            keyboard_entry = raw_input('\nDo you wish to use: \n[1] the new value ('+minDepth+'), or\n[2] the old value? ('+old_min_depth+')\nNote: this only affects new read sets\n')
+            if keyboard_entry == '1' or keyboard_entry == '2':
+                value_change = True
+                if keyboard_entry == '2':
+                    minDepth = old_min_depth
+            else:
+                attempts_count +=1
+                if attempts_count >= 3:
+                    print "\nPipeline Stopped: too many tries\n"
+                    sys.exit()
+                else:
+                    print "Please enter either '1' for new value, or '2' for old value"
+
+    if old_cover_fail != coverFail:
+        print "\n'cover_fail' has changed since last run"
+        value_change = False
+        attempts_count = 0
+        while value_change == False:
+            keyboard_entry = raw_input('\nDo you wish to use: \n[1] the new value ('+coverFail+'), or\n[2] the old value? ('+old_cover_fail+')\n')
+            if keyboard_entry == '1' or keyboard_entry == '2':
+                value_change = True
+                if keyboard_entry == '2':
+                    coverFail = old_cover_fail
+            else:
+                attempts_count +=1
+                if attempts_count >= 3:
+                    print "\nPipeline Stopped: too many tries\n"
+                    sys.exit()
+                else:
+                    print "Please enter either '1' for new value, or '2' for old value"
+
+    if old_depth_fail != depthFail:
+        print "\n'depth_fail' has changed since last run"
+        value_change = False
+        attempts_count = 0
+        while value_change == False:
+            keyboard_entry = raw_input('\nDo you wish to use: \n[1] the new value ('+depthFail+'), or\n[2] the old value? ('+old_depth_fail+')\n')
+            if keyboard_entry == '1' or keyboard_entry == '2':
+                value_change = True
+                if keyboard_entry == '2':
+                    depthFail = old_depth_fail
+            else:
+                attempts_count +=1
+                if attempts_count >= 3:
+                    print "\nPipeline Stopped: too many tries\n"
+                    sys.exit()
+                else:
+                    print "Please enter '1' for new value, or '2' for old value"
+
+    if old_mapped_fail != mappedFail and check_reads_mapped != 'off':
+        print "\n'mapped_fail' has changed since last run"
+        value_change = False
+        attempts_count = 0
+        while value_change == False:
+            keyboard_entry = raw_input('\nDo you wish to use: \n[1] the new value ('+mappedFail+'), or\n[2] the old value? ('+old_mapped_fail+')\n')
+            if keyboard_entry == '1' or keyboard_entry == '2':
+                value_change = True
+                if keyboard_entry == '2':
+                    mappedFail = old_mapped_fail
+            else:
+                attempts_count +=1
+                if attempts_count >= 3:
+                    print "\nPipeline Stopped: too many tries\n"
+                    sys.exit()
+                else:
+                    print "Please enter either '1' for new value, or '2' for old value"
+
+    if old_sd_out != sdOutgroupMultiplier:
+        print "\n'sd_out' has changed since last run"
+        value_change = False
+        attempts_count = 0
+        while value_change == False:
+            keyboard_entry = raw_input('\nDo you wish to use: \n[1] the new value ('+sdOutgroupMultiplier+'), or\n[2] the old value? ('+old_sd_out+')\n')
+            if keyboard_entry == '1' or keyboard_entry == '2':
+                value_change = True
+                if keyboard_entry == '2':
+                    sdOutgroupMultiplier = old_sd_out
+            else:
+                attempts_count +=1
+                if attempts_count >= 3:
+                    print "\nPipeline Stopped: too many tries\n"
+                    sys.exit()
+                else:
+                    print "Please enter '1' for new value, or '2' for old value"
+
+    if old_conservation != conservation:
+        print "\n'conservation' has changed since last run"
+        value_change = False
+        attempts_count = 0
+        while value_change == False:
+            keyboard_entry = raw_input('\nDo you wish to use: \n[1] the new value ('+conservation+'), or\n[2] the old value? ('+old_conservation+')\n')
+            if keyboard_entry == '1' or keyboard_entry == '2':
+                value_change = True
+                if keyboard_entry == '2':
+                    conservation = old_conservation
+            else:
+                attempts_count +=1
+                if attempts_count >= 3:
+                    print "\nPipeline Stopped: too many tries\n"
+                    sys.exit()
+                else:
+                    print "Please enter '1' for new value, or '2' for old value"
+
 
 success_count = len(glob.glob(outSuccessPrefix+"*.Success"))
 
