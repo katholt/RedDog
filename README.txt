@@ -1,4 +1,4 @@
-RedDog V0.5.2 080115
+RedDog V0.5.2 090215
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 License: none as yet...
@@ -18,10 +18,10 @@ Note: for Illumina paired-end or single reads, or Ion Torrent single reads.
 IMPORTANT: See config file/instructions for input options/requirements
 
 current version:
-V0.5.2      Run report to provide settings for merge runs (continuity checks) (DE)
-            Changes to input sequences pattern recognition (DE)
+V0.5.2      run report provides settings for merge runs (continuity checks) (DE)
             update to use SAMtools v1+ (DE)
-                includes addition of multiallelic SNP calling option - bcftools (DE)
+                includes (limited) addition of multiallelic SNP calling option - bcftools (DE)
+            added checkpoint_getSamStats to capture failure during initial BAM construction (DE)
 
 previous versions:
 V0.1        converted to vcf output via mpileup instead of depreciated pileup (DE)
@@ -160,6 +160,7 @@ V0.5.3      Any fixes from final testing (DE)
 V1.0        First Public Release of RedDog 
 
 (Post-release)
+    changes to input sequences pattern recognition
     extend parseGeneContent functions 
     add merging of bams for both pangenome and phylogenetic mapping
     reanalysis without mapping

@@ -1,7 +1,7 @@
 #!/bin/env python
 
 '''
-RedDog V0.5.2 060215
+RedDog V0.5.2 090215
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 License: none as yet...
@@ -569,7 +569,8 @@ if outMerge != '' and continuity_test:
             if keyboard_entry == '1' or keyboard_entry == '2':
                 value_change = True
                 if keyboard_entry == '2':
-                    bowtie_map_type = old_bowtie_preset
+                    bowtie_map_type = old_bowtie_preset 
+                print "\n'bowtie_map_type' set to " + bowtie_map_type
             else:
                 attempts_count +=1
                 if attempts_count >= 3:
@@ -578,7 +579,7 @@ if outMerge != '' and continuity_test:
                 else:
                     print "Please enter either '1' for new value, or '2' for old value"
 
-    if old_bowtie_X != bowtie_X_value:
+    if int(old_bowtie_X) != bowtie_X_value:
         print "\n'bowtie_X_value' has changed since last run"
         value_change = False
         attempts_count = 0
@@ -587,7 +588,8 @@ if outMerge != '' and continuity_test:
             if keyboard_entry == '1' or keyboard_entry == '2':
                 value_change = True
                 if keyboard_entry == '2':
-                    bowtie_X_value = old_bowtie_X
+                    bowtie_X_value = int(old_bowtie_X)
+                print "\n'bowtie_X_value' set to " + str(bowtie_X_value)
             else:
                 attempts_count +=1
                 if attempts_count >= 3:
@@ -596,7 +598,7 @@ if outMerge != '' and continuity_test:
                 else:
                     print "Please enter either '1' for new value, or '2' for old value"
 
-    if old_min_depth != minDepth:
+    if int(old_min_depth) != minDepth:
         print "\n'minimum_depth' for SNP calling has changed since last run"
         value_change = False
         attempts_count = 0
@@ -605,7 +607,8 @@ if outMerge != '' and continuity_test:
             if keyboard_entry == '1' or keyboard_entry == '2':
                 value_change = True
                 if keyboard_entry == '2':
-                    minDepth = old_min_depth
+                    minDepth = int(old_min_depth)
+                print "\n'minimum_depth' set to " + str(minDepth)
             else:
                 attempts_count +=1
                 if attempts_count >= 3:
@@ -614,7 +617,7 @@ if outMerge != '' and continuity_test:
                 else:
                     print "Please enter either '1' for new value, or '2' for old value"
 
-    if old_cover_fail != coverFail:
+    if int(old_cover_fail) != coverFail:
         print "\n'cover_fail' has changed since last run"
         value_change = False
         attempts_count = 0
@@ -623,7 +626,8 @@ if outMerge != '' and continuity_test:
             if keyboard_entry == '1' or keyboard_entry == '2':
                 value_change = True
                 if keyboard_entry == '2':
-                    coverFail = old_cover_fail
+                    coverFail = int(old_cover_fail)
+                print "\n'cover_fail' set to " + str(coverFail)
             else:
                 attempts_count +=1
                 if attempts_count >= 3:
@@ -632,7 +636,7 @@ if outMerge != '' and continuity_test:
                 else:
                     print "Please enter either '1' for new value, or '2' for old value"
 
-    if old_depth_fail != depthFail:
+    if int(old_depth_fail) != depthFail:
         print "\n'depth_fail' has changed since last run"
         value_change = False
         attempts_count = 0
@@ -641,7 +645,8 @@ if outMerge != '' and continuity_test:
             if keyboard_entry == '1' or keyboard_entry == '2':
                 value_change = True
                 if keyboard_entry == '2':
-                    depthFail = old_depth_fail
+                    depthFail = int(old_depth_fail)
+                print "\n'depth_fail' set to " + str(depthFail)
             else:
                 attempts_count +=1
                 if attempts_count >= 3:
@@ -650,7 +655,7 @@ if outMerge != '' and continuity_test:
                 else:
                     print "Please enter '1' for new value, or '2' for old value"
 
-    if old_mapped_fail != mappedFail and check_reads_mapped != 'off':
+    if int(old_mapped_fail) != mappedFail and check_reads_mapped != 'off':
         print "\n'mapped_fail' has changed since last run"
         value_change = False
         attempts_count = 0
@@ -659,7 +664,8 @@ if outMerge != '' and continuity_test:
             if keyboard_entry == '1' or keyboard_entry == '2':
                 value_change = True
                 if keyboard_entry == '2':
-                    mappedFail = old_mapped_fail
+                    mappedFail = int(old_mapped_fail)
+                print "\n'mapped_fail' set to " + str(mappedFail)
             else:
                 attempts_count +=1
                 if attempts_count >= 3:
@@ -668,7 +674,7 @@ if outMerge != '' and continuity_test:
                 else:
                     print "Please enter either '1' for new value, or '2' for old value"
 
-    if old_sd_out != sdOutgroupMultiplier:
+    if int(old_sd_out) != sdOutgroupMultiplier:
         print "\n'sd_out' has changed since last run"
         value_change = False
         attempts_count = 0
@@ -678,6 +684,7 @@ if outMerge != '' and continuity_test:
                 value_change = True
                 if keyboard_entry == '2':
                     sdOutgroupMultiplier = old_sd_out
+                print "\n'sd_out' set to " + str(sdOutgroupMultiplier)
             else:
                 attempts_count +=1
                 if attempts_count >= 3:
@@ -686,7 +693,7 @@ if outMerge != '' and continuity_test:
                 else:
                     print "Please enter '1' for new value, or '2' for old value"
 
-    if old_conservation != conservation:
+    if int(old_conservation) != conservation:
         print "\n'conservation' has changed since last run"
         value_change = False
         attempts_count = 0
@@ -695,7 +702,8 @@ if outMerge != '' and continuity_test:
             if keyboard_entry == '1' or keyboard_entry == '2':
                 value_change = True
                 if keyboard_entry == '2':
-                    conservation = old_conservation
+                    conservation = int(old_conservation)
+                print "\n'conservation' set to " + str(conservation)
             else:
                 attempts_count +=1
                 if attempts_count >= 3:
@@ -871,8 +879,15 @@ if mapping == 'bowtie':
             runStageCheck('getSamStats', flagFile, bamFile, output)
         stage_count += len(sequence_list) 
 
+# checkpoint_getSamStats
+        @merge(getSamStats, [outTempPrefix+'checkpoint.txt', outSuccessPrefix + "getSamStats.checkpoint.Success"])
+        def checkpoint_getSamStats(inputs,outputs):
+            output, flagFile = outputs
+            runStageCheck('checkpoint', flagFile, outTempPrefix, 'getSamStats')
+        stage_count += 1
+
         #filter unmapped reads
-        @follows(indexBam)
+        @follows(indexBam, checkpoint_getSamStats)
         @transform(alignBowtiePE, regex(r"(.*)\/(.+).bam"), [outBamPrefix + r'\2.bam', outSuccessPrefix + r'\2.filterUnmapped.Success'])
         def filterUnmapped(inputs, outputs):
             output, flagFile = outputs
@@ -924,8 +939,15 @@ if mapping == 'bowtie':
             runStageCheck('getSamStats', flagFile, bamFile, output)
         stage_count += len(sequence_list) 
 
+# checkpoint_getSamStats
+        @merge(getSamStats, [outTempPrefix+'checkpoint.txt', outSuccessPrefix + "getSamStats.checkpoint.Success"])
+        def checkpoint_getSamStats(inputs,outputs):
+            output, flagFile = outputs
+            runStageCheck('checkpoint', flagFile, outTempPrefix, 'getSamStats')
+        stage_count += 1
+
         #filter unmapped reads
-        @follows(indexBam)
+        @follows(indexBam, checkpoint_getSamStats)
         @transform(alignBowtie, regex(r"(.*)\/(.+).bam"), [outBamPrefix + r'\2.bam', outSuccessPrefix + r'\2.filterUnmapped.Success'])
         def filterUnmapped(inputs, outputs):
             output, flagFile = outputs
@@ -991,8 +1013,15 @@ else: # mapping = 'BWA'
             runStageCheck('getSamStats', flagFile, bamFile, output)
         stage_count += len(sequence_list) 
 
+# checkpoint_getSamStats
+        @merge(getSamStats, [outTempPrefix+'checkpoint.txt', outSuccessPrefix + "getSamStats.checkpoint.Success"])
+        def checkpoint_getSamStats(inputs,outputs):
+            output, flagFile = outputs
+            runStageCheck('checkpoint', flagFile, outTempPrefix, 'getSamStats')
+        stage_count += 1
+
         #filter unmapped reads
-        @follows(indexBam)
+        @follows(indexBam, checkpoint_getSamStats)
         @transform(alignBWAPE, regex(r"(.*)\/(.+).bam"), [outBamPrefix + r'\2.bam', outSuccessPrefix + r'\2.filterUnmapped.Success'])
         def filterUnmapped(inputs, outputs):
             output, flagFile = outputs
@@ -1045,8 +1074,15 @@ else: # mapping = 'BWA'
             runStageCheck('getSamStats', flagFile, bamFile, output)
         stage_count += len(sequence_list) 
 
+# checkpoint_getSamStats
+        @merge(getSamStats, [outTempPrefix+'checkpoint.txt', outSuccessPrefix + "getSamStats.checkpoint.Success"])
+        def checkpoint_callRepSNPs(inputs,outputs):
+            output, flagFile = outputs
+            runStageCheck('checkpoint', flagFile, outTempPrefix, 'getSamStats')
+        stage_count += 1
+
         #filter unmapped reads
-        @follows(indexBam)
+        @follows(indexBam, checkpoint_getSamStats)
         @transform(alignBWASE, regex(r"(.*)\/(.+).bam"), [outBamPrefix + r'\2.bam', outSuccessPrefix + r'\2.filterUnmapped.Success'])
         def filterUnmapped(inputs, outputs):
             output, flagFile = outputs
@@ -1093,7 +1129,7 @@ def getCoverByRep(inputs, outputs):
 stage_count += len(sequence_list) 
 
 # Derive run statistics - first, the 'all statistics' data
-@follows(getSamStats)
+@follows(checkpoint_getSamStats)
 @transform(getCoverByRep, regex(r"(.*)\/(.+)_rep_cover.txt"), [r'\1/\2_AllStats.txt', outSuccessPrefix + r'\2.deriveAllStats.Success'])
 def deriveAllStats(inputs, outputs):
     output, flagFile = outputs
@@ -1197,7 +1233,7 @@ if runType == "pangenome":
                 yield([coverFile, [output, flagFile], repliconName, depthFail, coverFail])
 
     @follows(getVcfStats)
-    @follows(getSamStats)
+    @follows(checkpoint_getSamStats)
     @follows(getCoverByRep)
     @files(statsByCoreRep)
     def deriveRepStats(coverFile, outputs, repliconName, depthFail, coverFail):
@@ -1312,7 +1348,7 @@ else: # runType == "phylogeny"
                 yield([coverFile, [output, flagFile], replicon, depthFail, coverFail])
 
     @follows(getVcfStats)
-    @follows(getSamStats)
+    @follows(chekpoint_getSamStats)
     @follows(getCoverByRep)
     @files(statsByRep)
     def deriveRepStats(coverFile, outputs, replicon, depthFail, coverFail):
