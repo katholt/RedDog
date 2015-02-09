@@ -367,13 +367,18 @@ def get_run_report_data(run_report):
     conservation = ''
     replicon_list = []
     core = False
+    read_keep = False
+    run_keep = False
+    core_keep = False
+    user_failed_keep = False
+    replicon_list_keep = False
 
     for line in lines:
-        if line == '\n' or line.startswith('RedDog'):
+        if line == '\n':
             read_keep = False
             run_keep = False
             core_keep = False
-            user_failed_list = False
+            user_failed_keep = False
             replicon_list_keep = False
         if line.startswith('Read History:'):
             read_keep = True
@@ -385,12 +390,12 @@ def get_run_report_data(run_report):
             run_history += line
         if line.startswith('Reference:'):
             items = line[:-1].split()
-            ref_name = items[1]
+            ref_pre, ref_name, ref_ext = splitPath(items[1])
         if line.startswith('Reference Format:'):
-            items = line[:-1].split()
+            items = line[:-1].split(': ')
             ref_format = items[1]
         if line.startswith('No. of Replicons:'):
-            items = line[:-1].split()            
+            items = line[:-1].split(': ')            
             replicon_count = items[1]
         if line.startswith('Core replicon(s):'):
             core_keep = True
@@ -398,32 +403,32 @@ def get_run_report_data(run_report):
         elif core_keep:
             core_replicon_list.append(line[:-1])
         if line.startswith('Run type:'):
-            items = line[:-1].split()
+            items = line[:-1].split(': ')
             run_type = items[1]
         if line.startswith('bowtie mapping preset:'):
-            items = line[:-1].split()
+            items = line[:-1].split(': ')
             bowtie_preset = items[1]
         if line.startswith('bowtie X option:'):
-            items = line[:-1].split()
+            items = line[:-1].split(': ')
             bowtie_X = items[1]
         if line.startswith('Sequences failed by user:'):
             user_failed_keep = True
         elif user_failed_keep:
             user_failed_list.append(line[:-1])
         if line.startswith('Minimum read depth:'):
-            items = line[:-1].split()
+            items = line[:-1].split(': ')
             min_depth = items[1]
         if line.startswith('Coverage of replicon:'):
-            items = line[:-2].split()
+            items = line[:-2].split(': ')
             cover_fail = items[1]
         if line.startswith('Depth of reads:'):
-            items = line[:-1].split()
+            items = line[:-1].split(': ')
             depth_fail = items[1]
         if line.startswith('Reads mapped:'):
-            items = line[:-1].split()
-            depth_fail = items[1]
-            if depth_fail.endswith('%'):
-                depth_fail = depth_fail[:-1]
+            items = line[:-1].split(': ')
+            mapped_fail = items[1]
+            if mapped_fail.endswith('%'):
+                mapped_fail = mapped_fail[:-1]
         if line.startswith('Replicon\tPercent of total'):
             replicon_list_keep = True
         elif replicon_list_keep:
@@ -431,10 +436,10 @@ def get_run_report_data(run_report):
             replicon_test_list.append(items[0])
             replicon_percent_list.append(items[1])
         if line.startswith('Allele conservation ratio:'):
-            items = line[:-1].split()
+            items = line[:-1].split(': ')
             conservation = items[1]
         if line.startswith('Standard Deviations'):
-            items = line[:-1].split()
+            items = line[:-1].split(': ')
             sd_out = items[1]
         if not core and line.startswith('Replicon:'):
             items = line[:-1].split()

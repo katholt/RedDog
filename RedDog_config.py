@@ -4,27 +4,37 @@ Configuration file for RedDog.py V0.5.2
 Essential pipeline variables.
 '''
 #reference = ""
-#reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_plasmid.fasta"
+reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_plasmid.fasta"
 
 #sequences = ""
 #sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/*.fastq.gz"
-#sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/extra/*.fastq.gz"
+sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/extra/*.fastq.gz"
 
 #output = ""
 #output = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
-#output = "/scratch/VR0082/workspace/mapping/v052_test"
+output = "/scratch/VR0082/workspace/mapping/v052_test_merge"
 
-out_merge_target = ""
+#out_merge_target = ""
+out_merge_target = "/scratch/VR0082/workspace/mapping/v052_test"
 #out_merge_target = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
 
-reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_plasmid.fasta"
-sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/*.fastq.gz"
-output = "/scratch/VR0082/workspace/mapping/samtools_test_v52"
+#reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_plasmid.fasta"
+#sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/*.fastq.gz"
+#output = "/scratch/VR0082/workspace/mapping/v052_test"
 
 #output = "/scratch/VR0082/workspace/mapping/samtools_test_temp"
 #out_merge_target = "/scratch/VR0082/workspace/mapping/samtools_test_v51_merge"
 #out_merge_target = "/scratch/VR0082/workspace/mapping/samtools_test_v52"
 #sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/extra/*.fastq.gz"
+
+#reference = "/scratch/VR0082/workspace/RedDog_Tutorial/2011C-3493_full.gbk"
+#sequences = "/vlsci/VR0082/shared/data/ecoli/RedDog_O104H4_tutorial/sim_reads/*.fastq.gz"
+#output = "/scratch/VR0082/workspace/mapping/o104_v052_mc"
+
+#reference = "/vlsci/VR0082/shared/data/neisseria/meningitidis/reference/NC_008767.gbk"
+#sequences = ["/vlsci/VR0082/shared/data/neisseria/meningitidis/bratcher_fastq/*.fastq.gz",
+#            "/vlsci/VR0082/shared/data/neisseria/meningitidis/other_fastq_sim/*.fastq.gz"]
+#output = "/scratch/VR0082/workspace/mapping/bratcher_v052_full/"
 
 '''
 Notes:

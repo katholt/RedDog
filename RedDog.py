@@ -31,7 +31,7 @@ import sys
 import glob
 from rubra.utils import pipeline_options
 from rubra.utils import (runStageCheck, splitPath)
-from pipe_utils import (isGenbank, isFasta, chromInfoFasta, chromInfoGenbank, getValue, getCover, make_sequence_list, getSuccessCount, make_run_report, get_run_report, get_read_report)
+from pipe_utils import (isGenbank, isFasta, chromInfoFasta, chromInfoGenbank, getValue, getCover, make_sequence_list, getSuccessCount, make_run_report, get_run_report_data)
 
 version = "V0.5.2"
 
@@ -487,20 +487,20 @@ if outMerge != '' and continuity_test:
         print "\nReference name is different from prior run(s)"
         print "Pipeline Stopped: please use correct reference\n"
         sys.exit()
-    if refGenbank and old_ref_format != 'Genbank'
+    if refGenbank and old_ref_format != 'Genbank':
         print "\nExpected FASTA reference, not Genbank"
         print "Pipeline Stopped: please use correct reference\n"
         sys.exit()
-    if not refGenbank and old_ref_format == 'Genbank'
+    if not refGenbank and old_ref_format == 'Genbank':
         print "\nExpected Genbank reference, not FASTA"
         print "Pipeline Stopped: please use correct reference\n"
         sys.exit()
-    if len(replicons) != old_replicon_count:
+    if len(replicons) != int(old_replicon_count):
         print "\nDifferent number of replicons found in reference"
         print "Pipeline Stopped: please use correct reference\n"
         sys.exit()
     if runType != old_run_type:
-        print "\nExpected " + runType + " run; " + old_run_type + " run specified":
+        print "\nExpected " + runType + " run; " + old_run_type + " run specified"
         print "Pipeline Stopped: please specify same run type as previously ("+old_run_type+")\n"
         sys.exit()
     replicon_fail = False
@@ -554,7 +554,7 @@ if outMerge != '' and continuity_test:
         for replicon in old_replicon_list:
             if replicon not in replicon_names:
                 replicon_fail = True
-        if replicion_fail:
+        if replicon_fail:
             print "\nReplicons have changed since last run"
             print "Pipeline Stopped: please specify reference with same replicons as previously\n"
             sys.exit()
@@ -641,7 +641,7 @@ if outMerge != '' and continuity_test:
         value_change = False
         attempts_count = 0
         while value_change == False:
-            keyboard_entry = raw_input('\nDo you wish to use: \n[1] the new value ('+depthFail+'), or\n[2] the old value? ('+old_depth_fail+')\n')
+            keyboard_entry = raw_input('\nDo you wish to use: \n[1] the new value ('+str(depthFail)+'), or\n[2] the old value? ('+old_depth_fail+')\n')
             if keyboard_entry == '1' or keyboard_entry == '2':
                 value_change = True
                 if keyboard_entry == '2':
@@ -660,7 +660,7 @@ if outMerge != '' and continuity_test:
         value_change = False
         attempts_count = 0
         while value_change == False:
-            keyboard_entry = raw_input('\nDo you wish to use: \n[1] the new value ('+mappedFail+'), or\n[2] the old value? ('+old_mapped_fail+')\n')
+            keyboard_entry = raw_input('\nDo you wish to use: \n[1] the new value ('+str(mappedFail)+'), or\n[2] the old value? ('+old_mapped_fail+')\n')
             if keyboard_entry == '1' or keyboard_entry == '2':
                 value_change = True
                 if keyboard_entry == '2':
@@ -679,7 +679,7 @@ if outMerge != '' and continuity_test:
         value_change = False
         attempts_count = 0
         while value_change == False:
-            keyboard_entry = raw_input('\nDo you wish to use: \n[1] the new value ('+sdOutgroupMultiplier+'), or\n[2] the old value? ('+old_sd_out+')\n')
+            keyboard_entry = raw_input('\nDo you wish to use: \n[1] the new value ('+str(sdOutgroupMultiplier)+'), or\n[2] the old value? ('+old_sd_out+')\n')
             if keyboard_entry == '1' or keyboard_entry == '2':
                 value_change = True
                 if keyboard_entry == '2':
@@ -693,12 +693,12 @@ if outMerge != '' and continuity_test:
                 else:
                     print "Please enter '1' for new value, or '2' for old value"
 
-    if int(old_conservation) != conservation:
+    if float(old_conservation) != conservation:
         print "\n'conservation' has changed since last run"
         value_change = False
         attempts_count = 0
         while value_change == False:
-            keyboard_entry = raw_input('\nDo you wish to use: \n[1] the new value ('+conservation+'), or\n[2] the old value? ('+old_conservation+')\n')
+            keyboard_entry = raw_input('\nDo you wish to use: \n[1] the new value ('+str(conservation)+'), or\n[2] the old value? ('+old_conservation+')\n')
             if keyboard_entry == '1' or keyboard_entry == '2':
                 value_change = True
                 if keyboard_entry == '2':
@@ -1348,7 +1348,7 @@ else: # runType == "phylogeny"
                 yield([coverFile, [output, flagFile], replicon, depthFail, coverFail])
 
     @follows(getVcfStats)
-    @follows(chekpoint_getSamStats)
+    @follows(checkpoint_getSamStats)
     @follows(getCoverByRep)
     @files(statsByRep)
     def deriveRepStats(coverFile, outputs, replicon, depthFail, coverFail):
