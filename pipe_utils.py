@@ -317,34 +317,6 @@ def make_run_report(out_directory,
     report_file.close()
     return
 
-def get_run_report(run_report):
-    report_file = open(run_report, "rU")
-    lines = report_file.readlines()
-    keep = False
-    history = ''
-    for line in lines:
-        if line.startswith('Run History:'):
-            keep = True
-        if line == '\n':
-            keep = False
-        if keep == True:
-            history += line
-    return history
-
-def get_read_report(run_report):
-    report_file = open(run_report, "rU")
-    lines = report_file.readlines()
-    keep = False
-    history = ''
-    for line in lines:
-        if line.startswith('Read History:'):
-            keep = True
-        if line == '\n':
-            keep = False
-        if keep == True:
-            history += line
-    return history
-
 def get_run_report_data(run_report):
     report_file = open(run_report, "rU")
     lines = report_file.readlines()
