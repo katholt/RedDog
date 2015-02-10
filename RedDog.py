@@ -1,7 +1,7 @@
 #!/bin/env python
 
 '''
-RedDog V0.5.2 090215
+RedDog V0.5.2 110215
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 License: none as yet...
@@ -353,7 +353,14 @@ if outMerge != '':
     if os.path.exists(outMerge + 'finish.deleteDir.Success'):
         print "\n'out_merge_target' still has 'finish.deleteDir.Success' file"
         print "Pipeline Stopped: please delete this file before restarting\n"
-        sys.exit()    
+        sys.exit()
+
+    if os.path.exists(outMerge + refName +'_AllStats.txt') != True:
+        print "\n'out_merge_target' has no '"+ refName+"_AllStats.txt' file"
+        print "Pipeline Stopped: please check you have the correct 'reference' and/or "
+        print "\t\t  'out_merge_target' before restarting\n"
+        sys.exit()
+
     if os.path.exists(outMerge + refName + '_run_report.txt'):
         (read_history, 
         run_history, 
@@ -480,9 +487,10 @@ for sequence in sequence_list:
     sequence_list_string += sequence + ","
 sequence_list_string.rstrip()
 
+success_count = len(glob.glob(outSuccessPrefix+"*.Success"))
+
 # test for continuity with prior run for merge runs
 if outMerge != '' and continuity_test:
-    #Fatal differences
     if refName != old_ref_name:
         print "\nReference name is different from prior run(s)"
         print "Pipeline Stopped: please use correct reference\n"
@@ -500,8 +508,8 @@ if outMerge != '' and continuity_test:
         print "Pipeline Stopped: please use correct reference\n"
         sys.exit()
     if runType != old_run_type:
-        print "\nExpected " + runType + " run; " + old_run_type + " run specified"
-        print "Pipeline Stopped: please specify same run type as previously ("+old_run_type+")\n"
+        print "\nExpected " + old_run_type + " run; " + runType + " run specified"
+        print "Pipeline Stopped: please specify same run type as previously used ("+old_run_type+")\n"
         sys.exit()
     replicon_fail = False
     if runType == 'pangenome':
@@ -518,33 +526,6 @@ if outMerge != '' and continuity_test:
             print "Pipeline Stopped: please specify reference with same replicons as previously used\n"
             sys.exit()
 
-        if old_mapped_fail != 'off':
-            replicon_test = ""
-            for replicon in old_replicon_test_list:
-                replicon_test += (replicon + ",")
-            if len(old_replicon_test_list) > 1:
-                replicon_test += 'x,'
-
-            check_test = True
-
-            if not check_reads_mapped.startswith(replicon_test):
-                check_test = False
-
-            if len(old_replicon_test_list) > 1:
-                replicon_value_test = []
-                for number in range(len(old_replicon_percent_list)-1):
-                    replicon_value_test.append(float(old_replicon_percent_list[number])/100)
-                all_values = check_reads_mapped.split(',x,')
-                values = all_values.split(',')
-                if len(values) != len(replicon_value_test):
-                    check_test = False
-                for number in range(len(values)):
-                    if float(values[number]) != replicon_value_test[number]:
-                        check_test = False
-            if not check_test:
-                print "\n'check_reads_mapped' has changed since last run"
-                print "Pipeline Stopped: please provide same 'check_reads_mapped' as previously used\n"
-                sys.exit()
     else:
         replicon_names = []
         for replicon in replicons:
@@ -559,7 +540,53 @@ if outMerge != '' and continuity_test:
             print "Pipeline Stopped: please specify reference with same replicons as previously\n"
             sys.exit()
 
-    if old_bowtie_preset != bowtie_map_type:
+    if old_mapped_fail != 'off' and check_reads_mapped == 'off':
+        print "\n'check_reads_mapped' has changed to 'off' since last run"
+        value_change = False
+        attempts_count = 0
+        while value_change == False:
+            keyboard_entry = raw_input('\nAre you sure you want to turn off checking percentage of reads mapped: \n[1] yes, or\n[2] no?\n')
+            if keyboard_entry == '1' or keyboard_entry == '2':
+                value_change = True
+                if keyboard_entry == '2':
+                    print "\nPlease restore 'check_reads_mapped' to previously used setting"
+                    print "Pipeline Stopped: user request\n"
+                    sys.exit()
+                print "\n'check_reads_mapped' set to 'off' confirmed\n"
+            else:
+                attempts_count +=1
+                if attempts_count >= 3:
+                    print "\nPipeline Stopped: too many tries\n"
+                    sys.exit()
+                else:
+                    print "Please enter either '1' for 'yes', or '2' for 'no'"
+
+    if old_mapped_fail != 'off' and check_reads_mapped != 'off':
+        replicon_test = ""
+        for replicon in old_replicon_test_list:
+            replicon_test += (replicon + ",")
+        if len(old_replicon_test_list) > 1:
+            replicon_test += 'x,'
+        check_test = True
+        if not check_reads_mapped.startswith(replicon_test):
+            check_test = False
+        if len(old_replicon_test_list) > 1:
+            replicon_value_test = []
+            for number in range(len(old_replicon_percent_list)-1):
+                replicon_value_test.append(float(old_replicon_percent_list[number])/100)
+            all_values = check_reads_mapped.split(',x,')
+            values = all_values.split(',')
+            if len(values) != len(replicon_value_test):
+                check_test = False
+            for number in range(len(values)):
+                if float(values[number]) != replicon_value_test[number]:
+                    check_test = False
+        if not check_test:
+            print "\n'check_reads_mapped' has changed since last run"
+            print "Pipeline Stopped: please provide same 'check_reads_mapped' as previously used\n"
+            sys.exit()
+
+    if old_bowtie_preset != '' and old_bowtie_preset != bowtie_map_type:
         print "\n'bowtie_map_type' has changed since last run"
         value_change = False
         attempts_count = 0
@@ -579,12 +606,12 @@ if outMerge != '' and continuity_test:
                 else:
                     print "Please enter either '1' for new value, or '2' for old value"
 
-    if int(old_bowtie_X) != bowtie_X_value:
+    if old_bowtie_X != '' and int(old_bowtie_X) != bowtie_X_value:
         print "\n'bowtie_X_value' has changed since last run"
         value_change = False
         attempts_count = 0
         while value_change == False:
-            keyboard_entry = raw_input('\nDo you wish to use: \n[1] the new value ('+bowtie_X_value +'), or\n[2] the old value? ('+old_bowtie_X+')\nNote: this only affects new read sets\n')
+            keyboard_entry = raw_input('\nDo you wish to use: \n[1] the new value ('+str(bowtie_X_value) +'), or\n[2] the old value? ('+old_bowtie_X+')\nNote: this only affects new read sets\n')
             if keyboard_entry == '1' or keyboard_entry == '2':
                 value_change = True
                 if keyboard_entry == '2':
@@ -603,7 +630,7 @@ if outMerge != '' and continuity_test:
         value_change = False
         attempts_count = 0
         while value_change == False:
-            keyboard_entry = raw_input('\nDo you wish to use: \n[1] the new value ('+minDepth+'), or\n[2] the old value? ('+old_min_depth+')\nNote: this only affects new read sets\n')
+            keyboard_entry = raw_input('\nDo you wish to use: \n[1] the new value ('+str(minDepth)+'), or\n[2] the old value? ('+old_min_depth+')\nNote: this only affects new read sets\n')
             if keyboard_entry == '1' or keyboard_entry == '2':
                 value_change = True
                 if keyboard_entry == '2':
@@ -622,7 +649,7 @@ if outMerge != '' and continuity_test:
         value_change = False
         attempts_count = 0
         while value_change == False:
-            keyboard_entry = raw_input('\nDo you wish to use: \n[1] the new value ('+coverFail+'), or\n[2] the old value? ('+old_cover_fail+')\n')
+            keyboard_entry = raw_input('\nDo you wish to use: \n[1] the new value ('+str(coverFail)+'), or\n[2] the old value? ('+old_cover_fail+')\n')
             if keyboard_entry == '1' or keyboard_entry == '2':
                 value_change = True
                 if keyboard_entry == '2':
@@ -713,7 +740,6 @@ if outMerge != '' and continuity_test:
                     print "Please enter '1' for new value, or '2' for old value"
 
 
-success_count = len(glob.glob(outSuccessPrefix+"*.Success"))
 
 #Phew! Now that's all set up, we can begin...
 #but first, output run conditions to user and get confirmation to run
@@ -1496,13 +1522,11 @@ stage_count += 1
 
 if refGenbank == True:
     if outMerge != "":
-        bamPatterns = outMergeBam + '*.bam'
-        bams = []
-        if type(bamPatterns) == list:
-            for pattern in bamPatterns:
-                bams.append(glob.glob(pattern))
-        else:
-            bams = glob.glob(bamPatterns)        
+
+        bams = []        
+        for sequence in full_sequence_list:
+            if sequence not in sequence_list:
+                bams.append(outMergeBam + sequence + '.bam')
 
         # generate data for the gene cover and depth matrices
         @transform(getCoverage, regex(r"(.*)\/(.+)_coverage.txt"), [outTempPrefix + r'\2/\2_CoverDepthMatrix.txt', outSuccessPrefix + r'\2.deriveAllRepGeneCover.Success'])
@@ -1644,7 +1668,7 @@ if refGenbank == True:
             stage_count += len(core_replicons)
 
         if conservation != 0.95:
-            @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outMerge + r"\2_alleles_var_cons0.95.csv", outSuccessPrefix + r"\2_alleles.parseSNPs_95.Success"])
+            @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outMerge + r"\2_alleles_var_cons" + "0.95.csv", outSuccessPrefix + r"\2_alleles.parseSNPs_95.Success"])
             def parseSNPs_95(inputs, outputs):
                 output, flagFile = outputs
                 input,_success = inputs
@@ -1683,16 +1707,29 @@ if refGenbank == True:
                 stage_count += len(core_replicons)
 
         # generate tree
-        @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
-        def makeTree(inputs, outputs):
-            output, flagFile = outputs
-            input, _success = inputs
-            input = input[:-4] + ".mfasta"
-            runStageCheck('makeTree', flagFile, input, output)
-        if runType == "phylogeny":
-            stage_count += len(replicons)
+        if conservation != 0.95:
+            @follows(parseSNPs_95)
+            @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+            def makeTree(inputs, outputs):
+                output, flagFile = outputs
+                input, _success = inputs
+                input = input[:-4] + ".mfasta"
+                runStageCheck('makeTree', flagFile, input, output)
+            if runType == "phylogeny":
+                stage_count += len(replicons)
+            else:
+                stage_count += len(core_replicons)
         else:
-            stage_count += len(core_replicons)
+            @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+            def makeTree(inputs, outputs):
+                output, flagFile = outputs
+                input, _success = inputs
+                input = input[:-4] + ".mfasta"
+                runStageCheck('makeTree', flagFile, input, output)
+            if runType == "phylogeny":
+                stage_count += len(replicons)
+            else:
+                stage_count += len(core_replicons)
 
     else: #ie. mergeReads == "" and refGenbank == True
         # generate the gene cover and depth matrices
@@ -1857,28 +1894,39 @@ if refGenbank == True:
             else:
                 stage_count += len(core_replicons)
 
+        if conservation != 0.95:
         # generate tree
-        @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
-        def makeTree(inputs, outputs):
-            output, flagFile = outputs
-            input, _success = inputs
-            input = input[:-4] + ".mfasta"
-            runStageCheck('makeTree', flagFile, input, output)
-        if runType == "phylogeny":
-            stage_count += len(replicons)
+            @follows(parseSNPs_95)
+            @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+            def makeTree(inputs, outputs):
+                output, flagFile = outputs
+                input, _success = inputs
+                input = input[:-4] + ".mfasta"
+                runStageCheck('makeTree', flagFile, input, output)
+            if runType == "phylogeny":
+                stage_count += len(replicons)
+            else:
+                stage_count += len(core_replicons)
         else:
-            stage_count += len(core_replicons)
+            @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+            def makeTree(inputs, outputs):
+                output, flagFile = outputs
+                input, _success = inputs
+                input = input[:-4] + ".mfasta"
+                runStageCheck('makeTree', flagFile, input, output)
+            if runType == "phylogeny":
+                stage_count += len(replicons)
+            else:
+                stage_count += len(core_replicons)
 
 else: # refGenbank == False
     if outMerge != "":
         # get consensus sequence for merged set
-        bamPatterns = outMergeBam + '*.bam'
         bams = []
-        if type(bamPatterns) == list:
-            for pattern in bamPatterns:
-                bams.append(glob.glob(pattern))
-        else:
-            bams = glob.glob(bamPatterns)        
+        for sequence in full_sequence_list:
+            if sequence not in sequence_list:
+                bams.append(outMergeBam + sequence + '.bam')
+
         @follows(checkpoint_getRepSNPList)
         @transform(bams, regex(r"(.*)\/(.+).bam"), [outTempPrefix + r"\2/\2_cns.fq", outSuccessPrefix + r"\2.getMergeConsensus.Success"])
         def getMergeConsensus(input, outputs):
@@ -1991,11 +2039,11 @@ else: # refGenbank == False
             stage_count += len(core_replicons)
 
         if conservation != 0.95:
-            @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outMerge + r"\2_alleles_var_cons0.95.csv", outSuccessPrefix + r"\2_alleles.parseSNPsNoGBK_95.Success"])
+            conservation_temp = 0.95
+            @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outMerge + r"\2_alleles_var_cons" + "0.95.csv", outSuccessPrefix + r"\2_alleles.parseSNPsNoGBK_95.Success"])
             def parseSNPsNoGBK_95(inputs, outputs):
                 input,_success = inputs
                 output, flagFile = outputs
-                conservation_temp = 0.95
                 runStageCheck('parseSNPsNoGBK', flagFile, input, str(conservation_temp), outMerge)
             if runType == "phylogeny":
                 stage_count += len(replicons)
@@ -2028,16 +2076,29 @@ else: # refGenbank == False
                 stage_count += len(core_replicons)
 
         # generate tree
-        @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
-        def makeTree(inputs, outputs):
-            output, flagFile = outputs
-            input, _success = inputs
-            input = input[:-4] + ".mfasta"
-            runStageCheck('makeTree', flagFile, input, output)
-        if runType == "phylogeny":
-            stage_count += len(replicons)
+        if conservation != 0.95:
+            @follows(parseSNPsNoGBK_95)
+            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+            def makeTree(inputs, outputs):
+                output, flagFile = outputs
+                input, _success = inputs
+                input = input[:-4] + ".mfasta"
+                runStageCheck('makeTree', flagFile, input, output)
+            if runType == "phylogeny":
+                stage_count += len(replicons)
+            else:
+                stage_count += len(core_replicons)
         else:
-            stage_count += len(core_replicons)
+            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+            def makeTree(inputs, outputs):
+                output, flagFile = outputs
+                input, _success = inputs
+                input = input[:-4] + ".mfasta"
+                runStageCheck('makeTree', flagFile, input, output)
+            if runType == "phylogeny":
+                stage_count += len(replicons)
+            else:
+                stage_count += len(core_replicons)
 
     else: #refGenbank == False and outMerge == ''
 
@@ -2140,7 +2201,7 @@ else: # refGenbank == False
 
         if conservation != 0.95:
             @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outPrefix + r"\2_alleles_var_cons0.95.csv", outSuccessPrefix + r"\2_alleles.parseSNPsNoGBK_95.Success"])
-            def parseSNPsNoGBK_100(inputs, outputs):
+            def parseSNPsNoGBK_95(inputs, outputs):
                 output, flagFile = outputs
                 input,_success = inputs
                 conservation_temp = 0.95
@@ -2176,16 +2237,29 @@ else: # refGenbank == False
                 stage_count += len(core_replicons)
 
         # generate tree
-        @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
-        def makeTree(inputs, outputs):
-            output, flagFile = outputs
-            input, _success = inputs
-            input = input[:-4] + ".mfasta"
-            runStageCheck('makeTree', flagFile, input, output)
-        if runType == "phylogeny":
-            stage_count += len(replicons)
+        if conservation != 0.95:
+            @follows(parseSNPsNoGBK_95)
+            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+            def makeTree(inputs, outputs):
+                output, flagFile = outputs
+                input, _success = inputs
+                input = input[:-4] + ".mfasta"
+                runStageCheck('makeTree', flagFile, input, output)
+            if runType == "phylogeny":
+                stage_count += len(replicons)
+            else:
+                stage_count += len(core_replicons)
         else:
-            stage_count += len(core_replicons)
+            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+            def makeTree(inputs, outputs):
+                output, flagFile = outputs
+                input, _success = inputs
+                input = input[:-4] + ".mfasta"
+                runStageCheck('makeTree', flagFile, input, output)
+            if runType == "phylogeny":
+                stage_count += len(replicons)
+            else:
+                stage_count += len(core_replicons)
 
 print str(stage_count + 1) + " jobs to be executed in total"
 if success_count > 0:

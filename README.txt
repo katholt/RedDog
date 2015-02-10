@@ -1,4 +1,4 @@
-RedDog V0.5.2 090215
+RedDog V0.5.2 110215
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 License: none as yet...
@@ -22,6 +22,7 @@ V0.5.2      run report provides settings for merge runs (continuity checks) (DE)
             update to use SAMtools v1+ (DE)
                 includes (limited) addition of multiallelic SNP calling option - bcftools (DE)
             added checkpoint_getSamStats to capture failure during initial BAM construction (DE)
+            changed bams from glob call to list call (DE)
 
 previous versions:
 V0.1        converted to vcf output via mpileup instead of depreciated pileup (DE)
