@@ -319,6 +319,41 @@ if check_reads_mapped == "":
     for repliconName, repliconLength in replicons:
         if int(repliconLength) == longest_replicon_length:
             check_reads_mapped = repliconName
+else:
+    if check_reads_mapped.find(',') == -1:
+        if check_reads_mapped not in repliconNames:
+            print "\nUnrecogised replicon in 'check_reads_mapped': " + check_reads_mapped
+            print "Pipeline Stopped: please check 'check_reads_mapped' in the config file\n"
+            sys.exit()
+    else:
+        found_x = False
+        final_ratio = 1.0
+        list_of_replicons = []
+        check_reps = check_reads_mapped.split(',')
+        for item in check_reps:
+            if item != 'x':
+                if found_x != True:
+                    list_of_replicons.append(item)
+                else:
+                    final_ratio -= float(item)
+            else:
+                found_x = True
+        if final_ratio <= 0:
+            print "\nFinal ratio in 'check_reads_mapped' less than or equal to zero"
+            print "Pipeline Stopped: please check ratio(s) in 'check_reads_mapped' in the config file\n"
+            sys.exit()
+        list_of_replicons_done = []
+        for replicon in list_of_replicons:
+            if replicon not in repliconNames:
+                print "\nUnrecogised replicon in 'check_reads_mapped': " + replicon
+                print "Pipeline Stopped: please check 'check_reads_mapped' in the config file\n"
+                sys.exit()
+            elif replicon not in list_of_replicons_done:
+                list_of_replicons_done.append(replicon)
+            else:
+                print "\nReplicon repeated in 'check_reads_mapped': " + replicon
+                print "Pipeline Stopped: please check 'check_reads_mapped' in the config file\n"
+                sys.exit()
 
 try:
     outPrefix = pipeline_options.output
@@ -338,6 +373,11 @@ outSuccessPrefix = outTempPrefix + 'success/'
 outBamPrefix = outPrefix + 'bam/'
 outVcfPrefix = outPrefix + 'vcf/'
 
+if os.path.isdir(outPrefix) and not(os.path.exists(outSuccessPrefix + "dir.makeDir.Success")):
+    print "\nOutput folder already exists"
+    print "Pipeline Stopped: please change 'output' to a new folder\n"
+    sys.exit()    
+
 try:
     outMerge = pipeline_options.out_merge_target
 except:
@@ -345,22 +385,40 @@ except:
     print "Pipeline Stopped: please set 'out_merge_target' in the config file\n"
     sys.exit()    
 
+if outPrefix == outMerge:
+    print "\nOutput folder and out_merge_target for run are the same"
+    print "Pipeline Stopped: please check 'output' and 'out_merge_target' in the config file\n"
+    sys.exit()
+
 continuity_test = False
 if outMerge != '':
-    merge_run = True
     if outMerge[-1] != '/':
         outMerge += '/'
+    outMergeBam = outMerge + 'bam/'
+    outMergeVcf = outMerge + 'vcf/'
+    if not(os.path.isdir(outMerge)):
+        print "\nMerge target folder not found"
+        print "Pipeline Stopped: please change 'out_merge_target' to previous output folder\n"
+        sys.exit()
+    else:
+        if not(os.path.isdir(outMergeBam)):
+            print "\nBAM folder not found"
+            print "Pipeline Stopped: check 'out_merge_target' has BAM folder\n"
+            sys.exit()    
+        if not(os.path.isdir(outMergeVcf)):
+            print "\nVCF folder not found"
+            print "Pipeline Stopped: check 'out_merge_target' has VCF folder\n"
+            sys.exit()    
     if os.path.exists(outMerge + 'finish.deleteDir.Success'):
         print "\n'out_merge_target' still has 'finish.deleteDir.Success' file"
         print "Pipeline Stopped: please delete this file before restarting\n"
         sys.exit()
-
     if os.path.exists(outMerge + refName +'_AllStats.txt') != True:
         print "\n'out_merge_target' has no '"+ refName+"_AllStats.txt' file"
         print "Pipeline Stopped: please check you have the correct 'reference' and/or "
         print "\t\t  'out_merge_target' before restarting\n"
         sys.exit()
-
+    merge_run = True
     if os.path.exists(outMerge + refName + '_run_report.txt'):
         (read_history, 
         run_history, 
@@ -383,7 +441,7 @@ if outMerge != '':
         old_replicon_list) = get_run_report_data(outMerge + refName + '_run_report.txt')
         continuity_test = True
     else:
-        print "Merge Run: No prior run report found"
+        print "\nMerge Run: No prior run report found"
         print "No continuity tests will be done...\n"
         run_history = '-'
         read_history = '_'
@@ -391,33 +449,6 @@ else:
     merge_run = False
     run_history = '-'
     read_history = '-'
-
-if outPrefix == outMerge:
-    print "\nOutput folder and out_merge_target for run are the same"
-    print "Pipeline Stopped: please check 'output' and 'out_merge_target' in the config file\n"
-    sys.exit()
-
-if os.path.isdir(outPrefix) and not(os.path.exists(outSuccessPrefix + "dir.makeDir.Success")):
-    print "\nOutput folder already exists"
-    print "Pipeline Stopped: please change 'output' to a new folder\n"
-    sys.exit()    
-
-if outMerge != "":
-    outMergeBam = outMerge + 'bam/'
-    outMergeVcf = outMerge + 'vcf/'
-    if not(os.path.isdir(outMerge)):
-        print "\nMerge target folder not found"
-        print "Pipeline Stopped: please change 'out_merge_target' to previous output folder\n"
-        sys.exit()
-    else:
-        if not(os.path.isdir(outMergeBam)):
-            print "\nBAM folder not found"
-            print "Pipeline Stopped: check 'out_merge_target' has BAM folder\n"
-            sys.exit()    
-        if not(os.path.isdir(outMergeVcf)):
-            print "\nVCF folder not found"
-            print "Pipeline Stopped: check 'out_merge_target' has VCF folder\n"
-            sys.exit()    
 
 try:
     if pipeline_options.replaceReads != "":
@@ -490,7 +521,7 @@ sequence_list_string.rstrip()
 success_count = len(glob.glob(outSuccessPrefix+"*.Success"))
 
 # test for continuity with prior run for merge runs
-if outMerge != '' and continuity_test:
+if continuity_test:
     if refName != old_ref_name:
         print "\nReference name is different from prior run(s)"
         print "Pipeline Stopped: please use correct reference\n"
@@ -516,16 +547,13 @@ if outMerge != '' and continuity_test:
         for replicon in old_core_replicon_list:
             if replicon not in core_replicons:
                 replicon_fail = True
-
         for replicon in core_replicons:
             if replicon not in old_core_replicon_list:
                 replicon_fail = True
-
         if replicion_fail:
             print "\nCore replicons have changed since last run"
             print "Pipeline Stopped: please specify reference with same replicons as previously used\n"
             sys.exit()
-
     else:
         replicon_names = []
         for replicon in replicons:
@@ -592,7 +620,6 @@ if outMerge != '' and continuity_test:
         attempts_count = 0
         while value_change == False:
             keyboard_entry = raw_input('\nDo you wish to use: \n[1] the new value ('+bowtie_map_type +'), or\n[2] the old value? ('+old_bowtie_preset+')\nNote: this only affects new read sets\n')
-
             if keyboard_entry == '1' or keyboard_entry == '2':
                 value_change = True
                 if keyboard_entry == '2':
