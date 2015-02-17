@@ -11,7 +11,7 @@ example:
 python deriveAllGeneCover.py <outputDir> ref.genbank <coverfile>
 
 Created:  27/05/2013
-Last Modified: 21/07/2014
+Last Modified: 17/02/2015 - fixed locus tag designation
 author: David Edwards
 '''
 import sys, glob
@@ -51,7 +51,7 @@ for record in records:
                 locus_tag = f.qualifiers['locus_tag'][0]
             else:
                 #if the locus_tag is missing from the genbank record make up a tag
-                locus_tag = "tag_" + str(start)+'-'+str(stop)
+                locus_tag = "tag_" + str(start+1)+'-'+str(stop+1)
             geneCoverList.append([record.name+'__'+locus_tag])
     repliconList.append([record.name,len(record),feature_count])
 

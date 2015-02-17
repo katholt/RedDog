@@ -1,7 +1,7 @@
 #!/bin/env python
 
 '''
-RedDog V0.5.2 110215
+RedDog V0.5.2 170215
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 License: none as yet...
@@ -175,12 +175,12 @@ for sequence in sequences:
 try:
     readType = pipeline_options.readType
 except:
-    print "\nNo readType supplied"
-    print "Pipeline Stopped: please supply a readType in the config file\n"
-    sys.exit()    
+    readType = 'PE'    
 
 if readType == 'IT' or readType == 'PE' or readType == 'SE':
     pass
+elif readType == '':
+    readType = 'PE'
 else:
     print "\nUnrecognised read type"
     print "Pipeline Stopped: please check 'readType' in the config file\n"
@@ -592,7 +592,10 @@ if continuity_test:
     if old_mapped_fail != 'off' and check_reads_mapped != 'off':
         replicon_test = ""
         for replicon in old_replicon_test_list:
-            replicon_test += (replicon + ",")
+            if len(old_replicon_test_list) > 1:
+                replicon_test += (replicon + ",")
+            else:
+                replicon_test = replicon
         if len(old_replicon_test_list) > 1:
             replicon_test += 'x,'
         check_test = True
