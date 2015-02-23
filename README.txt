@@ -1,4 +1,4 @@
-RedDog V0.5.2 170215
+RedDog V0.5.2 230215
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 License: none as yet...
@@ -25,6 +25,7 @@ V0.5.2      run report provides settings for merge runs (continuity checks) (DE)
             added checkpoint_getSamStats to capture failure during initial BAM construction (DE)
             changed bams from glob call to list call (DE)
             various small fixes to some default values (DE)
+            fixed getRecomb.R (DE)
 
 previous versions:
 V0.1        converted to vcf output via mpileup instead of depreciated pileup (DE)
