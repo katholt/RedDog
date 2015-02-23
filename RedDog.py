@@ -568,19 +568,93 @@ if continuity_test:
             print "Pipeline Stopped: please specify reference with same replicons as previously\n"
             sys.exit()
 
-    if old_mapped_fail != 'off' and check_reads_mapped == 'off':
-        print "\n'check_reads_mapped' has changed to 'off' since last run"
-        value_change = False
-        attempts_count = 0
-        while value_change == False:
-            keyboard_entry = raw_input('\nAre you sure you want to turn off checking percentage of reads mapped: \n[1] yes, or\n[2] no?\n')
-            if keyboard_entry == '1' or keyboard_entry == '2':
-                value_change = True
-                if keyboard_entry == '2':
-                    print "\nPlease restore 'check_reads_mapped' to previously used setting"
-                    print "Pipeline Stopped: user request\n"
-                    sys.exit()
-                print "\n'check_reads_mapped' set to 'off' confirmed\n"
+    if old_mapped_fail != 'off':
+        old_check_reads_mapped = ""
+        for replicon in old_replicon_test_list:
+            if len(old_replicon_test_list) > 1:
+                old_check_reads_mapped += (replicon + ",")
+            else:
+                old_check_reads_mapped = replicon
+        if len(old_replicon_test_list) > 1:
+            old_check_reads_mapped += 'x,'
+            for number in range(len(old_replicon_percent_list)-1):                
+                if number < len(old_replicon_percent_list)-1:
+                    old_check_reads_mapped = str(float(old_replicon_percent_list[number])/100) + ','
+                else:
+                    old_check_reads_mapped = str(float(old_replicon_percent_list[number])/100)
+
+        if check_reads_mapped != 'off':
+            check_test = True
+            if len(old_replicon_test_list) = 1:
+                if check_reads_mapped.find(',x,') != -1:
+                    check_test = False
+                else:
+                    if old_replicon_test_list[0] != check_reads_mapped:
+                        check_test = False
+
+            if len(old_replicon_test_list) > 1:
+                if check_reads_mapped.find(',x,') == -1:
+                    check_test = False
+                else:
+                    all_values = check_reads_mapped.split(',x,')
+                    names = all_values[0].split(',')
+                    values = all_values[1].split(',')
+                    if len(names) != len(old_replicon_test_list):
+                        check_test = False
+                    else:
+                        for name in names:
+                            if name not in old_replicon_test_list:
+                                check_test = False
+                        for name in old_replicon_test_list:
+                            if name not in names:
+                                check_test = False:
+                        replicon_value_test = []
+                        for number in range(len(old_replicon_percent_list)-1):
+                            replicon_value_test.append(float(old_replicon_percent_list[number])/100)
+                        if len(values) != len(replicon_value_test):
+                            check_test = False
+                        else:
+                            for number in range(len(values)):
+                                if float(values[number]) != replicon_value_test[number]:
+                                    check_test = False 
+
+            if not check_test:
+                print "\n'check_reads_mapped' has changed since last run"
+                value_change = False
+                attempts_count = 0
+                while value_change == False:
+                    keyboard_entry = raw_input("\nWhich 'check_reads_mapped' do you want to use: \n[1] the new value, or\n[2] the old value?\n")
+                    if keyboard_entry == '1' or keyboard_entry == '2':
+                        value_change = True
+                    if keyboard_entry == '2':
+                        print "\n'check_reads_mapped' restored to previously used setting\n:"
+                        print old_check_reads_mapped + "\n\n"
+                        check_reads_mapped = old_check_reads_mapped
+                    elif keyboard_entry == '1':
+                        print "\n'check_reads_mapped' using new setting\n:"
+                        print check_reads_mapped + "\n"
+                else:
+                    attempts_count +=1
+                    if attempts_count >= 3:
+                        print "\nPipeline Stopped: too many tries\n"
+                        sys.exit()
+                    else:
+                        print "Please enter either '1' for 'yes', or '2' for 'no'"
+
+        else:
+            print "\n'check_reads_mapped' has changed to 'off' since last run"    
+            value_change = False
+            attempts_count = 0
+            while value_change == False:
+                keyboard_entry = raw_input('\nAre you sure you want to turn off checking percentage of reads mapped: \n[1] yes, or\n[2] no?\n')
+                if keyboard_entry == '1' or keyboard_entry == '2':
+                    value_change = True
+                    if keyboard_entry == '2':
+                        print "\n'check_reads_mapped' restored to previously used setting\n:"
+                        print old_check_reads_mapped + "\n"
+                        check_reads_mapped = old_check_reads_mapped
+                    elif keyboard_entry == '1':
+                        print "\n'check_reads_mapped' set to 'off' confirmed\n"
             else:
                 attempts_count +=1
                 if attempts_count >= 3:
@@ -589,33 +663,28 @@ if continuity_test:
                 else:
                     print "Please enter either '1' for 'yes', or '2' for 'no'"
 
-    if old_mapped_fail != 'off' and check_reads_mapped != 'off':
-        replicon_test = ""
-        for replicon in old_replicon_test_list:
-            if len(old_replicon_test_list) > 1:
-                replicon_test += (replicon + ",")
+    else:
+        if check_reads_mapped != "off":
+            print "\n'check_reads_mapped' has changed from 'off' since last run"    
+            value_change = False
+            attempts_count = 0
+            while value_change == False:
+                keyboard_entry = raw_input('\nAre you sure you want to turn on checking percentage of reads mapped: \n[1] yes, or\n[2] no?\n')
+                if keyboard_entry == '1' or keyboard_entry == '2':
+                    value_change = True
+                    if keyboard_entry == '2':
+                        print "\n'check_reads_mapped' set to 'off' confirmed\n"
+                        check_reads_mapped = 'off'
+                    elif keyboard_entry == '1':
+                        print "\n'check_reads_mapped' changed from 'off' and set to\n:"
+                        print check_reads_mapped + "\n"
             else:
-                replicon_test = replicon
-        if len(old_replicon_test_list) > 1:
-            replicon_test += 'x,'
-        check_test = True
-        if not check_reads_mapped.startswith(replicon_test):
-            check_test = False
-        if len(old_replicon_test_list) > 1:
-            replicon_value_test = []
-            for number in range(len(old_replicon_percent_list)-1):
-                replicon_value_test.append(float(old_replicon_percent_list[number])/100)
-            all_values = check_reads_mapped.split(',x,')
-            values = all_values.split(',')
-            if len(values) != len(replicon_value_test):
-                check_test = False
-            for number in range(len(values)):
-                if float(values[number]) != replicon_value_test[number]:
-                    check_test = False
-        if not check_test:
-            print "\n'check_reads_mapped' has changed since last run"
-            print "Pipeline Stopped: please provide same 'check_reads_mapped' as previously used\n"
-            sys.exit()
+                attempts_count +=1
+                if attempts_count >= 3:
+                    print "\nPipeline Stopped: too many tries\n"
+                    sys.exit()
+                else:
+                    print "Please enter either '1' for 'yes', or '2' for 'no'"
 
     if old_bowtie_preset != '' and old_bowtie_preset != bowtie_map_type:
         print "\n'bowtie_map_type' has changed since last run"
