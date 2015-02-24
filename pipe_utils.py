@@ -70,7 +70,7 @@ def getCover(coverFile, replicon):
     file.close()
     return value
 
-#turn a replicon into a key value(integer) for 'hash' table
+#turn a replicon into a key value(integer) for simple 'hash' table
 def get_key(name):
     out_number = 0
     for letter in range(0, len(name)):
@@ -149,13 +149,13 @@ def make_run_report(out_directory,
 
     if merge_run and run_history != "-":
         output += run_history
-        output += "merge\t" + timestamp + "\t" + str(len(sequences)) + "\n"
+        output += "merge\t" + timestamp + "\t" + str(len(sequences)) + "\t" + version + "\n"
     elif merge_run and run_history == "-":
-        output += "Run History:\nRun\tdate/time\tsequences\n"
-        output += "merge\t" + timestamp + "\t" + str(len(sequences)) +"\n"
+        output += "Run History:\nRun\tdate/time\tsequences\tversion\n"
+        output += "merge\t" + timestamp + "\t" + str(len(sequences)) + "\t" + version + "\n"
     else:
-        output += "Run History:\nRun\tdate/time\tsequences\n"
-        output += "first\t" + timestamp + "\t" + str(len(sequences)) +"\n"
+        output += "Run History:\nRun\tdate/time\tsequences\tversion\n"
+        output += "first\t" + timestamp + "\t" + str(len(sequences)) + "\t" + version + "\n"
 
     output += "\nModules:\n"
     for module in modules:
@@ -306,10 +306,10 @@ def make_run_report(out_directory,
             (prefix, name, ext) = splitPath(sequence)
             output += name + ext + "\t" + prefix + "\t" + timestamp + "\t" + read_type + "\t" + mapping +"\n"
     else:
-        output += "Read History:\nreads\tfull path\tdate/time\tread type\tmapping\n"
+        output += "Read History:\nreads\tfull path\tdate/time\tread type\tmapping\tversion\n"
         for sequence in sequence_list:
             (prefix, name, ext) = splitPath(sequence)
-            output += name + ext + "\t" + prefix + "\t" + timestamp + "\t" + read_type + "\t" + mapping +"\n"
+            output += name + ext + "\t" + prefix + "\t" + timestamp + "\t" + read_type + "\t" + mapping + "\t" + version + "\n"
     output += "\n"
 
     report_file = open((out_directory + refName + '_run_report.txt') , "w")
@@ -317,33 +317,123 @@ def make_run_report(out_directory,
     report_file.close()
     return
 
-def get_run_report(run_report):
+def get_run_report_data(run_report):
     report_file = open(run_report, "rU")
     lines = report_file.readlines()
-    keep = False
-    history = ''
-    for line in lines:
-        if line.startswith('Run History:'):
-            keep = True
-        if line == '\n':
-            keep = False
-        if keep == True:
-            history += line
-    return history
+    run_history = ''
+    read_history = ''
+    ref_name = ''
+    ref_format = ''
+    replicon_count = ''
+    core_replicon_list = []
+    run_type = ''
+    bowtie_preset = ''
+    bowtie_X = ''
+    user_failed_list = []
+    min_depth = ''
+    cover_fail = ''
+    depth_fail = ''
+    mapped_fail = ''
+    replicon_test_list = []
+    replicon_percent_list = []
+    conservation = ''
+    replicon_list = []
+    core = False
+    read_keep = False
+    run_keep = False
+    core_keep = False
+    user_failed_keep = False
+    replicon_list_keep = False
 
-def get_read_report(run_report):
-    report_file = open(run_report, "rU")
-    lines = report_file.readlines()
-    keep = False
-    history = ''
     for line in lines:
+        if line == '\n':
+            read_keep = False
+            run_keep = False
+            core_keep = False
+            user_failed_keep = False
+            replicon_list_keep = False
         if line.startswith('Read History:'):
-            keep = True
-        if line == '\n':
-            keep = False
-        if keep == True:
-            history += line
-    return history
+            read_keep = True
+        if read_keep:
+            read_history += line
+        if line.startswith('Run History:'):
+            run_keep = True
+        if run_keep:
+            run_history += line
+        if line.startswith('Reference:'):
+            items = line[:-1].split()
+            ref_pre, ref_name, ref_ext = splitPath(items[1])
+        if line.startswith('Reference Format:'):
+            items = line[:-1].split(': ')
+            ref_format = items[1]
+        if line.startswith('No. of Replicons:'):
+            items = line[:-1].split(': ')            
+            replicon_count = items[1]
+        if line.startswith('Core replicon(s):'):
+            core_keep = True
+            core = True
+        elif core_keep:
+            core_replicon_list.append(line[:-1])
+        if line.startswith('Run type:'):
+            items = line[:-1].split(': ')
+            run_type = items[1]
+        if line.startswith('bowtie mapping preset:'):
+            items = line[:-1].split(': ')
+            bowtie_preset = items[1]
+        if line.startswith('bowtie X option:'):
+            items = line[:-1].split(': ')
+            bowtie_X = items[1]
+        if line.startswith('Sequences failed by user:'):
+            user_failed_keep = True
+        elif user_failed_keep:
+            user_failed_list.append(line[:-1])
+        if line.startswith('Minimum read depth:'):
+            items = line[:-1].split(': ')
+            min_depth = items[1]
+        if line.startswith('Coverage of replicon:'):
+            items = line[:-2].split(': ')
+            cover_fail = items[1]
+        if line.startswith('Depth of reads:'):
+            items = line[:-1].split(': ')
+            depth_fail = items[1]
+        if line.startswith('Reads mapped:'):
+            items = line[:-1].split(': ')
+            mapped_fail = items[1]
+            if mapped_fail.endswith('%'):
+                mapped_fail = mapped_fail[:-1]
+        if line.startswith('Replicon\tPercent of total'):
+            replicon_list_keep = True
+        elif replicon_list_keep:
+            items = line[:-2].split()
+            replicon_test_list.append(items[0])
+            replicon_percent_list.append(items[1])
+        if line.startswith('Allele conservation ratio:'):
+            items = line[:-1].split(': ')
+            conservation = items[1]
+        if line.startswith('Standard Deviations'):
+            items = line[:-1].split(': ')
+            sd_out = items[1]
+        if not core and line.startswith('Replicon:'):
+            items = line[:-1].split()
+            replicon_list.append(items[1])
 
-
+    return (read_history, 
+            run_history, 
+            ref_name, 
+            ref_format, 
+            replicon_count, 
+            core_replicon_list, 
+            run_type, 
+            bowtie_preset, 
+            bowtie_X, 
+            user_failed_list, 
+            min_depth, 
+            cover_fail, 
+            depth_fail, 
+            mapped_fail, 
+            replicon_test_list, 
+            replicon_percent_list, 
+            conservation,
+            sd_out,
+            replicon_list)
     

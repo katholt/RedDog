@@ -121,6 +121,12 @@ pvals <- p
 counts <- p.sig[i,3]
 }
 }
+# record last block info (!)
+window_start[block] <- prev_start
+window_stop[block] <- prev_stop
+mean_pvalue[block] <- mean(pvals)
+total_counts[block] <- counts
+
 result<-cbind(window_start,window_stop,window_stop-window_start+1,total_counts,mean_pvalue)
 colnames(result)<-c("start","stop","windowSize","counts","meanPvalue")
 return(result)

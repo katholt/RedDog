@@ -1,5 +1,5 @@
 '''
-Configuration file for RedDog.py V0.5.1
+Configuration file for RedDog.py V0.5.2
 -------------------------------
 Essential pipeline variables.
 '''
@@ -12,10 +12,11 @@ sequences = ""
 
 output = ""
 #output = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
-#output = "/scratch/VR0082/workspace/mapping/v052_test"
 
 out_merge_target = ""
 #out_merge_target = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
+
+
 '''
 Notes:
 
@@ -193,6 +194,19 @@ is 2000 - you can change this with bowtie_X_value
 bowtie_X_value = 2000
 
 '''
+BCFtools SNP calling
+
+consensus caller ["c"] (original) or multiallelic caller ["m"] (new bcftools v1+) 
+
+Note: multiallelic caller is used only for calling unique SNPs from the BAM files.
+The consensus sequences used to populate the allele table based on these SNPs are 
+still generated using the original consensus caller - this will be changed if/when 
+a vcf2fq program is available for multiallelic-generated VCFs
+'''
+SNPcaller = "c"
+#SNPcaller = "m"
+
+'''
 You can also "remove" any reads: these will be marked as "failed"
 This only works during a "merge run"
 eg. replace a set of reads with their qc-ed version
@@ -323,7 +337,8 @@ stageDefaults = {
     "modules": [
         "python-gcc/2.7.5",
         "bwa-intel/0.6.2",
-        "samtools-intel/0.1.19",
+        "samtools-intel/1.1",
+        "bcftools-intel/1.1",
         "eautils-gcc/1.1.2",
         "fasttree-intel/2.1.7",
         "bowtie2-intel/2.2.3"
@@ -399,7 +414,7 @@ stages = {
         "walltime": "01:00:00",
 # large file size (any read set >800MB)
 #        "walltime": "03:00:00",
-        "command": "samtools mpileup -uD -f %ref %bam -r %replicon | bcftools view -bvcg - > %out"
+        "command": "samtools mpileup -u -t DP -f %ref %bam -r %replicon | bcftools call -O b %option - > %out"
     },
     "checkpoint": {
         "walltime": "00:10:00",
@@ -409,7 +424,7 @@ stages = {
         "walltime": "01:00:00",
 # large file size (any read set >800MB)
 #        "walltime": "06:00:00",
-        "command": "samtools mpileup -q 20 -uB -f %ref %bam | bcftools view -c - | vcfutils.pl vcf2fq > %output"
+        "command": "samtools mpileup -q 20 -ugB -f %ref %bam | bcftools call -c - | vcfutils.pl vcf2fq > %output"
     },
     "getCoverage": {
         "walltime": "01:00:00",

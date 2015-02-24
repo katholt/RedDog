@@ -1,4 +1,4 @@
-RedDog V0.5.1 291014
+RedDog V0.5.2 240215
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 License: none as yet...
@@ -18,13 +18,14 @@ Note: for Illumina paired-end or single reads, or Ion Torrent single reads.
 IMPORTANT: See config file/instructions for input options/requirements
 
 current version:
-V0.5.1      added -X option for bowtie2 mapping (DE)
-            fixed parseGeneContent output (DE)
-            updated to fixed and extended parseSNPtable (DE)
-            added scripts for tutorial (filterCoords.py, get_cover.py, getRecomb.R, plotTree.R) (DE)
-            changed getDifferenceMatrix to optional output in pipe, changed script to take options (DE)
-            added option for VCF output of filtered hets (DE)
-            implemented changes to run report from user feedback (DE)
+V0.5.2      run report provides settings for merge runs (continuity checks) (DE)
+                includes more robust 'check_reads_mapped' (DE)
+            update to use SAMtools v1+ (DE)
+                includes (limited) addition of multiallelic SNP calling option - bcftools (DE)
+            added checkpoint_getSamStats to capture failure during initial BAM construction (DE)
+            changed bams from glob call to list call (DE)
+            various small fixes to some default values (DE)
+            fixed getRecomb.R (DE)
 
 previous versions:
 V0.1        converted to vcf output via mpileup instead of depreciated pileup (DE)
@@ -147,12 +148,15 @@ V0.4.9      splitting location of intermediate files in temp folder to improve s
 V0.5        added check for deletion of previous run success file on merge run (DE)
             added checkpoints for better pipeline running - will halt on errors as expected (DE)
             includes changes to complex stages - flagFiles behaviour (DE)
+V0.5.1      added -X option for bowtie2 mapping (DE)
+            fixed parseGeneContent output (DE)
+            updated to fixed and extended parseSNPtable (DE)
+            added scripts for tutorial (filterCoords.py, get_cover.py, getRecomb.R, plotTree.R) (DE)
+            changed getDifferenceMatrix to optional output in pipe, changed script to take options (DE)
+            added option for VCF output of filtered hets (DE)
+            implemented changes to run report from user feedback (DE)
 
 next planned updates
-V0.5.2      Run report to provide settings for merge runs (continuity checks) (DE)
-            Changes to input sequences pattern recognition (DE)
-            update to use SAMtools v1.1 [need to test alternative bcftools approaches](DE)
-
 V0.5.3      Any fixes from final testing (DE)
             Improve on all comments in programming (DE)
             Add licensing information to all scripts (DE)
@@ -160,6 +164,7 @@ V0.5.3      Any fixes from final testing (DE)
 V1.0        First Public Release of RedDog 
 
 (Post-release)
+    changes to input sequences pattern recognition
     extend parseGeneContent functions 
     add merging of bams for both pangenome and phylogenetic mapping
     reanalysis without mapping

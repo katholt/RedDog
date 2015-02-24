@@ -10,7 +10,7 @@ example:
 python finalFilter.py <raw>.vfc <q30>.vcf <outHetFile> <HetsVCF>
 
 Created:	24/01/2013
-Modified:	28/10/2014
+Modified:	07/01/2015
 author: David Edwards
 '''
 import sys
@@ -21,8 +21,10 @@ outFile = sys.argv[2]
 (prefix,middle,ext) = splitPath(outFile)
 
 outHetFile = sys.argv[3] + '/' + middle[:-3] + "het.txt"
-
-HetsVCF = sys.argv[4]
+if sys.argv[4] == "True":
+    HetsVCF = True
+else:
+    HetsVCF = False
 vcfIn = open(inFile)
 vcfOut = open(outFile, "w")
 hetOut = open(outHetFile, "w")

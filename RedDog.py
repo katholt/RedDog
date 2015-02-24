@@ -1,7 +1,7 @@
 #!/bin/env python
 
 '''
-RedDog V0.5.1 291014
+RedDog V0.5.2 240215
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 License: none as yet...
@@ -31,9 +31,9 @@ import sys
 import glob
 from rubra.utils import pipeline_options
 from rubra.utils import (runStageCheck, splitPath)
-from pipe_utils import (isGenbank, isFasta, chromInfoFasta, chromInfoGenbank, getValue, getCover, make_sequence_list, getSuccessCount, make_run_report, get_run_report, get_read_report)
+from pipe_utils import (isGenbank, isFasta, chromInfoFasta, chromInfoGenbank, getValue, getCover, make_sequence_list, getSuccessCount, make_run_report, get_run_report_data)
 
-version = "V0.5.1"
+version = "V0.5.2"
 
 modules = pipeline_options.stageDefaults['modules']
 
@@ -43,13 +43,13 @@ try:
     reference = pipeline_options.reference
 except:
     print "\nNo Reference supplied"
-    print "Pipeline Stopped: please supply a reference\n"
+    print "Pipeline Stopped: please supply a reference in the config file\n"
     sys.exit()    
 
 #check that a reference has been given in the options file
 if reference == "":
     print "\nNo Reference supplied"
-    print "Pipeline Stopped: please supply a reference\n"
+    print "Pipeline Stopped: please supply a reference in the config file\n"
     sys.exit()    
 
 #check whether reference file exists
@@ -120,7 +120,7 @@ if runType != "":
         pass
     else:
         print "\nUnrecognised run type"
-        print "Pipeline Stopped: please check 'runType' in the options file\n"
+        print "Pipeline Stopped: please check 'runType' in the config file\n"
         sys.exit()
 
 # if no runType entered, work out default runType on number of replicons in reference
@@ -131,7 +131,7 @@ if runType == "":
         runType = "phylogeny"
 if len(replicons) < 1:
     print "\nNo chromosomes found in reference"
-    print "Pipeline Stopped: please check 'reference' in the options file\n"
+    print "Pipeline Stopped: please check 'reference' in the config file\n"
     sys.exit()
 
 repliconNames = []
@@ -163,7 +163,7 @@ if sequences == []:
         sys.exit()
     else:
         print "\nNo matching sequences found"
-        print "Pipeline Stopped: please check 'sequences' in options\n"
+        print "Pipeline Stopped: please check 'sequences' in the config file\n"
         sys.exit()
 
 for sequence in sequences:
@@ -175,15 +175,15 @@ for sequence in sequences:
 try:
     readType = pipeline_options.readType
 except:
-    print "\nNo readType supplied"
-    print "Pipeline Stopped: please supply a readType in the config file\n"
-    sys.exit()    
+    readType = 'PE'    
 
 if readType == 'IT' or readType == 'PE' or readType == 'SE':
     pass
+elif readType == '':
+    readType = 'PE'
 else:
     print "\nUnrecognised read type"
-    print "Pipeline Stopped: please check 'readType' in options\n"
+    print "Pipeline Stopped: please check 'readType' in the config file\n"
     sys.exit()
 
 mapping_out = ""
@@ -203,8 +203,18 @@ elif mapping == 'bowtie':
     mapping_out = 'Bowtie2 V2.2.3'
 else:
     print "\nUnrecognised mapping option"
-    print "Pipeline Stopped: please check 'mapping' in the options file\n"
+    print "Pipeline Stopped: please check 'mapping' in the config file\n"
     sys.exit()
+
+try:
+    SNPcaller = pipeline_options.SNPcaller
+    if not(SNPcaller != 'c' or SNPcaller != 'm'):
+        print "\nUnrecognised SNPcaller option"
+        print "Pipeline Stopped: please check 'SNPcaller' in the config file\n"
+    else:
+        SNPcaller = '-' + SNPcaller
+except:
+    SNPcaller = '-c'
 
 sequence_list = []
 for sequence in sequences:
@@ -255,8 +265,8 @@ if mapping == 'bowtie':
         bowtie_map_type == "--very-sensitive-local"):
         pass        
     else:
-        print "\nUnrecogised Bowtie2 mapping option"
-        print "Pipeline Stopped: please check 'bowtie_map_type' in the options file\n"
+        print "\nUnrecognised Bowtie2 mapping option"
+        print "Pipeline Stopped: please check 'bowtie_map_type' in the config file\n"
         sys.exit()
 else:
     bowtie_map_type = "-"
@@ -274,8 +284,8 @@ except:
 try:
     HetsVCF = pipeline_options.HetsVCF
     if HetsVCF != True and HetsVCF != False:
-        print "\nUnrecogised HetsVCF option"
-        print "Pipeline Stopped: please check 'HetsVCF' in the options file\n"
+        print "\nUnrecognised HetsVCF option"
+        print "Pipeline Stopped: please check 'HetsVCF' in the config file\n"
         sys.exit()
 except:
     HetsVCF = False
@@ -309,6 +319,41 @@ if check_reads_mapped == "":
     for repliconName, repliconLength in replicons:
         if int(repliconLength) == longest_replicon_length:
             check_reads_mapped = repliconName
+elif check_reads_mapped != 'off':
+    if check_reads_mapped.find(',') == -1:
+        if check_reads_mapped not in repliconNames:
+            print "\nUnrecognised replicon used in 'check_reads_mapped': " + check_reads_mapped
+            print "Pipeline Stopped: please check 'check_reads_mapped' in the config file\n"
+            sys.exit()
+    else:
+        found_x = False
+        final_ratio = 1.0
+        list_of_replicons = []
+        check_reps = check_reads_mapped.split(',')
+        for item in check_reps:
+            if item != 'x':
+                if found_x != True:
+                    list_of_replicons.append(item)
+                else:
+                    final_ratio -= float(item)
+            else:
+                found_x = True
+        if final_ratio <= 0:
+            print "\nFinal ratio in 'check_reads_mapped' less than or equal to zero"
+            print "Pipeline Stopped: please check ratio(s) in 'check_reads_mapped' in the config file\n"
+            sys.exit()
+        list_of_replicons_done = []
+        for replicon in list_of_replicons:
+            if replicon not in repliconNames:
+                print "\nUnrecognised replicon in 'check_reads_mapped': " + replicon
+                print "Pipeline Stopped: please check 'check_reads_mapped' in the config file\n"
+                sys.exit()
+            elif replicon not in list_of_replicons_done:
+                list_of_replicons_done.append(replicon)
+            else:
+                print "\nReplicon repeated in 'check_reads_mapped': " + replicon
+                print "Pipeline Stopped: please check 'check_reads_mapped' in the config file\n"
+                sys.exit()
 
 try:
     outPrefix = pipeline_options.output
@@ -317,7 +362,7 @@ except:
 
 if outPrefix == "":
     print "\nNo Output folder given"
-    print "Pipeline Stopped: please check 'output' in the options file\n"
+    print "Pipeline Stopped: please check 'output' in the config file\n"
     sys.exit()
 
 if outPrefix[-1] != '/':
@@ -328,43 +373,27 @@ outSuccessPrefix = outTempPrefix + 'success/'
 outBamPrefix = outPrefix + 'bam/'
 outVcfPrefix = outPrefix + 'vcf/'
 
-try:
-    outMerge = pipeline_options.out_merge_target
-except:
-    print "\n'out_merge_target' not set"
-    print "Pipeline Stopped: please set 'out_merge_target'\n"
-    sys.exit()    
-
-if outMerge != '':
-    merge_run = True
-    if outMerge[-1] != '/':
-        outMerge += '/'
-    if os.path.exists(outMerge + 'finish.deleteDir.Success'):
-        print "\n'out_merge_target' still has 'finish.deleteDir.Success' file"
-        print "Pipeline Stopped: please delete this file before restarting\n"
-        sys.exit()    
-    if os.path.exists(outMerge + refName + '_run_report.txt'):
-        run_history = get_run_report(outMerge + refName + '_run_report.txt')
-        read_history = get_read_report(outMerge + refName + '_run_report.txt')
-    else:
-        run_history = '-'
-        read_history = '_'
-else:
-    merge_run = False
-    run_history = '-'
-    read_history = '-'
-
-if outPrefix == outMerge:
-    print "\nOutput folder and out_merge_target for run are the same"
-    print "Pipeline Stopped: please check 'output' and 'out_merge_target' in the options file\n"
-    sys.exit()
-
 if os.path.isdir(outPrefix) and not(os.path.exists(outSuccessPrefix + "dir.makeDir.Success")):
     print "\nOutput folder already exists"
     print "Pipeline Stopped: please change 'output' to a new folder\n"
     sys.exit()    
 
-if outMerge != "":
+try:
+    outMerge = pipeline_options.out_merge_target
+except:
+    print "\n'out_merge_target' not set"
+    print "Pipeline Stopped: please set 'out_merge_target' in the config file\n"
+    sys.exit()    
+
+if outPrefix == outMerge:
+    print "\nOutput folder and out_merge_target for run are the same"
+    print "Pipeline Stopped: please check 'output' and 'out_merge_target' in the config file\n"
+    sys.exit()
+
+continuity_test = False
+if outMerge != '':
+    if outMerge[-1] != '/':
+        outMerge += '/'
     outMergeBam = outMerge + 'bam/'
     outMergeVcf = outMerge + 'vcf/'
     if not(os.path.isdir(outMerge)):
@@ -380,6 +409,46 @@ if outMerge != "":
             print "\nVCF folder not found"
             print "Pipeline Stopped: check 'out_merge_target' has VCF folder\n"
             sys.exit()    
+    if os.path.exists(outMerge + 'finish.deleteDir.Success'):
+        print "\n'out_merge_target' still has 'finish.deleteDir.Success' file"
+        print "Pipeline Stopped: please delete this file before restarting\n"
+        sys.exit()
+    if os.path.exists(outMerge + refName +'_AllStats.txt') != True:
+        print "\n'out_merge_target' has no '"+ refName+"_AllStats.txt' file"
+        print "Pipeline Stopped: please check you have the correct 'reference' and/or "
+        print "\t\t  'out_merge_target' before restarting\n"
+        sys.exit()
+    merge_run = True
+    if os.path.exists(outMerge + refName + '_run_report.txt'):
+        (read_history, 
+        run_history, 
+        old_ref_name, 
+        old_ref_format, 
+        old_replicon_count, 
+        old_core_replicon_list, 
+        old_run_type, 
+        old_bowtie_preset, 
+        old_bowtie_X, 
+        old_user_failed_list, 
+        old_min_depth, 
+        old_cover_fail, 
+        old_depth_fail, 
+        old_mapped_fail, 
+        old_replicon_test_list, 
+        old_replicon_percent_list, 
+        old_conservation,
+        old_sd_out,
+        old_replicon_list) = get_run_report_data(outMerge + refName + '_run_report.txt')
+        continuity_test = True
+    else:
+        print "\nMerge Run: No prior run report found"
+        print "No continuity tests will be done...\n"
+        run_history = '-'
+        read_history = '_'
+else:
+    merge_run = False
+    run_history = '-'
+    read_history = '-'
 
 try:
     if pipeline_options.replaceReads != "":
@@ -402,11 +471,11 @@ if conservation > 1.0 or conservation < 0.0:
 try:
     DifferenceMatrix = pipeline_options.DifferenceMatrix
     if DifferenceMatrix != True and DifferenceMatrix != False:
-        print "\nUnrecogised DifferenceMatrix option"
-        print "Pipeline Stopped: please check 'DifferenceMatrix' in the options file\n"
+        print "\nUnrecognised DifferenceMatrix option"
+        print "Pipeline Stopped: please check 'DifferenceMatrix' in the config file\n"
         sys.exit()
 except:
-    HetsVCF = False
+    DifferenceMatrix = False
 
 full_sequence_list = []
 if outMerge == '':
@@ -450,6 +519,327 @@ for sequence in sequence_list:
 sequence_list_string.rstrip()
 
 success_count = len(glob.glob(outSuccessPrefix+"*.Success"))
+
+# test for continuity with prior run for merge runs
+if continuity_test:
+    if refName != old_ref_name:
+        print "\nReference name is different from prior run(s)"
+        print "Pipeline Stopped: please use correct reference\n"
+        sys.exit()
+    if refGenbank and old_ref_format != 'Genbank':
+        print "\nExpected FASTA reference, not Genbank"
+        print "Pipeline Stopped: please use correct reference\n"
+        sys.exit()
+    if not refGenbank and old_ref_format == 'Genbank':
+        print "\nExpected Genbank reference, not FASTA"
+        print "Pipeline Stopped: please use correct reference\n"
+        sys.exit()
+    if len(replicons) != int(old_replicon_count):
+        print "\nDifferent number of replicons found in reference"
+        print "Pipeline Stopped: please use correct reference\n"
+        sys.exit()
+    if runType != old_run_type:
+        print "\nExpected " + old_run_type + " run; " + runType + " run specified"
+        print "Pipeline Stopped: please specify same run type as previously used ("+old_run_type+")\n"
+        sys.exit()
+    replicon_fail = False
+    if runType == 'pangenome':
+        for replicon in old_core_replicon_list:
+            if replicon not in core_replicons:
+                replicon_fail = True
+        for replicon in core_replicons:
+            if replicon not in old_core_replicon_list:
+                replicon_fail = True
+        if replicion_fail:
+            print "\nCore replicons have changed since last run"
+            print "Pipeline Stopped: please specify reference with same replicons as previously used\n"
+            sys.exit()
+    else:
+        replicon_names = []
+        for replicon in replicons:
+            replicon_names.append(replicon[0])
+            if replicon[0] not in old_replicon_list:
+                replicon_fail = True
+        for replicon in old_replicon_list:
+            if replicon not in replicon_names:
+                replicon_fail = True
+        if replicon_fail:
+            print "\nReplicons have changed since last run"
+            print "Pipeline Stopped: please specify reference with same replicons as previously\n"
+            sys.exit()
+
+    if old_mapped_fail != 'off':
+        old_check_reads_mapped = ""
+        for replicon in old_replicon_test_list:
+            if len(old_replicon_test_list) > 1:
+                old_check_reads_mapped += (replicon + ",")
+            else:
+                old_check_reads_mapped = replicon
+        if len(old_replicon_test_list) > 1:
+            old_check_reads_mapped += 'x,'
+            for number in range(len(old_replicon_percent_list)-1):                
+                if number < len(old_replicon_percent_list)-2:
+                    old_check_reads_mapped += str(float(old_replicon_percent_list[number])/100) + ','
+                else:
+                    old_check_reads_mapped += str(float(old_replicon_percent_list[number])/100)
+
+        if check_reads_mapped != 'off':
+            check_test = True
+            if len(old_replicon_test_list) == 1:
+                if check_reads_mapped.find(',x,') != -1:
+                    check_test = False
+                else:
+                    if old_replicon_test_list[0] != check_reads_mapped:
+                        check_test = False
+
+            if len(old_replicon_test_list) > 1:
+                if check_reads_mapped.find(',x,') == -1:
+                    check_test = False
+                else:
+                    all_values = check_reads_mapped.split(',x,')
+                    names = all_values[0].split(',')
+                    values = all_values[1].split(',')
+                    if len(names) != len(old_replicon_test_list):
+                        check_test = False
+                    else:
+                        for name in names:
+                            if name not in old_replicon_test_list:
+                                check_test = False
+                        for name in old_replicon_test_list:
+                            if name not in names:
+                                check_test = False
+                        replicon_value_test = []
+                        for number in range(len(old_replicon_percent_list)-1):
+                            replicon_value_test.append(float(old_replicon_percent_list[number])/100)
+                        if len(values) != len(replicon_value_test):
+                            check_test = False
+                        else:
+                            for number in range(len(values)):
+                                if float(values[number]) != replicon_value_test[number]:
+                                    check_test = False 
+
+            if not check_test:
+                print "\n'check_reads_mapped' has changed since last run"
+                value_change = False
+                attempts_count = 0
+                while value_change == False:
+                    keyboard_entry = raw_input("\nWhich 'check_reads_mapped' do you want to use: \n[1] the new value, or\n[2] the old value?\n")
+                    if keyboard_entry == '1' or keyboard_entry == '2':
+                        value_change = True
+                    if keyboard_entry == '2':
+                        print "\n'check_reads_mapped' restored to previously used setting:"
+                        print old_check_reads_mapped + "\n\n"
+                        check_reads_mapped = old_check_reads_mapped
+                    elif keyboard_entry == '1':
+                        print "\n'check_reads_mapped' using new setting:"
+                        print check_reads_mapped + "\n"
+                else:
+                    attempts_count +=1
+                    if attempts_count >= 3:
+                        print "\nPipeline Stopped: too many tries\n"
+                        sys.exit()
+                    else:
+                        print "Please enter either '1' for 'yes', or '2' for 'no'"
+
+        else:
+            print "\n'check_reads_mapped' has changed to 'off' since last run"    
+            value_change = False
+            attempts_count = 0
+            while value_change == False:
+                keyboard_entry = raw_input('\nAre you sure you want to turn off checking percentage of reads mapped: \n[1] yes, or\n[2] no?\n')
+                if keyboard_entry == '1' or keyboard_entry == '2':
+                    value_change = True
+                    if keyboard_entry == '2':
+                        print "\n'check_reads_mapped' restored to previously used setting:"
+                        print old_check_reads_mapped + "\n"
+                        check_reads_mapped = old_check_reads_mapped
+                    elif keyboard_entry == '1':
+                        print "\n'check_reads_mapped' set to 'off' confirmed\n"
+                else:
+                    attempts_count +=1
+                    if attempts_count >= 3:
+                        print "\nPipeline Stopped: too many tries\n"
+                        sys.exit()
+                    else:
+                        print "Please enter either '1' for 'yes', or '2' for 'no'"
+
+    else:
+        if check_reads_mapped != "off":
+            print "\n'check_reads_mapped' has changed from 'off' since last run"    
+            value_change = False
+            attempts_count = 0
+            while value_change == False:
+                keyboard_entry = raw_input('\nAre you sure you want to turn on checking percentage of reads mapped: \n[1] yes, or\n[2] no?\n')
+                if keyboard_entry == '1' or keyboard_entry == '2':
+                    value_change = True
+                    if keyboard_entry == '2':
+                        print "\n'check_reads_mapped' set to 'off' confirmed\n"
+                        check_reads_mapped = 'off'
+                    elif keyboard_entry == '1':
+                        print "\n'check_reads_mapped' changed from 'off' and set to:"
+                        print check_reads_mapped + "\n"
+                else:
+                    attempts_count +=1
+                    if attempts_count >= 3:
+                        print "\nPipeline Stopped: too many tries\n"
+                        sys.exit()
+                    else:
+                        print "Please enter either '1' for 'yes', or '2' for 'no'"
+
+    if old_bowtie_preset != '' and old_bowtie_preset != bowtie_map_type:
+        print "\n'bowtie_map_type' has changed since last run"
+        value_change = False
+        attempts_count = 0
+        while value_change == False:
+            keyboard_entry = raw_input('\nDo you wish to use: \n[1] the new value ('+bowtie_map_type +'), or\n[2] the old value? ('+old_bowtie_preset+')\nNote: this only affects new read sets\n')
+            if keyboard_entry == '1' or keyboard_entry == '2':
+                value_change = True
+                if keyboard_entry == '2':
+                    bowtie_map_type = old_bowtie_preset 
+                print "\n'bowtie_map_type' set to " + bowtie_map_type
+            else:
+                attempts_count +=1
+                if attempts_count >= 3:
+                    print "\nPipeline Stopped: too many tries\n"
+                    sys.exit()
+                else:
+                    print "Please enter either '1' for new value, or '2' for old value"
+
+    if old_bowtie_X != '' and int(old_bowtie_X) != bowtie_X_value:
+        print "\n'bowtie_X_value' has changed since last run"
+        value_change = False
+        attempts_count = 0
+        while value_change == False:
+            keyboard_entry = raw_input('\nDo you wish to use: \n[1] the new value ('+str(bowtie_X_value) +'), or\n[2] the old value? ('+old_bowtie_X+')\nNote: this only affects new read sets\n')
+            if keyboard_entry == '1' or keyboard_entry == '2':
+                value_change = True
+                if keyboard_entry == '2':
+                    bowtie_X_value = int(old_bowtie_X)
+                print "\n'bowtie_X_value' set to " + str(bowtie_X_value)
+            else:
+                attempts_count +=1
+                if attempts_count >= 3:
+                    print "\nPipeline Stopped: too many tries\n"
+                    sys.exit()
+                else:
+                    print "Please enter either '1' for new value, or '2' for old value"
+
+    if int(old_min_depth) != minDepth:
+        print "\n'minimum_depth' for SNP calling has changed since last run"
+        value_change = False
+        attempts_count = 0
+        while value_change == False:
+            keyboard_entry = raw_input('\nDo you wish to use: \n[1] the new value ('+str(minDepth)+'), or\n[2] the old value? ('+old_min_depth+')\nNote: this only affects new read sets\n')
+            if keyboard_entry == '1' or keyboard_entry == '2':
+                value_change = True
+                if keyboard_entry == '2':
+                    minDepth = int(old_min_depth)
+                print "\n'minimum_depth' set to " + str(minDepth)
+            else:
+                attempts_count +=1
+                if attempts_count >= 3:
+                    print "\nPipeline Stopped: too many tries\n"
+                    sys.exit()
+                else:
+                    print "Please enter either '1' for new value, or '2' for old value"
+
+    if int(old_cover_fail) != coverFail:
+        print "\n'cover_fail' has changed since last run"
+        value_change = False
+        attempts_count = 0
+        while value_change == False:
+            keyboard_entry = raw_input('\nDo you wish to use: \n[1] the new value ('+str(coverFail)+'), or\n[2] the old value? ('+old_cover_fail+')\n')
+            if keyboard_entry == '1' or keyboard_entry == '2':
+                value_change = True
+                if keyboard_entry == '2':
+                    coverFail = int(old_cover_fail)
+                print "\n'cover_fail' set to " + str(coverFail)
+            else:
+                attempts_count +=1
+                if attempts_count >= 3:
+                    print "\nPipeline Stopped: too many tries\n"
+                    sys.exit()
+                else:
+                    print "Please enter either '1' for new value, or '2' for old value"
+
+    if int(old_depth_fail) != depthFail:
+        print "\n'depth_fail' has changed since last run"
+        value_change = False
+        attempts_count = 0
+        while value_change == False:
+            keyboard_entry = raw_input('\nDo you wish to use: \n[1] the new value ('+str(depthFail)+'), or\n[2] the old value? ('+old_depth_fail+')\n')
+            if keyboard_entry == '1' or keyboard_entry == '2':
+                value_change = True
+                if keyboard_entry == '2':
+                    depthFail = int(old_depth_fail)
+                print "\n'depth_fail' set to " + str(depthFail)
+            else:
+                attempts_count +=1
+                if attempts_count >= 3:
+                    print "\nPipeline Stopped: too many tries\n"
+                    sys.exit()
+                else:
+                    print "Please enter '1' for new value, or '2' for old value"
+
+    if old_mapped_fail != 'off' and check_reads_mapped != 'off':
+        if int(old_mapped_fail) != mappedFail:
+            print "\n'mapped_fail' has changed since last run"
+            value_change = False
+            attempts_count = 0
+            while value_change == False:
+                keyboard_entry = raw_input('\nDo you wish to use: \n[1] the new value ('+str(mappedFail)+'), or\n[2] the old value? ('+old_mapped_fail+')\n')
+                if keyboard_entry == '1' or keyboard_entry == '2':
+                    value_change = True
+                    if keyboard_entry == '2':
+                        mappedFail = int(old_mapped_fail)
+                    print "\n'mapped_fail' set to " + str(mappedFail)
+                else:
+                    attempts_count +=1
+                    if attempts_count >= 3:
+                        print "\nPipeline Stopped: too many tries\n"
+                        sys.exit()
+                    else:
+                        print "Please enter either '1' for new value, or '2' for old value"
+
+    if int(old_sd_out) != sdOutgroupMultiplier:
+        print "\n'sd_out' has changed since last run"
+        value_change = False
+        attempts_count = 0
+        while value_change == False:
+            keyboard_entry = raw_input('\nDo you wish to use: \n[1] the new value ('+str(sdOutgroupMultiplier)+'), or\n[2] the old value? ('+old_sd_out+')\n')
+            if keyboard_entry == '1' or keyboard_entry == '2':
+                value_change = True
+                if keyboard_entry == '2':
+                    sdOutgroupMultiplier = old_sd_out
+                print "\n'sd_out' set to " + str(sdOutgroupMultiplier)
+            else:
+                attempts_count +=1
+                if attempts_count >= 3:
+                    print "\nPipeline Stopped: too many tries\n"
+                    sys.exit()
+                else:
+                    print "Please enter '1' for new value, or '2' for old value"
+
+    if float(old_conservation) != conservation:
+        print "\n'conservation' has changed since last run"
+        value_change = False
+        attempts_count = 0
+        while value_change == False:
+            keyboard_entry = raw_input('\nDo you wish to use: \n[1] the new value ('+str(conservation)+'), or\n[2] the old value? ('+old_conservation+')\n')
+            if keyboard_entry == '1' or keyboard_entry == '2':
+                value_change = True
+                if keyboard_entry == '2':
+                    conservation = int(old_conservation)
+                print "\n'conservation' set to " + str(conservation)
+            else:
+                attempts_count +=1
+                if attempts_count >= 3:
+                    print "\nPipeline Stopped: too many tries\n"
+                    sys.exit()
+                else:
+                    print "Please enter '1' for new value, or '2' for old value"
+
+
 
 #Phew! Now that's all set up, we can begin...
 #but first, output run conditions to user and get confirmation to run
@@ -615,8 +1005,15 @@ if mapping == 'bowtie':
             runStageCheck('getSamStats', flagFile, bamFile, output)
         stage_count += len(sequence_list) 
 
+# checkpoint_getSamStats
+        @merge(getSamStats, [outTempPrefix+'checkpoint.txt', outSuccessPrefix + "getSamStats.checkpoint.Success"])
+        def checkpoint_getSamStats(inputs,outputs):
+            output, flagFile = outputs
+            runStageCheck('checkpoint', flagFile, outTempPrefix, 'getSamStats')
+        stage_count += 1
+
         #filter unmapped reads
-        @follows(indexBam)
+        @follows(indexBam, checkpoint_getSamStats)
         @transform(alignBowtiePE, regex(r"(.*)\/(.+).bam"), [outBamPrefix + r'\2.bam', outSuccessPrefix + r'\2.filterUnmapped.Success'])
         def filterUnmapped(inputs, outputs):
             output, flagFile = outputs
@@ -668,8 +1065,15 @@ if mapping == 'bowtie':
             runStageCheck('getSamStats', flagFile, bamFile, output)
         stage_count += len(sequence_list) 
 
+# checkpoint_getSamStats
+        @merge(getSamStats, [outTempPrefix+'checkpoint.txt', outSuccessPrefix + "getSamStats.checkpoint.Success"])
+        def checkpoint_getSamStats(inputs,outputs):
+            output, flagFile = outputs
+            runStageCheck('checkpoint', flagFile, outTempPrefix, 'getSamStats')
+        stage_count += 1
+
         #filter unmapped reads
-        @follows(indexBam)
+        @follows(indexBam, checkpoint_getSamStats)
         @transform(alignBowtie, regex(r"(.*)\/(.+).bam"), [outBamPrefix + r'\2.bam', outSuccessPrefix + r'\2.filterUnmapped.Success'])
         def filterUnmapped(inputs, outputs):
             output, flagFile = outputs
@@ -735,8 +1139,15 @@ else: # mapping = 'BWA'
             runStageCheck('getSamStats', flagFile, bamFile, output)
         stage_count += len(sequence_list) 
 
+# checkpoint_getSamStats
+        @merge(getSamStats, [outTempPrefix+'checkpoint.txt', outSuccessPrefix + "getSamStats.checkpoint.Success"])
+        def checkpoint_getSamStats(inputs,outputs):
+            output, flagFile = outputs
+            runStageCheck('checkpoint', flagFile, outTempPrefix, 'getSamStats')
+        stage_count += 1
+
         #filter unmapped reads
-        @follows(indexBam)
+        @follows(indexBam, checkpoint_getSamStats)
         @transform(alignBWAPE, regex(r"(.*)\/(.+).bam"), [outBamPrefix + r'\2.bam', outSuccessPrefix + r'\2.filterUnmapped.Success'])
         def filterUnmapped(inputs, outputs):
             output, flagFile = outputs
@@ -789,8 +1200,15 @@ else: # mapping = 'BWA'
             runStageCheck('getSamStats', flagFile, bamFile, output)
         stage_count += len(sequence_list) 
 
+# checkpoint_getSamStats
+        @merge(getSamStats, [outTempPrefix+'checkpoint.txt', outSuccessPrefix + "getSamStats.checkpoint.Success"])
+        def checkpoint_callRepSNPs(inputs,outputs):
+            output, flagFile = outputs
+            runStageCheck('checkpoint', flagFile, outTempPrefix, 'getSamStats')
+        stage_count += 1
+
         #filter unmapped reads
-        @follows(indexBam)
+        @follows(indexBam, checkpoint_getSamStats)
         @transform(alignBWASE, regex(r"(.*)\/(.+).bam"), [outBamPrefix + r'\2.bam', outSuccessPrefix + r'\2.filterUnmapped.Success'])
         def filterUnmapped(inputs, outputs):
             output, flagFile = outputs
@@ -837,7 +1255,7 @@ def getCoverByRep(inputs, outputs):
 stage_count += len(sequence_list) 
 
 # Derive run statistics - first, the 'all statistics' data
-@follows(getSamStats)
+@follows(checkpoint_getSamStats)
 @transform(getCoverByRep, regex(r"(.*)\/(.+)_rep_cover.txt"), [r'\1/\2_AllStats.txt', outSuccessPrefix + r'\2.deriveAllStats.Success'])
 def deriveAllStats(inputs, outputs):
     output, flagFile = outputs
@@ -873,7 +1291,8 @@ if runType == "pangenome":
     @files(snpsByCoreReplicons)
     def callRepSNPs(input, outputs, repliconName):
         output, flagFile  = outputs
-        runStageCheck('callRepSNPs', flagFile, reference, input, repliconName, output)
+        bcf_option = SNPcaller + 'v'
+        runStageCheck('callRepSNPs', flagFile, reference, input, repliconName, bcf_option, output)
     stage_count += (len(sequence_list)*len(core_replicons)) 
 
 # checkpoint_callRepSNPs
@@ -940,7 +1359,7 @@ if runType == "pangenome":
                 yield([coverFile, [output, flagFile], repliconName, depthFail, coverFail])
 
     @follows(getVcfStats)
-    @follows(getSamStats)
+    @follows(checkpoint_getSamStats)
     @follows(getCoverByRep)
     @files(statsByCoreRep)
     def deriveRepStats(coverFile, outputs, repliconName, depthFail, coverFail):
@@ -985,7 +1404,8 @@ else: # runType == "phylogeny"
     @files(snpsByReplicons)
     def callRepSNPs(input, outputs, replicon):
         output, flagFile  = outputs
-        runStageCheck('callRepSNPs', flagFile, reference, input, replicon, output)
+        bcf_option = SNPcaller + 'v'
+        runStageCheck('callRepSNPs', flagFile, reference, input, replicon, bcf_option, output)
     stage_count += (len(sequence_list)*len(replicons)) 
 
 # checkpoint_callRepSNPs
@@ -1054,7 +1474,7 @@ else: # runType == "phylogeny"
                 yield([coverFile, [output, flagFile], replicon, depthFail, coverFail])
 
     @follows(getVcfStats)
-    @follows(getSamStats)
+    @follows(checkpoint_getSamStats)
     @follows(getCoverByRep)
     @files(statsByRep)
     def deriveRepStats(coverFile, outputs, replicon, depthFail, coverFail):
@@ -1202,13 +1622,11 @@ stage_count += 1
 
 if refGenbank == True:
     if outMerge != "":
-        bamPatterns = outMergeBam + '*.bam'
-        bams = []
-        if type(bamPatterns) == list:
-            for pattern in bamPatterns:
-                bams.append(glob.glob(pattern))
-        else:
-            bams = glob.glob(bamPatterns)        
+
+        bams = []        
+        for sequence in full_sequence_list:
+            if sequence not in sequence_list:
+                bams.append(outMergeBam + sequence + '.bam')
 
         # generate data for the gene cover and depth matrices
         @transform(getCoverage, regex(r"(.*)\/(.+)_coverage.txt"), [outTempPrefix + r'\2/\2_CoverDepthMatrix.txt', outSuccessPrefix + r'\2.deriveAllRepGeneCover.Success'])
@@ -1350,7 +1768,7 @@ if refGenbank == True:
             stage_count += len(core_replicons)
 
         if conservation != 0.95:
-            @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outMerge + r"\2_alleles_var_cons0.95.csv", outSuccessPrefix + r"\2_alleles.parseSNPs_95.Success"])
+            @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outMerge + r"\2_alleles_var_cons" + "0.95.csv", outSuccessPrefix + r"\2_alleles.parseSNPs_95.Success"])
             def parseSNPs_95(inputs, outputs):
                 output, flagFile = outputs
                 input,_success = inputs
@@ -1389,16 +1807,29 @@ if refGenbank == True:
                 stage_count += len(core_replicons)
 
         # generate tree
-        @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
-        def makeTree(inputs, outputs):
-            output, flagFile = outputs
-            input, _success = inputs
-            input = input[:-4] + ".mfasta"
-            runStageCheck('makeTree', flagFile, input, output)
-        if runType == "phylogeny":
-            stage_count += len(replicons)
+        if conservation != 0.95:
+            @follows(parseSNPs_95)
+            @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+            def makeTree(inputs, outputs):
+                output, flagFile = outputs
+                input, _success = inputs
+                input = input[:-4] + ".mfasta"
+                runStageCheck('makeTree', flagFile, input, output)
+            if runType == "phylogeny":
+                stage_count += len(replicons)
+            else:
+                stage_count += len(core_replicons)
         else:
-            stage_count += len(core_replicons)
+            @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+            def makeTree(inputs, outputs):
+                output, flagFile = outputs
+                input, _success = inputs
+                input = input[:-4] + ".mfasta"
+                runStageCheck('makeTree', flagFile, input, output)
+            if runType == "phylogeny":
+                stage_count += len(replicons)
+            else:
+                stage_count += len(core_replicons)
 
     else: #ie. mergeReads == "" and refGenbank == True
         # generate the gene cover and depth matrices
@@ -1563,28 +1994,39 @@ if refGenbank == True:
             else:
                 stage_count += len(core_replicons)
 
+        if conservation != 0.95:
         # generate tree
-        @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
-        def makeTree(inputs, outputs):
-            output, flagFile = outputs
-            input, _success = inputs
-            input = input[:-4] + ".mfasta"
-            runStageCheck('makeTree', flagFile, input, output)
-        if runType == "phylogeny":
-            stage_count += len(replicons)
+            @follows(parseSNPs_95)
+            @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+            def makeTree(inputs, outputs):
+                output, flagFile = outputs
+                input, _success = inputs
+                input = input[:-4] + ".mfasta"
+                runStageCheck('makeTree', flagFile, input, output)
+            if runType == "phylogeny":
+                stage_count += len(replicons)
+            else:
+                stage_count += len(core_replicons)
         else:
-            stage_count += len(core_replicons)
+            @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+            def makeTree(inputs, outputs):
+                output, flagFile = outputs
+                input, _success = inputs
+                input = input[:-4] + ".mfasta"
+                runStageCheck('makeTree', flagFile, input, output)
+            if runType == "phylogeny":
+                stage_count += len(replicons)
+            else:
+                stage_count += len(core_replicons)
 
 else: # refGenbank == False
     if outMerge != "":
         # get consensus sequence for merged set
-        bamPatterns = outMergeBam + '*.bam'
         bams = []
-        if type(bamPatterns) == list:
-            for pattern in bamPatterns:
-                bams.append(glob.glob(pattern))
-        else:
-            bams = glob.glob(bamPatterns)        
+        for sequence in full_sequence_list:
+            if sequence not in sequence_list:
+                bams.append(outMergeBam + sequence + '.bam')
+
         @follows(checkpoint_getRepSNPList)
         @transform(bams, regex(r"(.*)\/(.+).bam"), [outTempPrefix + r"\2/\2_cns.fq", outSuccessPrefix + r"\2.getMergeConsensus.Success"])
         def getMergeConsensus(input, outputs):
@@ -1697,11 +2139,11 @@ else: # refGenbank == False
             stage_count += len(core_replicons)
 
         if conservation != 0.95:
-            @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outMerge + r"\2_alleles_var_cons0.95.csv", outSuccessPrefix + r"\2_alleles.parseSNPsNoGBK_95.Success"])
+            conservation_temp = 0.95
+            @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outMerge + r"\2_alleles_var_cons" + "0.95.csv", outSuccessPrefix + r"\2_alleles.parseSNPsNoGBK_95.Success"])
             def parseSNPsNoGBK_95(inputs, outputs):
                 input,_success = inputs
                 output, flagFile = outputs
-                conservation_temp = 0.95
                 runStageCheck('parseSNPsNoGBK', flagFile, input, str(conservation_temp), outMerge)
             if runType == "phylogeny":
                 stage_count += len(replicons)
@@ -1734,16 +2176,29 @@ else: # refGenbank == False
                 stage_count += len(core_replicons)
 
         # generate tree
-        @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
-        def makeTree(inputs, outputs):
-            output, flagFile = outputs
-            input, _success = inputs
-            input = input[:-4] + ".mfasta"
-            runStageCheck('makeTree', flagFile, input, output)
-        if runType == "phylogeny":
-            stage_count += len(replicons)
+        if conservation != 0.95:
+            @follows(parseSNPsNoGBK_95)
+            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+            def makeTree(inputs, outputs):
+                output, flagFile = outputs
+                input, _success = inputs
+                input = input[:-4] + ".mfasta"
+                runStageCheck('makeTree', flagFile, input, output)
+            if runType == "phylogeny":
+                stage_count += len(replicons)
+            else:
+                stage_count += len(core_replicons)
         else:
-            stage_count += len(core_replicons)
+            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+            def makeTree(inputs, outputs):
+                output, flagFile = outputs
+                input, _success = inputs
+                input = input[:-4] + ".mfasta"
+                runStageCheck('makeTree', flagFile, input, output)
+            if runType == "phylogeny":
+                stage_count += len(replicons)
+            else:
+                stage_count += len(core_replicons)
 
     else: #refGenbank == False and outMerge == ''
 
@@ -1846,7 +2301,7 @@ else: # refGenbank == False
 
         if conservation != 0.95:
             @transform(collateRepAlleleMatrix, regex(r"(.*)\/(.+)_alleles.csv"), [outPrefix + r"\2_alleles_var_cons0.95.csv", outSuccessPrefix + r"\2_alleles.parseSNPsNoGBK_95.Success"])
-            def parseSNPsNoGBK_100(inputs, outputs):
+            def parseSNPsNoGBK_95(inputs, outputs):
                 output, flagFile = outputs
                 input,_success = inputs
                 conservation_temp = 0.95
@@ -1882,16 +2337,29 @@ else: # refGenbank == False
                 stage_count += len(core_replicons)
 
         # generate tree
-        @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
-        def makeTree(inputs, outputs):
-            output, flagFile = outputs
-            input, _success = inputs
-            input = input[:-4] + ".mfasta"
-            runStageCheck('makeTree', flagFile, input, output)
-        if runType == "phylogeny":
-            stage_count += len(replicons)
+        if conservation != 0.95:
+            @follows(parseSNPsNoGBK_95)
+            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+            def makeTree(inputs, outputs):
+                output, flagFile = outputs
+                input, _success = inputs
+                input = input[:-4] + ".mfasta"
+                runStageCheck('makeTree', flagFile, input, output)
+            if runType == "phylogeny":
+                stage_count += len(replicons)
+            else:
+                stage_count += len(core_replicons)
         else:
-            stage_count += len(core_replicons)
+            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+            def makeTree(inputs, outputs):
+                output, flagFile = outputs
+                input, _success = inputs
+                input = input[:-4] + ".mfasta"
+                runStageCheck('makeTree', flagFile, input, output)
+            if runType == "phylogeny":
+                stage_count += len(replicons)
+            else:
+                stage_count += len(core_replicons)
 
 print str(stage_count + 1) + " jobs to be executed in total"
 if success_count > 0:
