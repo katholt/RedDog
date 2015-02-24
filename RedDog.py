@@ -1,7 +1,7 @@
 #!/bin/env python
 
 '''
-RedDog V0.5.2 230215
+RedDog V0.5.2 240215
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 License: none as yet...
@@ -265,7 +265,7 @@ if mapping == 'bowtie':
         bowtie_map_type == "--very-sensitive-local"):
         pass        
     else:
-        print "\nUnrecogised Bowtie2 mapping option"
+        print "\nUnrecognised Bowtie2 mapping option"
         print "Pipeline Stopped: please check 'bowtie_map_type' in the config file\n"
         sys.exit()
 else:
@@ -284,7 +284,7 @@ except:
 try:
     HetsVCF = pipeline_options.HetsVCF
     if HetsVCF != True and HetsVCF != False:
-        print "\nUnrecogised HetsVCF option"
+        print "\nUnrecognised HetsVCF option"
         print "Pipeline Stopped: please check 'HetsVCF' in the config file\n"
         sys.exit()
 except:
@@ -319,10 +319,10 @@ if check_reads_mapped == "":
     for repliconName, repliconLength in replicons:
         if int(repliconLength) == longest_replicon_length:
             check_reads_mapped = repliconName
-else:
+elif check_reads_mapped != 'off':
     if check_reads_mapped.find(',') == -1:
         if check_reads_mapped not in repliconNames:
-            print "\nUnrecogised replicon in 'check_reads_mapped': " + check_reads_mapped
+            print "\nUnrecognised replicon used in 'check_reads_mapped': " + check_reads_mapped
             print "Pipeline Stopped: please check 'check_reads_mapped' in the config file\n"
             sys.exit()
     else:
@@ -345,7 +345,7 @@ else:
         list_of_replicons_done = []
         for replicon in list_of_replicons:
             if replicon not in repliconNames:
-                print "\nUnrecogised replicon in 'check_reads_mapped': " + replicon
+                print "\nUnrecognised replicon in 'check_reads_mapped': " + replicon
                 print "Pipeline Stopped: please check 'check_reads_mapped' in the config file\n"
                 sys.exit()
             elif replicon not in list_of_replicons_done:
@@ -471,7 +471,7 @@ if conservation > 1.0 or conservation < 0.0:
 try:
     DifferenceMatrix = pipeline_options.DifferenceMatrix
     if DifferenceMatrix != True and DifferenceMatrix != False:
-        print "\nUnrecogised DifferenceMatrix option"
+        print "\nUnrecognised DifferenceMatrix option"
         print "Pipeline Stopped: please check 'DifferenceMatrix' in the config file\n"
         sys.exit()
 except:
@@ -578,14 +578,14 @@ if continuity_test:
         if len(old_replicon_test_list) > 1:
             old_check_reads_mapped += 'x,'
             for number in range(len(old_replicon_percent_list)-1):                
-                if number < len(old_replicon_percent_list)-1:
-                    old_check_reads_mapped = str(float(old_replicon_percent_list[number])/100) + ','
+                if number < len(old_replicon_percent_list)-2:
+                    old_check_reads_mapped += str(float(old_replicon_percent_list[number])/100) + ','
                 else:
-                    old_check_reads_mapped = str(float(old_replicon_percent_list[number])/100)
+                    old_check_reads_mapped += str(float(old_replicon_percent_list[number])/100)
 
         if check_reads_mapped != 'off':
             check_test = True
-            if len(old_replicon_test_list) = 1:
+            if len(old_replicon_test_list) == 1:
                 if check_reads_mapped.find(',x,') != -1:
                     check_test = False
                 else:
@@ -607,7 +607,7 @@ if continuity_test:
                                 check_test = False
                         for name in old_replicon_test_list:
                             if name not in names:
-                                check_test = False:
+                                check_test = False
                         replicon_value_test = []
                         for number in range(len(old_replicon_percent_list)-1):
                             replicon_value_test.append(float(old_replicon_percent_list[number])/100)
@@ -627,11 +627,11 @@ if continuity_test:
                     if keyboard_entry == '1' or keyboard_entry == '2':
                         value_change = True
                     if keyboard_entry == '2':
-                        print "\n'check_reads_mapped' restored to previously used setting\n:"
+                        print "\n'check_reads_mapped' restored to previously used setting:"
                         print old_check_reads_mapped + "\n\n"
                         check_reads_mapped = old_check_reads_mapped
                     elif keyboard_entry == '1':
-                        print "\n'check_reads_mapped' using new setting\n:"
+                        print "\n'check_reads_mapped' using new setting:"
                         print check_reads_mapped + "\n"
                 else:
                     attempts_count +=1
@@ -650,18 +650,18 @@ if continuity_test:
                 if keyboard_entry == '1' or keyboard_entry == '2':
                     value_change = True
                     if keyboard_entry == '2':
-                        print "\n'check_reads_mapped' restored to previously used setting\n:"
+                        print "\n'check_reads_mapped' restored to previously used setting:"
                         print old_check_reads_mapped + "\n"
                         check_reads_mapped = old_check_reads_mapped
                     elif keyboard_entry == '1':
                         print "\n'check_reads_mapped' set to 'off' confirmed\n"
-            else:
-                attempts_count +=1
-                if attempts_count >= 3:
-                    print "\nPipeline Stopped: too many tries\n"
-                    sys.exit()
                 else:
-                    print "Please enter either '1' for 'yes', or '2' for 'no'"
+                    attempts_count +=1
+                    if attempts_count >= 3:
+                        print "\nPipeline Stopped: too many tries\n"
+                        sys.exit()
+                    else:
+                        print "Please enter either '1' for 'yes', or '2' for 'no'"
 
     else:
         if check_reads_mapped != "off":
@@ -676,15 +676,15 @@ if continuity_test:
                         print "\n'check_reads_mapped' set to 'off' confirmed\n"
                         check_reads_mapped = 'off'
                     elif keyboard_entry == '1':
-                        print "\n'check_reads_mapped' changed from 'off' and set to\n:"
+                        print "\n'check_reads_mapped' changed from 'off' and set to:"
                         print check_reads_mapped + "\n"
-            else:
-                attempts_count +=1
-                if attempts_count >= 3:
-                    print "\nPipeline Stopped: too many tries\n"
-                    sys.exit()
                 else:
-                    print "Please enter either '1' for 'yes', or '2' for 'no'"
+                    attempts_count +=1
+                    if attempts_count >= 3:
+                        print "\nPipeline Stopped: too many tries\n"
+                        sys.exit()
+                    else:
+                        print "Please enter either '1' for 'yes', or '2' for 'no'"
 
     if old_bowtie_preset != '' and old_bowtie_preset != bowtie_map_type:
         print "\n'bowtie_map_type' has changed since last run"
@@ -781,24 +781,25 @@ if continuity_test:
                 else:
                     print "Please enter '1' for new value, or '2' for old value"
 
-    if int(old_mapped_fail) != mappedFail and check_reads_mapped != 'off':
-        print "\n'mapped_fail' has changed since last run"
-        value_change = False
-        attempts_count = 0
-        while value_change == False:
-            keyboard_entry = raw_input('\nDo you wish to use: \n[1] the new value ('+str(mappedFail)+'), or\n[2] the old value? ('+old_mapped_fail+')\n')
-            if keyboard_entry == '1' or keyboard_entry == '2':
-                value_change = True
-                if keyboard_entry == '2':
-                    mappedFail = int(old_mapped_fail)
-                print "\n'mapped_fail' set to " + str(mappedFail)
-            else:
-                attempts_count +=1
-                if attempts_count >= 3:
-                    print "\nPipeline Stopped: too many tries\n"
-                    sys.exit()
+    if old_mapped_fail != 'off' and check_reads_mapped != 'off':
+        if int(old_mapped_fail) != mappedFail:
+            print "\n'mapped_fail' has changed since last run"
+            value_change = False
+            attempts_count = 0
+            while value_change == False:
+                keyboard_entry = raw_input('\nDo you wish to use: \n[1] the new value ('+str(mappedFail)+'), or\n[2] the old value? ('+old_mapped_fail+')\n')
+                if keyboard_entry == '1' or keyboard_entry == '2':
+                    value_change = True
+                    if keyboard_entry == '2':
+                        mappedFail = int(old_mapped_fail)
+                    print "\n'mapped_fail' set to " + str(mappedFail)
                 else:
-                    print "Please enter either '1' for new value, or '2' for old value"
+                    attempts_count +=1
+                    if attempts_count >= 3:
+                        print "\nPipeline Stopped: too many tries\n"
+                        sys.exit()
+                    else:
+                        print "Please enter either '1' for new value, or '2' for old value"
 
     if int(old_sd_out) != sdOutgroupMultiplier:
         print "\n'sd_out' has changed since last run"
