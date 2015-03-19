@@ -1,5 +1,5 @@
 '''
-Configuration file for RedDog.py V0.5.2
+Configuration file for RedDog.py V1.0beta
 -------------------------------
 Essential pipeline variables.
 '''
@@ -323,7 +323,7 @@ pipeline = {
     "logDir": "log",
     "logFile": "pipeline.log",
     "style": "print",
-    "procs": 100,
+    "procs": 50,
     "paired": True,
     "verbose": 1,
     "end": ["deleteDir"],

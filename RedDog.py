@@ -1,7 +1,7 @@
 #!/bin/env python
 
 '''
-RedDog V0.5.2 240215
+RedDog V1.0beta 200315
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 License: none as yet...
@@ -33,7 +33,7 @@ from rubra.utils import pipeline_options
 from rubra.utils import (runStageCheck, splitPath)
 from pipe_utils import (isGenbank, isFasta, chromInfoFasta, chromInfoGenbank, getValue, getCover, make_sequence_list, getSuccessCount, make_run_report, get_run_report_data)
 
-version = "V0.5.2"
+version = "V1.0beta"
 
 modules = pipeline_options.stageDefaults['modules']
 

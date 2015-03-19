@@ -1,4 +1,4 @@
-RedDog V0.5.2 240215
+RedDog V1.0beta 200315
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 License: none as yet...
@@ -18,14 +18,11 @@ Note: for Illumina paired-end or single reads, or Ion Torrent single reads.
 IMPORTANT: See config file/instructions for input options/requirements
 
 current version:
-V0.5.2      run report provides settings for merge runs (continuity checks) (DE)
-                includes more robust 'check_reads_mapped' (DE)
-            update to use SAMtools v1+ (DE)
-                includes (limited) addition of multiallelic SNP calling option - bcftools (DE)
-            added checkpoint_getSamStats to capture failure during initial BAM construction (DE)
-            changed bams from glob call to list call (DE)
-            various small fixes to some default values (DE)
-            fixed getRecomb.R (DE)
+V1.0b       Any fixes from final testing (DE)
+                includes handling of "." in replicon name (DE)
+            Add licensing information to all scripts (DE)
+            one more post analysis script added [for Gubbins recombination analysis] (DE)
+            update parseGenContent.py (P/A matrix based on cover and depth) (DE)
 
 previous versions:
 V0.1        converted to vcf output via mpileup instead of depreciated pileup (DE)
@@ -155,13 +152,17 @@ V0.5.1      added -X option for bowtie2 mapping (DE)
             changed getDifferenceMatrix to optional output in pipe, changed script to take options (DE)
             added option for VCF output of filtered hets (DE)
             implemented changes to run report from user feedback (DE)
+V0.5.2      run report provides settings for merge runs (continuity checks) (DE)
+                includes more robust 'check_reads_mapped' (DE)
+            update to use SAMtools v1+ (DE)
+                includes (limited) addition of multiallelic SNP calling option - bcftools (DE)
+            added checkpoint_getSamStats to capture failure during initial BAM construction (DE)
+            changed bams from glob call to list call (DE)
+            various small fixes to some default values (DE)
+            fixed getRecomb.R (DE)
 
 next planned updates
-V0.5.3      Any fixes from final testing (DE)
-            Improve on all comments in programming (DE)
-            Add licensing information to all scripts (DE)
-
-V1.0        First Public Release of RedDog 
+V1.0        Offical Public Release of RedDog (on acceptance of paper) 
 
 (Post-release)
     changes to input sequences pattern recognition
