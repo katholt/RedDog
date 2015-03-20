@@ -1,6 +1,8 @@
 '''
 mergeRepStats.py
-for RedDog.py
+
+Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt
+All rights reserved. (see README.txt for more details)
 
 merges the general 'replicon' statistics for two set of reads.
 

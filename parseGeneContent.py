@@ -1,3 +1,7 @@
+'''
+Copyright (c) 2015, David Edwards, Kat Holt
+All rights reserved. (see README.txt for more details)
+'''
 # read in coverage output file (% coverage for each gene in mapped pan genome)
 # remove genes that are not covered (to set % level, default 95%) in any strains
 # generate presence/absence table (1/0, based on set % level, default 95%)

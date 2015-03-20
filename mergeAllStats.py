@@ -1,6 +1,8 @@
 '''
 mergeAllStats.py
-for RedDog.py
+
+Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt
+All rights reserved. (see README.txt for more details)
 
 merges the general statistics for two separate runs of the pipe.
 

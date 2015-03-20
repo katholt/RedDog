@@ -1,6 +1,8 @@
 '''
 getVcfStats.py
-based on vcfStats.py
+
+Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt
+All rights reserved. (see README.txt for more details)
 
 counts number of SNPs and INDELS in _q30.vcf files
 output to user-defined file
@@ -8,7 +10,7 @@ output to user-defined file
 example:
 python getVcfStats.py vcfFile.vcf output.txt
 
-Created:	1/3/2012 (19/10/2011)
+Created:	1/3/2012
 Modified:	18/02/2013
 author: David Edwards
 '''

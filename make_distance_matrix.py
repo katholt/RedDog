@@ -1,3 +1,7 @@
+'''
+Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt
+All rights reserved. (see README.txt for more details)
+'''
 #!/usr/bin/env python
 #
 # make_distance_matrix.py

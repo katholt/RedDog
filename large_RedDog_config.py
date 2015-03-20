@@ -1,6 +1,9 @@
 '''
 Configuration file for RedDog.py V1.0beta
 -------------------------------
+Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt
+All rights reserved. (see README.txt for more details)
+
 Essential pipeline variables.
 '''
 reference = ""

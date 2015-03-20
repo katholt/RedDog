@@ -1,6 +1,9 @@
 '''
 generate_sequence_list.py
 
+Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt
+All rights reserved. (see README.txt for more details)
+
 Run if there is no 'sequence_list.txt' available.
 Requires the '*_AllStats_user.txt' file be available in the 
 output folder.

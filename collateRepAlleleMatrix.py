@@ -1,6 +1,9 @@
 '''
 collateRepAlleleMatrix.py
 
+Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt
+All rights reserved. (see README.txt for more details)
+
 takes the SNP allele matrix entry for each isolate and generates the full allele matrix
 
 outputs matrix to user-defined file

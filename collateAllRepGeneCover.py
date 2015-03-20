@@ -1,6 +1,9 @@
 '''
 collateAllRepGeneCover.py
 
+Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt
+All rights reserved. (see README.txt for more details)
+
 Takes a coverage and average depth output divided by replicon__gene, and named 
 after each isolate, and converts them to a coverage matrix and average depth matrix,
 divided by replicon__gene and strain.

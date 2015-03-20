@@ -1,3 +1,7 @@
+'''
+Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt
+All rights reserved. (see README.txt for more details)
+'''
 # Various useful utilities for the pipeline.
 # First command (splitPath) is taken from Rubra
 import sys
