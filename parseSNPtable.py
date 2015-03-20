@@ -16,16 +16,13 @@ All rights reserved. (see README.txt for more details)
 #   core - filter SNPs not in genes that are conserved with % coverage cutoff, specified via -Z, obtained from the gene cover table, specified via -z, across all core isolates, specified via -L. As for -l, outgroups are ignored.   
 #   vcf - convert snp table to vcf format (requires -v name of reference mapped, optional -V name of isolate mapped, otherwise -v used)
 #         can also produce VCF with SNPs filtered out at each stage (set '-A True' and add vcf after each filtering step)
-#   fasttree - submit a fasttree job to SLURM
-#   rax - submit threaded RAxML jobs to SLURM (can specify walltime, memory, threads, number of boostraps and number of replicate runs)
 # Any number of these modules can be supplied in any order; the order they are given is the order they will be run
-#   specify modules in a comma-separated list, e.g. '-m filter,cons,aln,rax' will run region filtering, then conservation filter, then make a fasta alignment and use this as input to 5 raxml jobs with 100 bootstraps using 8 threads
+#   specify modules in a comma-separated list, e.g. '-m filter,cons,aln' will run region filtering, then conservation filter, then make a fasta alignments
 #   clean should only be run after any recombinant regions have been indentified for exclusion
 #
 # This version also handles multiple sequence genbank files for coding entries. The sequence in the genbank relevant to the SNP table must be specified (-q queryseq).  
 # It is also quicker generating coding consequences, and now uses much less memory (about twice the size of the allele table) 
 
-# NOTE this script submits fasttree or RAxML jobs to SLURM
 #
 # Authors - Kat holt (kholt@unimelb.edu.au)
 #         - David Edwards (d.edwards2@student.unimelb.edu.au) 
@@ -43,7 +40,6 @@ python /vlsci/VR0082/shared/code/holtlab/parseSNPtable_multigbk.py -s snps.csv -
 #             - improved 'coding' option performance
 #    27/05/14 - changes to improve memory performance and filter of regions (especially overlapping regions)
 #			  - also added -d directory option
-#		08/14 - update to RAXML submission
 #	 12/09/14 - fix for filter of regions: filtered table now passed back correctly
 #			  - also updated inital SNP table reading message
 #	 28/09/14 - added cleaning (filtering) of erroneous SNPs
@@ -111,13 +107,6 @@ def main():
 	parser.add_option("-v", "--reference_name", action="store", dest="reference_name", help="name of reference mapped (required, use MT for PLINK", default="")
 	parser.add_option("-V", "--ref_isolate_name", action="store", dest="ref_isolate_name", help="name of the isolate used for reference (default reference_name)", default="")
 	parser.add_option("-A", "--add_vcf", action="store_true", dest="add_vcf", help="Set to get VCF with PASS/FAIL for all SNPs in first SNP table [post-isolate/outgroup filtering] (default False, need at least one 'vcf' module assigned to -m)", default=False)
-
-	# rax parameters
-	parser.add_option("-t", "--walltime", action="store", dest="walltime", help="walltime for raxml jobs (default 5-12:0, ie 5.5. days)", default="5-12:0")
-	parser.add_option("-M", "--memory", action="store", dest="memory", help="memory for raxml jobs (24576)", default="24576")
-	parser.add_option("-T", "--threads", action="store", dest="threads", help="number of threads per raxml job (8)", default="8")
-	parser.add_option("-N", "--N", action="store", dest="N", help="number of raxml bootstraps (100)", default="100")
-	parser.add_option("-n", "--numrax", action="store", dest="numrax", help="number of raxml jobs (5)", default="5")
 
 	return parser.parse_args()
 
@@ -425,61 +414,6 @@ if __name__ == "__main__":
 				print "\n... " + str(ns_count) + " nonsyonymous, " + str(syn_count) + " synonymous, " + str(other_feature_count) + " in other features, " + str(intergenic_count) + " in non-coding regions"
 				print "... coding consequences written to file " + pre + "_consequences.txt"
 				print "... SNP loci annotated in genbank file " + pre + ".gbk"
-
-	def runFasttree(pre, snptable, strains):
-		aln = pre + ".mfasta"
-		if not os.path.exists(aln):
-			printFasta(snptable, strains, aln) # make alignment first
-		jobscript = pre + "_FastTree.sh"
-		o = file(jobscript, "w")
-		print "\nRunning fasttree on " + aln + ", using job script: " + jobscript
-		o.write("#!/bin/bash\n#SBATCH -p main\n##SBATCH --job-name='ft" + pre)
-		o.write("'\n#SBATCH --time=0-24:0")
-		o.write("\n#SBATCH --mem-per-cpu=24576")
-		o.write("\n#SBATCH --ntasks=1")
-		o.write("\ncd " + os.getcwd())
-		o.write("\nmodule load fasttree-intel\n")
-		o.write("FastTree -gtr -gamma -nt " + aln + " > " + pre + ".tree\n")
-		o.close()
-		os.system('sbatch ' + jobscript)
-		print "\n... output tree will be in " + pre + ".tree"
-		
-	def runRax(pre, options, snptable, strains):
-		aln = pre + ".mfasta"
-		if not os.path.exists(aln):
-			printFasta(snptable, strains, aln) # make alignment first
-		for rep in range(0,int(options.numrax)):
-			# get random seeds
-			seed = random.randint(10000,1000000)
-			if seed % 2 == 0:
-				seed += 1
-			p = random.randint(10000,1000000)
-			if p % 2 == 0:
-				p += 1	
-			# prepare job script
-			jobscript = pre + "_rax_" + str(rep) + ".sh"
-			o = file(jobscript, "w")
-			print "\nRunning RAxML 7.7.2 (PTHREADS-SSE3) on " + aln + ", using job script: " + jobscript
-			rax_pre = pre + "_" + str(rep)
-			if os.path.exists("RAxML_info."+rax_pre):
-				rax_pre = pre + "_" + str(rep) + "_" + str(seed) # make sure output is unique
-			o.write("#!/bin/bash")
-			o.write("\n#SBATCH -p main")
-			o.write("\n#SBATCH --job-name=rax" + pre + str(rep))
-			o.write("\n#SBATCH --time=" + options.walltime)
-			o.write("\n#SBATCH --mem=" + options.memory)
-			o.write("\n#SBATCH --ntasks=" + options.threads)
-			o.write("\n#SBATCH --nodes=1")
-			o.write("\n#SBATCH --exclusive")
-			o.write("\ncd " + os.getcwd())
-			o.write("\nmodule load raxml-intel/7.7.2\n")
-			#o.write("raxmlHPC -s " + aln)
-			o.write("raxmlHPC-PTHREADS-SSE3 -T " + options.threads + " -s " + aln)
-			o.write(" -n " + rax_pre + " -f a -m GTRGAMMA -x " + str(seed) )
-			o.write(" -N " + options.N + " -p " + str(p) + "\n")
-			o.close()
-			os.system('sbatch ' + jobscript)
-			print "\n... output will be in RAxML*" + rax_pre
 			
 	def filter(snptable, strainlist, pre, options):	
 		# parse genomic regions
@@ -1014,8 +948,6 @@ if __name__ == "__main__":
 			pre, snptable = filterCons(snptable, strains, pre, options, outgroups)
 		elif m == "core":
 			pre, snptable = filterCore(snptable, strains, pre, options, outgroups)
-		elif m == "fasttree":
-			runFasttree(pre, snptable, strains)
 		elif m == "filter":
 			pre, snptable = filter(snptable, strains, pre, options) # return filtered snp table
 		elif m == "clean":
@@ -1029,8 +961,6 @@ if __name__ == "__main__":
 					print "\nVCF not added: check -v option"
 			else:
 				printVCF(snptable, strains, pre, options, add_vcf)
-		elif m == "rax":
-			runRax(pre, options, snptable, strains)
 		elif m == "coding":
 			runCoding(pre, snptable, options, complement)
 		return pre, snptable, vcf_to_add
