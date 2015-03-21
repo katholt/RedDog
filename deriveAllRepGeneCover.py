@@ -3,6 +3,9 @@
 '''
 deriveAllRepGeneCover.py
 
+Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt
+All rights reserved. (see README.txt for more details)
+
 Takes the genbank file for the reference sequence and the coverage file for an isolate 
 (from bamtools), and converts them to a coverage and average depth output,
 divided by replicon__gene, and named after the isolate for further collation.

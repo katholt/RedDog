@@ -1,20 +1,23 @@
 '''
-Configuration file for RedDog.py V0.5.2
+Configuration file for RedDog.py V1.0beta
 -------------------------------
+Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt
+All rights reserved. (see README.txt for more details)
+
 Essential pipeline variables.
 '''
 reference = ""
-#reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_plasmid.fasta"
+#reference = "/full_path_to/pipeline_test_sets/reference/NC_007384_with_plasmid.gbk"
 
 sequences = ""
-#sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/*.fastq.gz"
-#sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/extra/*.fastq.gz"
+#sequences = "/full_path_to/pipeline_test_sets/*.fastq.gz"
+#sequences = "/full_path_to/pipeline_test_sets/*.fastq.gz"
 
 output = ""
-#output = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
+#output = "/full_path_to/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
 
 out_merge_target = ""
-#out_merge_target = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
+#out_merge_target = "/full_path_to/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
 
 '''
 Notes:
@@ -32,27 +35,24 @@ to be generated, enter a fasta format reference instead.
 
 '''
 #Test Sets
-#reference = "/vlsci/VR0082/shared/pipeline_test_data/reference/NC_007384.gbk"
-#reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_plasmid.gbk"
-#reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/NC_007384_with_plasmid.fasta"
-#sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/*.fastq.gz"
-#sequences = "/vlsci/VR0082/shared/pipeline_test_sets/illumina/shigella/extra/*.fastq.gz"
+#reference = "/full_path_to/pipeline_test_sets/reference/NC_007384.gbk"
+#reference = "/full_path_to/pipeline_test_sets/reference/NC_007384_with_plasmid.gbk"
+#reference = "/full_path_to/pipeline_test_sets/reference/NC_007384_with_plasmid.fasta"
+#sequences = "/full_path_to/pipeline_test_sets/*.fastq.gz"
+#sequences = "/full_path_to/pipeline_test_sets/extra/*.fastq.gz"
 
 # You can now also combine sequences from different folders into the same run...
-#sequences = ["/vlsci/VR0082/shared/pipeline_test_data/illumina_pe/*.fastq.gz", "/vlsci/VR0082/shared/pipeline_test_data/illumina_pe/extra/*.fastq.gz"]
-
-#reference = "/vlsci/VR0082/shared/pipeline_test_sets/reference/DT104.fasta"
-#sequences = "/vlsci/VR0082/shared/pipeline_test_data/salmonella/*in.iontor.fastq.gz"
+#sequences = ["/full_path_to/pipeline_test_sets/*.fastq.gz", "/full_path_to/pipeline_test_sets/extra/*.fastq.gz"]
 
 '''
 'output' directory:
 full path name including final "/"
 
-For large data sets run the output to the scratch disk area and save the final output to
-your shared directory (or contagion if you have access) 
-e.g. output = "/scratch/VR0082/a_folder/<ref>_<version>_<date>/"
+For large data sets run the output to a scratch disk area (if you have access) 
+and save the final output to your directory  
+e.g. output = "/full_path_to/your_scratch_directory/a_folder/<ref>_<version>_<date>/"
 '''
-#output = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
+#output = "/full_path_to/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
 
 '''
 Directory to merge output with ('out_merge_target'):
@@ -64,19 +64,16 @@ Otherwise set to the directory you want to merge with.
 You can only merge a prior run with a new run (not two prior runs)
 This merge target folder must have the bams and indexes in one 
 sub-folder (/bam) and the vcfs in another (/vcf). There also must 
-be a sequence_list.txt file - i.e. V0.4.5.2+ format.
+be a sequence_list.txt file.
  
 The 'output' folder (see above) for a merge run should NOT exist prior to the run,
 and will be deleted at completion of the pipeline.
 
 Set to empty string for no merging (i.e. new run).
 
-Note: the pipeline can no longer merge 'single' run types (those that use 'stats.tab').
-If you really need to do so, make use of v0.4.4.4 of the pipeline.
-
 '''
 #out_merge_target = ""
-#out_merge_target = "/vlsci/VR0082/shared/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
+#out_merge_target = "/full_path_to/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
 
 '''
 If none of the following are set or changed, the default settings will be used.
@@ -323,7 +320,7 @@ pipeline = {
     "logDir": "log",
     "logFile": "pipeline.log",
     "style": "print",
-    "procs": 100,
+    "procs": 50,
     "paired": True,
     "verbose": 1,
     "end": ["deleteDir"],

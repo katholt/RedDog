@@ -1,3 +1,8 @@
+'''
+Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt
+All rights reserved. (see README.txt for more details)
+'''
+
 getRecombHeatmap<-function(snps,ref,w=NULL,g=NULL,offset=0) {
 
 # remove offset

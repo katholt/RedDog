@@ -1,3 +1,7 @@
+'''
+Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt
+All rights reserved. (see README.txt for more details)
+'''
 # Various useful utilities for the pipeline.
 # First command (splitPath) is taken from Rubra
 import sys
@@ -30,9 +34,6 @@ def chromInfoFasta(refFile):
     chroms = []
     for record in SeqIO.parse(refFile, "fasta"):
         name = record.name
-        if name.find('.') != -1:
-            temp_name = name.split('.')
-            name = temp_name[0]
         chroms.append((name, len(record)))
     return chroms
 
@@ -41,9 +42,6 @@ def chromInfoGenbank(refFile):
     chroms = []
     for record in SeqIO.parse(refFile, "genbank"):
         name = record.name
-        if name.find('.') != -1:
-            temp_name = name.split('.')
-            name = temp_name[0]
         chroms.append((name, len(record)))
     return chroms
 
@@ -144,8 +142,8 @@ def make_run_report(out_directory,
                     sequence_list):
 
     timestamp = str(datetime.datetime.now())
-    output = "RedDog " +  version + " " + timestamp +"\n"
-    output += "copyright information to go here...\n\n"
+    output = "RedDog " +  version + " " + timestamp +"\n\n"
+    output += "Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt\nAll rights reserved. (see README.txt for more details)\n\n"
 
     if merge_run and run_history != "-":
         output += run_history

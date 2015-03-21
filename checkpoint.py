@@ -1,6 +1,9 @@
 '''
 checkpoint.py
 
+Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt
+All rights reserved. (see README.txt for more details)
+
 creates or appends the stage name to "checkpoint.txt" in temp folder of pipeline
 indicates that the stage has successfully completed.
 

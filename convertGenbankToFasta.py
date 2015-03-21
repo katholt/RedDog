@@ -1,6 +1,9 @@
 '''
 convertGenbankToFasta.py
 
+Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt
+All rights reserved. (see README.txt for more details)
+
 Converts a genbank file to a fasta file 
   - produces a sequence for each replicon
   - uses the sequence name to generate the id for the seqeunce

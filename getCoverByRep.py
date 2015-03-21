@@ -1,6 +1,9 @@
 '''
 getCoverByRep.py
 
+Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt
+All rights reserved. (see README.txt for more details)
+
 Calculates the coverage and depth by replicon for a mapped set of reads. 
 Reports, in order:
 replicon name, length, depth (average), cover (%)

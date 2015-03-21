@@ -1,6 +1,8 @@
 '''
 collateRepStats.py
-for mapping_pipe.py
+
+Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt
+All rights reserved. (see README.txt for more details)
 
 collates the general statistics for set of reads that have gone through
 the pipeline during a pangenome or phylogeny run for a particular replicon

@@ -1,7 +1,10 @@
 ##########################################################################
-## Script to check for errors in the RedDog and BlueDog pipeline        ##
-## Lesley Raven - 01/06/2014                                            ##
+## Script to check for errors in the RedDog pipeline                    ##
+## Lesley Raven - 09/12/2014                                            ##
 ##########################################################################
+
+#Copyright (c) 2015, Lesley Raven, David Edwards, Bernie Pope, Kat Holt
+#All rights reserved. (see README.txt for more details)
 
 ### Enter location of your log directory
 
@@ -10,7 +13,9 @@ if [ -s tmp_log.txt ]; then rm tmp_log.txt; fi
 
 ### Check for errors
 echo "Checking $log_dir...."
-grep -r 'EOF\\|CANCELLED\\|FAILED\\|EXIT\\|LIMIT\\|TIME\\|KILLED\\|Error\\|Warning\\|EOF\\|malformatted\\|died\\|error while loading\\|cutoff is higher' $log_dir | sed 's/:/\\t\\t/g' >> tmp_log.txt
+grep -ir 'EOF \|CANCELLED\|FAILED\| EXIT \|TIME LIMIT\|KILLED\|Warning\|malformatted\|died\|error \|error while loading\|cutoff is higher\|failed to \|No such file' $log_dir/* | sed 's/:/\t/g' >> tmp_log.txt
+
+#grep -ir "failed" log/*
 
 ### Print summary of errors
 n_err=`cat tmp_log.txt | wc -l`
@@ -27,4 +32,19 @@ if [ -s tmp_log.txt ]
         if [ -s tmp_log.txt ]; then rm tmp_log.txt; fi
         fi
 echo ""
-if grep -q 'IO Error' tmp_log.txt; then echo "IO Error: Check <2Tb used on disk, re-run pipeline the communication has been disrupted"; else :;fi
+if grep -q 'IO Error' tmp_log.txt; then echo "IO Error: Check disk usage, re-run pipeline the communication has been disrupted"; else :;fi
+
+### Find first pipeline step with an error
+res=`cat RedDog_config.py | grep ": {" | tr ":{" '_' | sed 's/"//g' | sed 's/_//g' | tr '\n' ' '`
+for i in $res; do 
+	grep -q $i tmp_log.txt
+	if [ $? -eq 0 ]
+	then
+		echo First step with an error is: $i
+		cat tmp_log.txt | grep $i | head -2
+		exit 0
+	else
+		continue
+	fi
+done
+

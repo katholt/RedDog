@@ -1,7 +1,30 @@
-RedDog V0.5.2 240215
+RedDog V1.0beta 210315
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
-License: none as yet...
+
+Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, 
+are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, 
+this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice, 
+this list of conditions and the following disclaimer in the documentation 
+and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors 
+may be used to endorse or promote products derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
+INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Description: 
 This program implements a workflow pipeline for short read length
@@ -18,14 +41,11 @@ Note: for Illumina paired-end or single reads, or Ion Torrent single reads.
 IMPORTANT: See config file/instructions for input options/requirements
 
 current version:
-V0.5.2      run report provides settings for merge runs (continuity checks) (DE)
-                includes more robust 'check_reads_mapped' (DE)
-            update to use SAMtools v1+ (DE)
-                includes (limited) addition of multiallelic SNP calling option - bcftools (DE)
-            added checkpoint_getSamStats to capture failure during initial BAM construction (DE)
-            changed bams from glob call to list call (DE)
-            various small fixes to some default values (DE)
-            fixed getRecomb.R (DE)
+V1.0b       Any fixes from final testing (DE)
+                includes handling of "." in replicon name (DE)
+            Add licensing information to all scripts (DE)
+            one more post analysis script added [for Gubbins recombination analysis] (DE)
+            update parseGenContent.py (P/A matrix based on cover and depth) (DE)
 
 previous versions:
 V0.1        converted to vcf output via mpileup instead of depreciated pileup (DE)
@@ -155,13 +175,17 @@ V0.5.1      added -X option for bowtie2 mapping (DE)
             changed getDifferenceMatrix to optional output in pipe, changed script to take options (DE)
             added option for VCF output of filtered hets (DE)
             implemented changes to run report from user feedback (DE)
+V0.5.2      run report provides settings for merge runs (continuity checks) (DE)
+                includes more robust 'check_reads_mapped' (DE)
+            update to use SAMtools v1+ (DE)
+                includes (limited) addition of multiallelic SNP calling option - bcftools (DE)
+            added checkpoint_getSamStats to capture failure during initial BAM construction (DE)
+            changed bams from glob call to list call (DE)
+            various small fixes to some default values (DE)
+            fixed getRecomb.R (DE)
 
 next planned updates
-V0.5.3      Any fixes from final testing (DE)
-            Improve on all comments in programming (DE)
-            Add licensing information to all scripts (DE)
-
-V1.0        First Public Release of RedDog 
+V1.0        Offical Public Release of RedDog (on acceptance of paper) 
 
 (Post-release)
     changes to input sequences pattern recognition
@@ -179,7 +203,7 @@ NOTE: with a workaround, some reanalysis without mapping IS possible. Email me f
 
 If you wish to see other options added, email me (DE) with suggestions:
 (I'm not making any promises...)
-    davidje at student dot unimelb dot edu dot au
+    d dot edwards2 at student dot unimelb dot edu dot au
 
-(DE) My (ongoing) thanks to the "alpha-testers" for their feedback and patience.
+Our thanks to the "alpha-testers" for their feedback and patience.
 

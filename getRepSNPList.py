@@ -1,6 +1,9 @@
 '''
 getRepSNPList.py
 
+Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt
+All rights reserved. (see README.txt for more details)
+
 takes a number of -q30 vcfs based on the same reference and replicon and creates 
 a list of all positions in the reference where a homozygous SNP occurs in at least one of the vcfs.
 
