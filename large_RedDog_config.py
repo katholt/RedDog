@@ -472,7 +472,7 @@ stages = {
     },
     "parseGeneContent": {
         "walltime": "01:00:00",
-        "command": "python parseGeneContent.py -g %input -s %out -o %out2"
+        "command": "python parseGeneContent.py -g %input -d %input2 -s %out -o %out2"
     },
     "deriveRepAlleleMatrix": {
         "command": "python deriveRepAlleleMatrix.py %in %out %ref %replicon %consensus %repStats %merge_prefix"
