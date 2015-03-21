@@ -111,10 +111,11 @@ if len(replicons)>1:
                 print "Pipeline Stopped: please check your reference\n"
                 sys.exit()
 
-# check that replicon names in reference do not in contain ":" or "+"
+# check that replicon names in reference do not in contain '|', ':', '+', or '.'
+# these all cause problems in third-party scripts
 for i in range(len(replicons)):
-    if replicons[i][0].find(":") != -1 or replicons[i][0].find("+") != -1 or replicons[i][0].find("|") != -1:
-        print "\nReference has replicon with an illegal character ('|', ':' or '+'): " + replicons[i][0]
+    if replicons[i][0].find(":") != -1 or replicons[i][0].find("+") != -1 or replicons[i][0].find("|") != -1 or replicons[i][0].find(".") != -1:
+        print "\nReference has replicon with an illegal character ('|', ':', '+', or '.'): " + replicons[i][0]
         print "Pipeline Stopped: please change the name of the replicon in the reference\n"
         sys.exit()
 
