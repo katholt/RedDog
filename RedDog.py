@@ -1,7 +1,7 @@
 #!/bin/env python
 
 '''
-RedDog V1.0beta 200315
+RedDog V1.0beta 210315
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
@@ -1672,10 +1672,12 @@ if refGenbank == True:
         @transform(mergeAllRepGeneCover, regex(r"(.*)\/(.+)_CoverMatrix.csv"), [outMerge + r"\2_GeneSummary.csv", outSuccessPrefix + r"\2_alleles.parseGeneContent.Success"])
         def parseGeneContent(inputs, outputs):
             output, flagFile = outputs
-            (prefix, name, ext) = splitPath(output)
-            output2 = prefix + "/" + name[:-11] + "PresenceAbsence.csv"
             input, _success = inputs
-            runStageCheck('parseGeneContent', flagFile, input, output, output2)
+            (prefix, name, ext) = splitPath(output)
+            (prefix2, name2, ext2) = splitPath(input)            
+            output2 = prefix + "/" + name[:-11] + "PresenceAbsence.csv"
+            input2 = prefix + "/" + name[:-11] + "DepthMatrix.csv"
+            runStageCheck('parseGeneContent', flagFile, input, input2, output, output2)
         stage_count += 1
 
         # get consensus sequences for merged set
@@ -1875,10 +1877,12 @@ if refGenbank == True:
         @transform(collateAllRepGeneCover, regex(r"(.*)\/(.+)_CoverMatrix.csv"), [outPrefix + r"\2_GeneSummary.csv", outSuccessPrefix + r"\2_alleles.parseGeneContent.Success"])
         def parseGeneContent(inputs, outputs):
             output, flagFile = outputs
-            (prefix, name, ext) = splitPath(output)
-            output2 = prefix + "/" + name[:-11] + "PresenceAbsence.csv"
             input, _success = inputs
-            runStageCheck('parseGeneContent', flagFile, input, output, output2)
+            (prefix, name, ext) = splitPath(output)
+            (prefix2, name2, ext2) = splitPath(input)            
+            output2 = prefix + "/" + name[:-11] + "PresenceAbsence.csv"
+            input2 = prefix + "/" + name[:-11] + "DepthMatrix.csv"
+            runStageCheck('parseGeneContent', flagFile, input, input2, output, output2)
         stage_count += 1
 
         if runType == 'pangenome':

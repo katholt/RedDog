@@ -34,9 +34,6 @@ def chromInfoFasta(refFile):
     chroms = []
     for record in SeqIO.parse(refFile, "fasta"):
         name = record.name
-        if name.find('.') != -1:
-            temp_name = name.split('.')
-            name = temp_name[0]
         chroms.append((name, len(record)))
     return chroms
 
@@ -45,9 +42,6 @@ def chromInfoGenbank(refFile):
     chroms = []
     for record in SeqIO.parse(refFile, "genbank"):
         name = record.name
-        if name.find('.') != -1:
-            temp_name = name.split('.')
-            name = temp_name[0]
         chroms.append((name, len(record)))
     return chroms
 
