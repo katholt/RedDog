@@ -868,7 +868,7 @@ if continuity_test:
 #but first, output run conditions to user and get confirmation to run
 print "\nRedDog " + version + " - " + runType + " run\n"
 print "Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt"
-print "All rights reserved. (see README.txt for more details)"
+print "All rights reserved. (see README.txt for more details)\n"
 
 print "Mapping: " + mapping_out
 if mapping == 'bowtie':

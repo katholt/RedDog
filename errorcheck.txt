@@ -1,8 +1,9 @@
 ##########################################################################
-## Script to check for errors in the RedDog and BlueDog pipeline        ##
+## Script to check for errors in the RedDog pipeline                    ##
 ## Lesley Raven - 09/12/2014                                            ##
 ##########################################################################
-#Copyright (c) 2015, Lesley Raven
+
+#Copyright (c) 2015, Lesley Raven, David Edwards, Bernie Pope, Kat Holt
 #All rights reserved. (see README.txt for more details)
 
 ### Enter location of your log directory

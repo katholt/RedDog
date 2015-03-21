@@ -1,4 +1,4 @@
-RedDog V1.0beta 200315
+RedDog V1.0beta 210315
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
@@ -203,7 +203,7 @@ NOTE: with a workaround, some reanalysis without mapping IS possible. Email me f
 
 If you wish to see other options added, email me (DE) with suggestions:
 (I'm not making any promises...)
-    davidje at student dot unimelb dot edu dot au
+    d dot edwards2 at student dot unimelb dot edu dot au
 
-(DE) My (ongoing) thanks to the "alpha-testers" for their feedback and patience.
+Our thanks to the "alpha-testers" for their feedback and patience.
 

@@ -142,8 +142,8 @@ def make_run_report(out_directory,
                     sequence_list):
 
     timestamp = str(datetime.datetime.now())
-    output = "RedDog " +  version + " " + timestamp +"\n"
-    output += "copyright information to go here...\n\n"
+    output = "RedDog " +  version + " " + timestamp +"\n\n"
+    output += "Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt\nAll rights reserved. (see README.txt for more details)\n\n"
 
     if merge_run and run_history != "-":
         output += run_history
