@@ -338,7 +338,7 @@ stageDefaults = {
         "samtools-intel/1.1",
         "bcftools-intel/1.1",
         "eautils-gcc/1.1.2",
-        "fasttree-intel/2.1.7dp",
+        "fasttree-gcc/2.1.7dp",
         "bowtie2-intel/2.2.3"
     ]
 }
