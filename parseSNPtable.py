@@ -46,6 +46,7 @@ python /vlsci/VR0082/shared/code/holtlab/parseSNPtable_multigbk.py -s snps.csv -
 #    01/10/14 - added output of SNP table to vcf format
 #    03/10/14 - fixed minor error in output of compound vcf format for Gingr
 #    07/10/14 - added filtering for core SNPs as specified by Gene Coverage table from RedDog
+#    08/03/15 - fixed reported position of SNP in nnon-coding feature
 
 import os, sys, subprocess, string, re, random
 import collections
@@ -399,9 +400,9 @@ if __name__ == "__main__":
 											# non-protein coding feature
 											other_feature_count += 1
 											if geneannot[feature_index[2]].strand == 1:
-												posingene = int(snptable[snp][0])-start+1
+												posingene = int(snptable[snp][0])-start # note genestart is in -1 offset space, snp is not
 											else:
-												posingene = stop-int(snptable[snp][0])+1
+												posingene = stop-int(snptable[snp][0])+1 # note genestop is not in -1 offset space
 											o.write("\t".join([snptable[snp][0],str(ref_allele),str(alt_allele),geneannot[feature_index[2]].type,id,"","","","",product,str(posingene),"","","\n"]))
 											record.features.append(SeqFeature(FeatureLocation(int(snptable[snp][0])-1,int(snptable[snp][0])), type="variation", strand=1, qualifiers = {'note' : ["SNP " + ref_allele + "->" + alt_allele + " in non-CDS feature" ]}))
 							if hit == 0:

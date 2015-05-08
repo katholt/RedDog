@@ -1,5 +1,5 @@
 '''
-Configuration file for RedDog.py V1.0beta
+Configuration file for RedDog.py V1beta.1
 -------------------------------
 
 Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt
