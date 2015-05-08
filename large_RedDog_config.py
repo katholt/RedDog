@@ -1,5 +1,5 @@
 '''
-Configuration file for RedDog.py V1.0beta
+Configuration file for RedDog.py V1beta.1
 -------------------------------
 Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt
 All rights reserved. (see README.txt for more details)
@@ -475,6 +475,7 @@ stages = {
         "command": "python parseGeneContent.py -g %input -d %input2 -s %out -o %out2"
     },
     "deriveRepAlleleMatrix": {
+        "walltime": "02:00:00",
         "command": "python deriveRepAlleleMatrix.py %in %out %ref %replicon %consensus %repStats %merge_prefix"
     },
     "collateRepAlleleMatrix": {

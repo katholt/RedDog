@@ -1,4 +1,4 @@
-RedDog V1.0beta 210315
+RedDog V1beta.1 080515
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
@@ -41,11 +41,7 @@ Note: for Illumina paired-end or single reads, or Ion Torrent single reads.
 IMPORTANT: See config file/instructions for input options/requirements
 
 current version:
-V1.0b       Any fixes from final testing (DE)
-                includes handling of "." in replicon name (DE)
-            Add licensing information to all scripts (DE)
-            one more post analysis script added [for Gubbins recombination analysis] (DE)
-            update parseGenContent.py (P/A matrix based on cover and depth) (DE)
+V1beta.1    fix for parseSNPTable - reported position of snp in non-coding feature (DE)
 
 previous versions:
 V0.1        converted to vcf output via mpileup instead of depreciated pileup (DE)
@@ -183,6 +179,11 @@ V0.5.2      run report provides settings for merge runs (continuity checks) (DE)
             changed bams from glob call to list call (DE)
             various small fixes to some default values (DE)
             fixed getRecomb.R (DE)
+V1.0b       Any fixes from final testing (DE)
+                includes handling of "." in replicon name (DE)
+            Add licensing information to all scripts (DE)
+            one more post analysis script added [for Gubbins recombination analysis] (DE)
+            update parseGeneContent.py (P/A matrix based on cover and depth) (DE)
 
 next planned updates
 V1.0        Offical Public Release of RedDog (on acceptance of paper) 
