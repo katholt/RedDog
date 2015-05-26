@@ -1,10 +1,10 @@
+#!/usr/bin/env python
 '''
 Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt
 All rights reserved. (see README.txt for more details)
 '''
-#!/usr/bin/env python
 #
-# Converts RedDog coverage putput to heatmap data for plotTree.R
+# Converts RedDog coverage output to heatmap data for plotTree.R
 #
 # Need to specify either by replicon (-i AllStats.txt) or by gene coverage (-I CoverMatrix.csv), or both
 # If both are specified, coverage in the heat map matrix will reported for each replicon then its genes

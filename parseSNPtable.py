@@ -1,8 +1,8 @@
+#!/usr/bin/env python
 '''
 Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt
 All rights reserved. (see README.txt for more details)
 '''
-#!/usr/bin/env python
 #
 # Read in SNP alleles (csv format)
 #  can take a file containing a list of strains to include (-l), otherwise all are included
@@ -24,7 +24,7 @@ All rights reserved. (see README.txt for more details)
 # It is also quicker generating coding consequences, and now uses much less memory (about twice the size of the allele table) 
 
 #
-# Authors - Kat holt (kholt@unimelb.edu.au)
+# Authors - Kat Holt (kholt@unimelb.edu.au)
 #         - David Edwards (d.edwards2@student.unimelb.edu.au) 
 #
 # Example command on barcoo:
@@ -33,7 +33,7 @@ module load python-gcc/2.7.5
 python /vlsci/VR0082/shared/code/holtlab/parseSNPtable_multigbk.py -s snps.csv -p prefix -r genbank -q queryseq -m aln,coding,rax
 '''
 #
-# Last modified - Oct 7, 2014
+# Last modified - May 22, 2015
 # Changes:
 #	 15/10/13 - added strain subset option
 #    25/03/14 - added multiple sequence genbank file handling 
@@ -46,7 +46,8 @@ python /vlsci/VR0082/shared/code/holtlab/parseSNPtable_multigbk.py -s snps.csv -
 #    01/10/14 - added output of SNP table to vcf format
 #    03/10/14 - fixed minor error in output of compound vcf format for Gingr
 #    07/10/14 - added filtering for core SNPs as specified by Gene Coverage table from RedDog
-#    08/03/15 - fixed reported position of SNP in nnon-coding feature
+#    08/03/15 - fixed reported position of SNP in non-coding feature
+#    22/05/15 - changed way variable snps are assessed during reading in snp table
 
 import os, sys, subprocess, string, re, random
 import collections
@@ -116,13 +117,9 @@ if __name__ == "__main__":
 	(options, args) = main()
 	nt = ["A","C","G","T"]
 
-	def isVar(alleles):
-		numAlleles = 0
-		for a in nt:
-			if alleles.count(a) > 0:
-				numAlleles += 1
-		return (numAlleles > 1)
-	
+	def isVariable(snp_calls):
+		return (len(set(snp_calls.upper()).intersection(nt)) > 1)
+
 	# read csv; return as dictionary of dictionaries and list of strains
 	def readSNPTable(infile,outgroup_list,strain_list_file,pre):
 		print "\nReading SNP table from " + infile
@@ -158,6 +155,8 @@ if __name__ == "__main__":
 		o.write("Pos")
 		fields = []
 		count = 0
+		keep = []
+		keep_ingroup = []
 		for i in range(len(lines)):
 #			if i % 10000 == 0:
 #				print 'Memory usage: %s (kb)' % resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
@@ -176,7 +175,10 @@ if __name__ == "__main__":
 				# print header for new table
 				for j in range(1, len(fields)):
 					if strains[j] in strainlist or strains[j] in outgroups:
-						o.write(","+strains[j])						
+						keep.append(j)
+						o.write(","+strains[j])
+						if strains[j] not in outgroups:
+							keep_ingroup.append(j)					
 				o.write("\n")
 			else:
 				j=0
@@ -184,26 +186,23 @@ if __name__ == "__main__":
 				while lines[i][j] != ',':
 					snp += lines[i][j]
 					j+=1
-				alleles_ingroup = [] # alleles for this snp
-				alleles_outgroup = [] # alleles for outgroups
-				for k in range(1,len(fields)):
-					if strains[k] in strainlist and strains[k] not in outgroups and lines[i][(j+2*(k-1)+1)] not in alleles_ingroup:
-						alleles_ingroup.append(lines[i][(j+2*(k-1)+1)]) # add this allele to the list
-					elif strains[k] in outgroups and lines[i][(j+2*(k-1)+1)] not in alleles_outgroup:
-						alleles_outgroup.append(lines[i][(j+2*(k-1)+1)]) # add this allele to the outgroup list
-						if strains[k] not in outgroups_used:
-							outgroups_used.append(strains[k])
-				if isVar(alleles_ingroup):
-					o.write(str(snp))
-					snptable.append([])
-					snptable[count].append(snp)
-					snptable[count].append('')
-					# variable in ingroup, store alleles for included strains
-					for k in range(1, len(fields)):
-						if strains[k] in strainlist or strains[k] in outgroups:
-							snptable[count][1] += lines[i][(j+2*(k-1)+1)].upper()
-							o.write(","+lines[i][(j+2*(k-1)+1)].upper())
-					o.write("\n")
+				# create list of in-group snp calls
+				snp_calls_ingroup = ''
+				for k in keep_ingroup:
+					snp_calls_ingroup += lines[i][(j+2*(k-1)+1)].upper() 
+				if isVariable(snp_calls_ingroup):
+					# create list of all snp calls
+					snp_calls = ''
+					if len(keep) == len(keep_ingroup):
+						snp_calls = snp_calls_ingroup
+					else:
+						for k in keep:
+							snp_calls += lines[i][(j+2*(k-1)+1)].upper() 
+					snp_calls_out = ',' + ','.join(snp_calls)
+					snp_out = str(snp) + snp_calls_out + "\n"
+
+					o.write(snp_out)
+					snptable.append([snp, snp_calls])
 					count +=1
 				else:
 					ignored.append(snp)
@@ -211,7 +210,7 @@ if __name__ == "__main__":
 		strains.pop(0) # remove SNP column header
 		strains_used = []
 		for strain in strains:
-			if strain in strainlist or strain in outgroups_used:
+			if strain in strainlist or strain in outgroups:
 				strains_used.append(strain) 			
 
 		print "\n... finished reading " + str(len(snptable) + len(ignored)) + " SNPs in total"
@@ -222,12 +221,12 @@ if __name__ == "__main__":
 	def printFasta(snptable, strains, outfile):
 		print "\nPrinting alignment to file " + outfile
 		o = file(outfile,"w")
-		for strain in range(len(strains)):
+		for strain in range(len(strains)): # cycle over strains
 			o.write(">" + strains[strain] + "\n")
-			seq = ""
+			seq = ''
 			for snp in range(len(snptable)): # cycle over SNPs
-				o.write(str(snptable[snp][1][strain]))
-			o.write("\n")
+				seq += snptable[snp][1][strain]
+			o.write(seq + "\n")
 		o.close()
 		print "\n... done"
 

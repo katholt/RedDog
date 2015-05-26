@@ -1,5 +1,5 @@
 '''
-Configuration file for RedDog.py V1beta.1
+Configuration file for RedDog.py V1beta.2
 -------------------------------
 
 Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt
@@ -509,14 +509,11 @@ stages = {
     },
     "parseSNPs": {
 # large data sets
-#        "walltime": "03:00:00",
 #        "memInGB": 8,
         "command": "python parseSNPtable.py -m cons,aln,coding -s %input -c %conservation -r %genbank -q %replicon -d %dir"
     },
     "parseSNPsNoGBK": {
-        "walltime": "00:10:00",
 # large data sets
-#        "walltime": "03:00:00",
 #        "memInGB": 8,
         "command": "python parseSNPtable.py -m cons,aln -s %input -c %conservation -d %dir"
     },
