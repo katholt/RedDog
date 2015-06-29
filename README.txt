@@ -1,4 +1,4 @@
-RedDog V1beta.2 260515
+RedDog V1beta.2 290615
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
@@ -41,7 +41,7 @@ Note: for Illumina paired-end or single reads, or Ion Torrent single reads.
 IMPORTANT: See config file/instructions for input options/requirements
 
 current version:
-V1beta.2    fix for parseSNPTable - improved speed of reading and parsing snp table (DE)
+V1beta.3    changed fasttree to raxml (DE)
 
 previous versions:
 V0.1        converted to vcf output via mpileup instead of depreciated pileup (DE)
@@ -185,6 +185,7 @@ V1.0b       Any fixes from final testing (DE)
             one more post analysis script added [for Gubbins recombination analysis] (DE)
             update parseGeneContent.py (P/A matrix based on cover and depth) (DE)
 V1beta.1    fix for parseSNPTable - reported position of snp in non-coding feature (DE)
+V1beta.2    fix for parseSNPTable - improved speed of reading and parsing snp table (DE)
 
 next planned updates
 V1.0        Offical Public Release of RedDog (on acceptance of paper) 
@@ -201,11 +202,4 @@ V1.0        Offical Public Release of RedDog (on acceptance of paper)
         merging of bams
     further analysis options 
 
-NOTE: with a workaround, some reanalysis without mapping IS possible. Email me for details (DE)
-
-If you wish to see other options added, email me (DE) with suggestions:
-(I'm not making any promises...)
-    d dot edwards2 at student dot unimelb dot edu dot au
-
 Our thanks to the "alpha-testers" for their feedback and patience.
-

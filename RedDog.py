@@ -1,7 +1,7 @@
 #!/bin/env python
 
 '''
-RedDog V1beta.2 260515
+RedDog V1beta.3 290615
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
@@ -56,7 +56,7 @@ from rubra.utils import pipeline_options
 from rubra.utils import (runStageCheck, splitPath)
 from pipe_utils import (isGenbank, isFasta, chromInfoFasta, chromInfoGenbank, getValue, getCover, make_sequence_list, getSuccessCount, make_run_report, get_run_report_data)
 
-version = "V1beta.2"
+version = "V1beta.3"
 
 modules = pipeline_options.stageDefaults['modules']
 
@@ -1837,23 +1837,29 @@ if refGenbank == True:
         # generate tree
         if conservation != 0.95:
             @follows(parseSNPs_95)
-            @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+            @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + "RAxML_bestTree." + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
             def makeTree(inputs, outputs):
                 output, flagFile = outputs
+                (dir_out, name, ext) = splitPath(output)
                 input, _success = inputs
+                (prefix, name2, ext2) = splitPath(input)
+                out = name2 + "." + ext
                 input = input[:-4] + ".mfasta"
-                runStageCheck('makeTree', flagFile, input, output)
+                runStageCheck('makeTree', flagFile, dir_out, input, out)
             if runType == "phylogeny":
                 stage_count += len(replicons)
             else:
                 stage_count += len(core_replicons)
         else:
-            @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+            @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + "RAxML_bestTree." + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
             def makeTree(inputs, outputs):
                 output, flagFile = outputs
+                (dir_out, name, ext) = splitPath(output)
                 input, _success = inputs
+                (prefix, name2, ext2) = splitPath(input)
+                out = name2 + "." + ext
                 input = input[:-4] + ".mfasta"
-                runStageCheck('makeTree', flagFile, input, output)
+                runStageCheck('makeTree', flagFile, dir_out, input, out)
             if runType == "phylogeny":
                 stage_count += len(replicons)
             else:
@@ -2027,23 +2033,29 @@ if refGenbank == True:
         if conservation != 0.95:
         # generate tree
             @follows(parseSNPs_95)
-            @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+            @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + "RAxML_bestTree." + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
             def makeTree(inputs, outputs):
                 output, flagFile = outputs
+                (dir_out, name, ext) = splitPath(output)
                 input, _success = inputs
+                (prefix, name2, ext2) = splitPath(input)
+                out = name2 + "." + ext
                 input = input[:-4] + ".mfasta"
-                runStageCheck('makeTree', flagFile, input, output)
+                runStageCheck('makeTree', flagFile, dir_out, input, out)
             if runType == "phylogeny":
                 stage_count += len(replicons)
             else:
                 stage_count += len(core_replicons)
         else:
-            @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+            @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + "RAxML_bestTree." + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
             def makeTree(inputs, outputs):
                 output, flagFile = outputs
+                (dir_out, name, ext) = splitPath(output)
                 input, _success = inputs
+                (prefix, name2, ext2) = splitPath(input)
+                out = name2 + "." + ext
                 input = input[:-4] + ".mfasta"
-                runStageCheck('makeTree', flagFile, input, output)
+                runStageCheck('makeTree', flagFile, dir_out, input, out)
             if runType == "phylogeny":
                 stage_count += len(replicons)
             else:
@@ -2208,23 +2220,29 @@ else: # refGenbank == False
         # generate tree
         if conservation != 0.95:
             @follows(parseSNPsNoGBK_95)
-            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + "RAxML_bestTree." + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
             def makeTree(inputs, outputs):
                 output, flagFile = outputs
+                (dir_out, name, ext) = splitPath(output)
                 input, _success = inputs
+                (prefix, name2, ext2) = splitPath(input)
+                out = name2 + "." + ext
                 input = input[:-4] + ".mfasta"
-                runStageCheck('makeTree', flagFile, input, output)
+                runStageCheck('makeTree', flagFile, dir_out, input, out)
             if runType == "phylogeny":
                 stage_count += len(replicons)
             else:
                 stage_count += len(core_replicons)
         else:
-            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + "RAxML_bestTree." + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
             def makeTree(inputs, outputs):
                 output, flagFile = outputs
+                (dir_out, name, ext) = splitPath(output)
                 input, _success = inputs
+                (prefix, name2, ext2) = splitPath(input)
+                out = name2 + "." + ext
                 input = input[:-4] + ".mfasta"
-                runStageCheck('makeTree', flagFile, input, output)
+                runStageCheck('makeTree', flagFile, dir_out, input, out)
             if runType == "phylogeny":
                 stage_count += len(replicons)
             else:
@@ -2369,23 +2387,29 @@ else: # refGenbank == False
         # generate tree
         if conservation != 0.95:
             @follows(parseSNPsNoGBK_95)
-            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + "RAxML_bestTree." + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
             def makeTree(inputs, outputs):
                 output, flagFile = outputs
+                (dir_out, name, ext) = splitPath(output)
                 input, _success = inputs
+                (prefix, name2, ext2) = splitPath(input)
+                out = name2 + "." + ext
                 input = input[:-4] + ".mfasta"
-                runStageCheck('makeTree', flagFile, input, output)
+                runStageCheck('makeTree', flagFile, dir_out, input, out)
             if runType == "phylogeny":
                 stage_count += len(replicons)
             else:
                 stage_count += len(core_replicons)
         else:
-            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + "RAxML_bestTree." + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
             def makeTree(inputs, outputs):
                 output, flagFile = outputs
+                (dir_out, name, ext) = splitPath(output)
                 input, _success = inputs
+                (prefix, name2, ext2) = splitPath(input)
+                out = name2 + "." + ext
                 input = input[:-4] + ".mfasta"
-                runStageCheck('makeTree', flagFile, input, output)
+                runStageCheck('makeTree', flagFile, dir_out, input, out)
             if runType == "phylogeny":
                 stage_count += len(replicons)
             else:

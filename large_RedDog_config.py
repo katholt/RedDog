@@ -1,5 +1,5 @@
 '''
-Configuration file for RedDog.py V1beta.2
+Configuration file for RedDog.py V1beta.3
 -------------------------------
 Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt
 All rights reserved. (see README.txt for more details)
@@ -338,7 +338,7 @@ stageDefaults = {
         "samtools-intel/1.1",
         "bcftools-intel/1.1",
         "eautils-gcc/1.1.2",
-        "fasttree-gcc/2.1.7dp",
+        "raxml-intel/8.1.23",
         "bowtie2-intel/2.2.3"
     ]
 }
@@ -496,7 +496,7 @@ stages = {
     "makeTree": {
         "walltime": "06:00:00",
         "memInGB": 8,
-        "command": "FastTree -gtr -gamma -nt %input > %output"
+        "command": "cd %dir && raxmlHPC -f a -s %input -x 98765 -p 12345 -# 100 -m ASC_GTRGAMMA -n %out –-asc­-corr=lewis"
     },
     "deleteDir": {
         "walltime": "00:10:00",
