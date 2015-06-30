@@ -54,7 +54,9 @@ import sys
 import glob
 from rubra.utils import pipeline_options
 from rubra.utils import (runStageCheck, splitPath)
-from pipe_utils import (isGenbank, isFasta, chromInfoFasta, chromInfoGenbank, getValue, getCover, make_sequence_list, getSuccessCount, make_run_report, get_run_report_data)
+from pipe_utils import (isGenbank, isFasta, chromInfoFasta, chromInfoGenbank, getValue, 
+                        getCover, make_sequence_list, getSuccessCount, make_run_report, 
+                        get_run_report_data, getFastaDetails)
 
 version = "V1beta.3"
 
@@ -500,6 +502,24 @@ try:
         sys.exit()
 except:
     DifferenceMatrix = False
+
+try:
+    force_tree = pipeline_options.force_tree
+    if force_tree != True and force_tree != False:
+        print "\nUnrecognised force_tree option"
+        print "Pipeline Stopped: please check 'force_tree' in the config file\n"
+        sys.exit()
+except:
+    force_tree = False
+
+try:
+    force_no_tree = pipeline_options.force_no_tree
+    if force_no_tree != True and force_no_tree != False:
+        print "\nUnrecognised force_no_tree option"
+        print "Pipeline Stopped: please check 'force_no_tree' in the config file\n"
+        sys.exit()
+except:
+    force_no_tree = False
 
 full_sequence_list = []
 if outMerge == '':
@@ -1845,7 +1865,17 @@ if refGenbank == True:
                 (prefix, name2, ext2) = splitPath(input)
                 out = name2 + "." + ext
                 input = input[:-4] + ".mfasta"
-                runStageCheck('makeTree', flagFile, dir_out, input, out)
+                (isolate_count, snp_count) = getFastaDetails(input)
+                do_tree = False
+                if not force_no_tree and (isolate_count > 2 and snp_count >= 1):
+                    if isolate_count <= 200:
+                        do_tree = True
+                    if isolate_count > 200 and force_tree:
+                        do_tree = True
+                if do_tree:
+                    runStageCheck('makeTree', flagFile, dir_out, input, out)
+                else
+                    runStageCheck('makeNoTree', flagFile, dir_out, input, out)
             if runType == "phylogeny":
                 stage_count += len(replicons)
             else:
@@ -1859,7 +1889,17 @@ if refGenbank == True:
                 (prefix, name2, ext2) = splitPath(input)
                 out = name2 + "." + ext
                 input = input[:-4] + ".mfasta"
-                runStageCheck('makeTree', flagFile, dir_out, input, out)
+                (isolate_count, snp_count) = getFastaDetails(input)
+                do_tree = False
+                if not force_no_tree and (isolate_count > 2 and snp_count >= 1):
+                    if isolate_count <= 200:
+                        do_tree = True
+                    if isolate_count > 200 and force_tree:
+                        do_tree = True
+                if do_tree:
+                    runStageCheck('makeTree', flagFile, dir_out, input, out)
+                else
+                    runStageCheck('makeNoTree', flagFile, dir_out, input, out)
             if runType == "phylogeny":
                 stage_count += len(replicons)
             else:
@@ -2041,7 +2081,17 @@ if refGenbank == True:
                 (prefix, name2, ext2) = splitPath(input)
                 out = name2 + "." + ext
                 input = input[:-4] + ".mfasta"
-                runStageCheck('makeTree', flagFile, dir_out, input, out)
+                (isolate_count, snp_count) = getFastaDetails(input)
+                do_tree = False
+                if not force_no_tree and (isolate_count > 2 and snp_count >= 1):
+                    if isolate_count <= 200:
+                        do_tree = True
+                    if isolate_count > 200 and force_tree:
+                        do_tree = True
+                if do_tree:
+                    runStageCheck('makeTree', flagFile, dir_out, input, out)
+                else
+                    runStageCheck('makeNoTree', flagFile, dir_out, input, out)
             if runType == "phylogeny":
                 stage_count += len(replicons)
             else:
@@ -2055,7 +2105,17 @@ if refGenbank == True:
                 (prefix, name2, ext2) = splitPath(input)
                 out = name2 + "." + ext
                 input = input[:-4] + ".mfasta"
-                runStageCheck('makeTree', flagFile, dir_out, input, out)
+                (isolate_count, snp_count) = getFastaDetails(input)
+                do_tree = False
+                if not force_no_tree and (isolate_count > 2 and snp_count >= 1):
+                    if isolate_count <= 200:
+                        do_tree = True
+                    if isolate_count > 200 and force_tree:
+                        do_tree = True
+                if do_tree:
+                    runStageCheck('makeTree', flagFile, dir_out, input, out)
+                else
+                    runStageCheck('makeNoTree', flagFile, dir_out, input, out)
             if runType == "phylogeny":
                 stage_count += len(replicons)
             else:
@@ -2228,7 +2288,17 @@ else: # refGenbank == False
                 (prefix, name2, ext2) = splitPath(input)
                 out = name2 + "." + ext
                 input = input[:-4] + ".mfasta"
-                runStageCheck('makeTree', flagFile, dir_out, input, out)
+                (isolate_count, snp_count) = getFastaDetails(input)
+                do_tree = False
+                if not force_no_tree and (isolate_count > 2 and snp_count >= 1):
+                    if isolate_count <= 200:
+                        do_tree = True
+                    if isolate_count > 200 and force_tree:
+                        do_tree = True
+                if do_tree:
+                    runStageCheck('makeTree', flagFile, dir_out, input, out)
+                else
+                    runStageCheck('makeNoTree', flagFile, dir_out, input, out)
             if runType == "phylogeny":
                 stage_count += len(replicons)
             else:
@@ -2242,7 +2312,17 @@ else: # refGenbank == False
                 (prefix, name2, ext2) = splitPath(input)
                 out = name2 + "." + ext
                 input = input[:-4] + ".mfasta"
-                runStageCheck('makeTree', flagFile, dir_out, input, out)
+                (isolate_count, snp_count) = getFastaDetails(input)
+                do_tree = False
+                if not force_no_tree and (isolate_count > 2 and snp_count >= 1):
+                    if isolate_count <= 200:
+                        do_tree = True
+                    if isolate_count > 200 and force_tree:
+                        do_tree = True
+                if do_tree:
+                    runStageCheck('makeTree', flagFile, dir_out, input, out)
+                else
+                    runStageCheck('makeNoTree', flagFile, dir_out, input, out)
             if runType == "phylogeny":
                 stage_count += len(replicons)
             else:
@@ -2395,7 +2475,17 @@ else: # refGenbank == False
                 (prefix, name2, ext2) = splitPath(input)
                 out = name2 + "." + ext
                 input = input[:-4] + ".mfasta"
-                runStageCheck('makeTree', flagFile, dir_out, input, out)
+                (isolate_count, snp_count) = getFastaDetails(input)
+                do_tree = False
+                if not force_no_tree and (isolate_count > 2 and snp_count >= 1):
+                    if isolate_count <= 200:
+                        do_tree = True
+                    if isolate_count > 200 and force_tree:
+                        do_tree = True
+                if do_tree:
+                    runStageCheck('makeTree', flagFile, dir_out, input, out)
+                else
+                    runStageCheck('makeNoTree', flagFile, dir_out, input, out)
             if runType == "phylogeny":
                 stage_count += len(replicons)
             else:
@@ -2409,7 +2499,17 @@ else: # refGenbank == False
                 (prefix, name2, ext2) = splitPath(input)
                 out = name2 + "." + ext
                 input = input[:-4] + ".mfasta"
-                runStageCheck('makeTree', flagFile, dir_out, input, out)
+                (isolate_count, snp_count) = getFastaDetails(input)
+                do_tree = False
+                if not force_no_tree and (isolate_count > 2 and snp_count >= 1):
+                    if isolate_count <= 200:
+                        do_tree = True
+                    if isolate_count > 200 and force_tree:
+                        do_tree = True
+                if do_tree:
+                    runStageCheck('makeTree', flagFile, dir_out, input, out)
+                else
+                    runStageCheck('makeNoTree', flagFile, dir_out, input, out)
             if runType == "phylogeny":
                 stage_count += len(replicons)
             else:

@@ -434,4 +434,17 @@ def get_run_report_data(run_report):
             conservation,
             sd_out,
             replicon_list)
-    
+ 
+def getFastaDetails(mfasta):
+    mfasta_file = open(mfasta, "rU")
+    lines = report_file.readlines()
+    isolate_count = 0
+    for line in lines:
+        if line.startswith('>'):
+            isolate_count += 1
+    if len(lines) > 1:
+        snp_count = len(lines[1])
+    else:
+        snp_count = 0
+    mfasta_file.close()
+    return (isolate_count, snp_count)
