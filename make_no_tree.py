@@ -19,8 +19,8 @@ out_directory = sys.argv[1]
 input_file = sys.argv[2]
 out_name = sys.argv[3]
 
-if output_directory[-1] != "/":
-	output_directory += "/"
+if out_directory[-1] != "/":
+	out_directory += "/"
 output_file = out_directory + "RAxML_bestTree." + out_name
 output = open(output_file, "w")
 
