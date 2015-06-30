@@ -437,7 +437,7 @@ def get_run_report_data(run_report):
  
 def getFastaDetails(mfasta):
     mfasta_file = open(mfasta, "rU")
-    lines = report_file.readlines()
+    lines = mfasta_file.readlines()
     isolate_count = 0
     for line in lines:
         if line.startswith('>'):

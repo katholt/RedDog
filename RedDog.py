@@ -1874,7 +1874,7 @@ if refGenbank == True:
                         do_tree = True
                 if do_tree:
                     runStageCheck('makeTree', flagFile, dir_out, input, out)
-                else
+                else:
                     runStageCheck('makeNoTree', flagFile, dir_out, input, out)
             if runType == "phylogeny":
                 stage_count += len(replicons)
@@ -1898,7 +1898,7 @@ if refGenbank == True:
                         do_tree = True
                 if do_tree:
                     runStageCheck('makeTree', flagFile, dir_out, input, out)
-                else
+                else:
                     runStageCheck('makeNoTree', flagFile, dir_out, input, out)
             if runType == "phylogeny":
                 stage_count += len(replicons)
@@ -2090,7 +2090,7 @@ if refGenbank == True:
                         do_tree = True
                 if do_tree:
                     runStageCheck('makeTree', flagFile, dir_out, input, out)
-                else
+                else:
                     runStageCheck('makeNoTree', flagFile, dir_out, input, out)
             if runType == "phylogeny":
                 stage_count += len(replicons)
@@ -2114,7 +2114,7 @@ if refGenbank == True:
                         do_tree = True
                 if do_tree:
                     runStageCheck('makeTree', flagFile, dir_out, input, out)
-                else
+                else:
                     runStageCheck('makeNoTree', flagFile, dir_out, input, out)
             if runType == "phylogeny":
                 stage_count += len(replicons)
@@ -2297,7 +2297,7 @@ else: # refGenbank == False
                         do_tree = True
                 if do_tree:
                     runStageCheck('makeTree', flagFile, dir_out, input, out)
-                else
+                else:
                     runStageCheck('makeNoTree', flagFile, dir_out, input, out)
             if runType == "phylogeny":
                 stage_count += len(replicons)
@@ -2321,7 +2321,7 @@ else: # refGenbank == False
                         do_tree = True
                 if do_tree:
                     runStageCheck('makeTree', flagFile, dir_out, input, out)
-                else
+                else:
                     runStageCheck('makeNoTree', flagFile, dir_out, input, out)
             if runType == "phylogeny":
                 stage_count += len(replicons)
@@ -2484,7 +2484,7 @@ else: # refGenbank == False
                         do_tree = True
                 if do_tree:
                     runStageCheck('makeTree', flagFile, dir_out, input, out)
-                else
+                else:
                     runStageCheck('makeNoTree', flagFile, dir_out, input, out)
             if runType == "phylogeny":
                 stage_count += len(replicons)
@@ -2508,7 +2508,7 @@ else: # refGenbank == False
                         do_tree = True
                 if do_tree:
                     runStageCheck('makeTree', flagFile, dir_out, input, out)
-                else
+                else:
                     runStageCheck('makeNoTree', flagFile, dir_out, input, out)
             if runType == "phylogeny":
                 stage_count += len(replicons)
