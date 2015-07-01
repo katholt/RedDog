@@ -466,11 +466,16 @@ if outMerge != '':
         old_sd_out,
         old_replicon_list) = get_run_report_data(outMerge + refName + '_run_report.txt')
         continuity_test = True
+        run_count = run_history.find('merge')
+        if run_count == -1:
+            run_count = 0
+        raxExt = '_m' + str(run_count+1)
     else:
         print "\nMerge Run: No prior run report found"
         print "No continuity tests will be done...\n"
         run_history = '-'
         read_history = '_'
+        raxExt = '_m1'
 else:
     merge_run = False
     run_history = '-'
@@ -917,6 +922,7 @@ if outMerge != '':
     print "Remember: this output folder will be deleted at the end of the run\n"
     print "Merge new sets with the following folder ('out_merge_target'):"
     print outMerge
+    print "\nRAxMl output ext: " + raxExt
 
 start_run = False
 start_count = 0
@@ -1857,17 +1863,17 @@ if refGenbank == True:
         # generate tree
         if conservation != 0.95:
             @follows(parseSNPs_95)
-            @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + "RAxML_bestTree." + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+            @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + "RAxML_bestTree." + r"\2_alleles_var_cons"+str(conservation)+raxExt+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
             def makeTree(inputs, outputs):
                 output, flagFile = outputs
                 (dir_out, name, ext) = splitPath(output)
                 input, _success = inputs
                 (prefix, name2, ext2) = splitPath(input)
-                out = name2 + "." + ext
+                out = name2 + raxExt + ext
                 input = input[:-4] + ".mfasta"
                 (isolate_count, snp_count) = getFastaDetails(input)
                 do_tree = False
-                if not force_no_tree and (isolate_count > 2 and snp_count >= 1):
+                if not force_no_tree and (isolate_count > 3 and snp_count >= 1):
                     if isolate_count <= 200:
                         do_tree = True
                     if isolate_count > 200 and force_tree:
@@ -1881,17 +1887,17 @@ if refGenbank == True:
             else:
                 stage_count += len(core_replicons)
         else:
-            @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + "RAxML_bestTree." + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+            @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + "RAxML_bestTree." + r"\2_alleles_var_cons"+str(conservation)+raxExt+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
             def makeTree(inputs, outputs):
                 output, flagFile = outputs
                 (dir_out, name, ext) = splitPath(output)
                 input, _success = inputs
                 (prefix, name2, ext2) = splitPath(input)
-                out = name2 + "." + ext
+                out = name2 + raxExt + ext
                 input = input[:-4] + ".mfasta"
                 (isolate_count, snp_count) = getFastaDetails(input)
                 do_tree = False
-                if not force_no_tree and (isolate_count > 2 and snp_count >= 1):
+                if not force_no_tree and (isolate_count > 3 and snp_count >= 1):
                     if isolate_count <= 200:
                         do_tree = True
                     if isolate_count > 200 and force_tree:
@@ -2079,11 +2085,11 @@ if refGenbank == True:
                 (dir_out, name, ext) = splitPath(output)
                 input, _success = inputs
                 (prefix, name2, ext2) = splitPath(input)
-                out = name2 + "." + ext
+                out = name2 + ext
                 input = input[:-4] + ".mfasta"
                 (isolate_count, snp_count) = getFastaDetails(input)
                 do_tree = False
-                if not force_no_tree and (isolate_count > 2 and snp_count >= 1):
+                if not force_no_tree and (isolate_count > 3 and snp_count >= 1):
                     if isolate_count <= 200:
                         do_tree = True
                     if isolate_count > 200 and force_tree:
@@ -2103,11 +2109,11 @@ if refGenbank == True:
                 (dir_out, name, ext) = splitPath(output)
                 input, _success = inputs
                 (prefix, name2, ext2) = splitPath(input)
-                out = name2 + "." + ext
+                out = name2 + ext
                 input = input[:-4] + ".mfasta"
                 (isolate_count, snp_count) = getFastaDetails(input)
                 do_tree = False
-                if not force_no_tree and (isolate_count > 2 and snp_count >= 1):
+                if not force_no_tree and (isolate_count > 3 and snp_count >= 1):
                     if isolate_count <= 200:
                         do_tree = True
                     if isolate_count > 200 and force_tree:
@@ -2280,17 +2286,17 @@ else: # refGenbank == False
         # generate tree
         if conservation != 0.95:
             @follows(parseSNPsNoGBK_95)
-            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + "RAxML_bestTree." + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + "RAxML_bestTree." + r"\2_alleles_var_cons"+str(conservation)+raxExt+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
             def makeTree(inputs, outputs):
                 output, flagFile = outputs
                 (dir_out, name, ext) = splitPath(output)
                 input, _success = inputs
                 (prefix, name2, ext2) = splitPath(input)
-                out = name2 + "." + ext
+                out = name2 + raxExt + ext
                 input = input[:-4] + ".mfasta"
                 (isolate_count, snp_count) = getFastaDetails(input)
                 do_tree = False
-                if not force_no_tree and (isolate_count > 2 and snp_count >= 1):
+                if not force_no_tree and (isolate_count > 3 and snp_count >= 1):
                     if isolate_count <= 200:
                         do_tree = True
                     if isolate_count > 200 and force_tree:
@@ -2304,17 +2310,17 @@ else: # refGenbank == False
             else:
                 stage_count += len(core_replicons)
         else:
-            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + "RAxML_bestTree." + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + "RAxML_bestTree." + r"\2_alleles_var_cons"+str(conservation)+raxExt+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
             def makeTree(inputs, outputs):
                 output, flagFile = outputs
                 (dir_out, name, ext) = splitPath(output)
                 input, _success = inputs
                 (prefix, name2, ext2) = splitPath(input)
-                out = name2 + "." + ext
+                out = name2 + raxExt + ext
                 input = input[:-4] + ".mfasta"
                 (isolate_count, snp_count) = getFastaDetails(input)
                 do_tree = False
-                if not force_no_tree and (isolate_count > 2 and snp_count >= 1):
+                if not force_no_tree and (isolate_count > 3 and snp_count >= 1):
                     if isolate_count <= 200:
                         do_tree = True
                     if isolate_count > 200 and force_tree:
@@ -2473,11 +2479,11 @@ else: # refGenbank == False
                 (dir_out, name, ext) = splitPath(output)
                 input, _success = inputs
                 (prefix, name2, ext2) = splitPath(input)
-                out = name2 + "." + ext
+                out = name2 + ext
                 input = input[:-4] + ".mfasta"
                 (isolate_count, snp_count) = getFastaDetails(input)
                 do_tree = False
-                if not force_no_tree and (isolate_count > 2 and snp_count >= 1):
+                if not force_no_tree and (isolate_count > 3 and snp_count >= 1):
                     if isolate_count <= 200:
                         do_tree = True
                     if isolate_count > 200 and force_tree:
@@ -2497,11 +2503,11 @@ else: # refGenbank == False
                 (dir_out, name, ext) = splitPath(output)
                 input, _success = inputs
                 (prefix, name2, ext2) = splitPath(input)
-                out = name2 + "." + ext
+                out = name2 + ext
                 input = input[:-4] + ".mfasta"
                 (isolate_count, snp_count) = getFastaDetails(input)
                 do_tree = False
-                if not force_no_tree and (isolate_count > 2 and snp_count >= 1):
+                if not force_no_tree and (isolate_count > 3 and snp_count >= 1):
                     if isolate_count <= 200:
                         do_tree = True
                     if isolate_count > 200 and force_tree:
