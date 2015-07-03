@@ -1,3 +1,4 @@
+#!/bin/env python
 '''
 getVcfStats.py
 

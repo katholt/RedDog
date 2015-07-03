@@ -1,4 +1,4 @@
-RedDog V1beta.2 290615
+RedDog V1beta.3 030715
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 

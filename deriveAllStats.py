@@ -1,3 +1,4 @@
+#!/bin/env python
 '''
 dervieAllStats.py
 

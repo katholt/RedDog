@@ -298,7 +298,7 @@ force_tree and force_no_tree
 The pipeline can produce a quick RAXML tree as long as there are more than two isolates and
 one or more SNPs. If there are more than 200 isolates, the tree generation will be switched 
 off. If you want a tree for larger data sets, set force_tree to 'True'. If you want to turn
-off the tree entirely, set force_no_tree to 'True'.
+off the tree entirely, set force_no_tree to 'True'. (this overrides force_tree)
 '''
 force_tree = False
 #force_tree = True

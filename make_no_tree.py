@@ -1,3 +1,4 @@
+#!/bin/env python
 '''
 make_no_tree.py
 
