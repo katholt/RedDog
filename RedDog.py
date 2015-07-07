@@ -466,7 +466,7 @@ if outMerge != '':
         old_sd_out,
         old_replicon_list) = get_run_report_data(outMerge + refName + '_run_report.txt')
         continuity_test = True
-        run_count = run_history.find('merge')
+        run_count = run_history.count('merge')
         if run_count == -1:
             run_count = 0
         raxExt = '_m' + str(run_count+1)
