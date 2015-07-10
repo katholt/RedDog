@@ -535,7 +535,7 @@ stages = {
 # large data sets
 #        "walltime": "06:00:00",
 #        "memInGB": 8,
-        "command": "cd %dir && raxmlHPC -f a -s %input -x 98765 -p 12345 -N 100 -m ASC_GTRGAMMA -n %out --asc-corr=lewis"
+        "command": "cd %dir && raxmlHPC -f a -s %input -x 98765 -p 12345 -N 100 -m ASC_GTRCAT -n %out --asc-corr=lewis"
     },
     "makeNoTree": {
         "command": "python make_no_tree.py %dir %input %out"
