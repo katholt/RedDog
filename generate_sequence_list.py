@@ -1,3 +1,4 @@
+#!/bin/env python
 '''
 generate_sequence_list.py
 

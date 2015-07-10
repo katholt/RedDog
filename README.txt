@@ -1,4 +1,4 @@
-RedDog V1beta.2 260515
+RedDog V1beta.3 030715
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
@@ -18,13 +18,7 @@ and/or other materials provided with the distribution.
 3. Neither the name of the copyright holder nor the names of its contributors 
 may be used to endorse or promote products derived from this software without specific prior written permission.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
-INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Description: 
 This program implements a workflow pipeline for short read length
@@ -41,7 +35,9 @@ Note: for Illumina paired-end or single reads, or Ion Torrent single reads.
 IMPORTANT: See config file/instructions for input options/requirements
 
 current version:
-V1beta.2    fix for parseSNPTable - improved speed of reading and parsing snp table (DE)
+V1beta.3    changed fasttree to raxml (DE)
+            added option to stop tree generation,
+            or force tree if > 200 isolates (DE)
 
 previous versions:
 V0.1        converted to vcf output via mpileup instead of depreciated pileup (DE)
@@ -185,6 +181,7 @@ V1.0b       Any fixes from final testing (DE)
             one more post analysis script added [for Gubbins recombination analysis] (DE)
             update parseGeneContent.py (P/A matrix based on cover and depth) (DE)
 V1beta.1    fix for parseSNPTable - reported position of snp in non-coding feature (DE)
+V1beta.2    fix for parseSNPTable - improved speed of reading and parsing snp table (DE)
 
 next planned updates
 V1.0        Offical Public Release of RedDog (on acceptance of paper) 
@@ -201,11 +198,4 @@ V1.0        Offical Public Release of RedDog (on acceptance of paper)
         merging of bams
     further analysis options 
 
-NOTE: with a workaround, some reanalysis without mapping IS possible. Email me for details (DE)
-
-If you wish to see other options added, email me (DE) with suggestions:
-(I'm not making any promises...)
-    d dot edwards2 at student dot unimelb dot edu dot au
-
 Our thanks to the "alpha-testers" for their feedback and patience.
-

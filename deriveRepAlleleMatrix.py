@@ -1,3 +1,4 @@
+#!/bin/env python
 '''
 deriveRepAlleleMatrix.py
 

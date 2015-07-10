@@ -1,5 +1,5 @@
 '''
-Configuration file for RedDog.py V1beta.2
+Configuration file for RedDog.py V1beta.3
 -------------------------------
 
 Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt
@@ -294,6 +294,19 @@ DifferenceMatrix = False
 #DifferenceMatrix = True
 
 '''
+force_tree and force_no_tree
+The pipeline can produce a quick RAXML tree as long as there are more than three isolates and
+one or more SNPs. If there are more than 200 isolates, the tree generation will be switched 
+off. If you want a tree for larger data sets, set force_tree to 'True'. If you want to turn
+off the tree entirely, set force_no_tree to 'True'. (this overrides force_tree)
+'''
+force_tree = False
+#force_tree = True
+
+force_no_tree = False
+#force_no_tree = True
+
+'''
 ########################
 Rubra pipeline variables (do not delete!):
 ########################
@@ -338,7 +351,7 @@ stageDefaults = {
         "samtools-intel/1.1",
         "bcftools-intel/1.1",
         "eautils-gcc/1.1.2",
-        "fasttree-gcc/2.1.7dp",
+        "raxml-intel/8.1.23",
         "bowtie2-intel/2.2.3"
     ]
 }
@@ -518,11 +531,14 @@ stages = {
         "command": "python parseSNPtable.py -m cons,aln -s %input -c %conservation -d %dir"
     },
     "makeTree": {
-        "walltime": "00:15:00",
+        "walltime": "02:00:00",
 # large data sets
 #        "walltime": "06:00:00",
 #        "memInGB": 8,
-        "command": "FastTree -gtr -gamma -nt %input > %output"
+        "command": "cd %dir && raxmlHPC -f a -s %input -x 98765 -p 12345 -N 100 -m ASC_GTRCAT -n %out --asc-corr=lewis"
+    },
+    "makeNoTree": {
+        "command": "python make_no_tree.py %dir %input %out"
     },
     "deleteDir": {
         "walltime": "00:10:00",

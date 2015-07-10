@@ -1,3 +1,4 @@
+#!/bin/env python
 '''
 collateAllRepGeneCover.py
 

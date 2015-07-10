@@ -1,7 +1,7 @@
 #!/bin/env python
 
 '''
-RedDog V1beta.2 260515
+RedDog V1beta.3 290615
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
@@ -54,9 +54,11 @@ import sys
 import glob
 from rubra.utils import pipeline_options
 from rubra.utils import (runStageCheck, splitPath)
-from pipe_utils import (isGenbank, isFasta, chromInfoFasta, chromInfoGenbank, getValue, getCover, make_sequence_list, getSuccessCount, make_run_report, get_run_report_data)
+from pipe_utils import (isGenbank, isFasta, chromInfoFasta, chromInfoGenbank, getValue, 
+                        getCover, make_sequence_list, getSuccessCount, make_run_report, 
+                        get_run_report_data, getFastaDetails)
 
-version = "V1beta.2"
+version = "V1beta.3"
 
 modules = pipeline_options.stageDefaults['modules']
 
@@ -464,11 +466,16 @@ if outMerge != '':
         old_sd_out,
         old_replicon_list) = get_run_report_data(outMerge + refName + '_run_report.txt')
         continuity_test = True
+        run_count = run_history.count('merge')
+        if run_count == -1:
+            run_count = 0
+        raxExt = '_m' + str(run_count+1)
     else:
         print "\nMerge Run: No prior run report found"
         print "No continuity tests will be done...\n"
         run_history = '-'
         read_history = '_'
+        raxExt = '_m1'
 else:
     merge_run = False
     run_history = '-'
@@ -500,6 +507,24 @@ try:
         sys.exit()
 except:
     DifferenceMatrix = False
+
+try:
+    force_tree = pipeline_options.force_tree
+    if force_tree != True and force_tree != False:
+        print "\nUnrecognised force_tree option"
+        print "Pipeline Stopped: please check 'force_tree' in the config file\n"
+        sys.exit()
+except:
+    force_tree = False
+
+try:
+    force_no_tree = pipeline_options.force_no_tree
+    if force_no_tree != True and force_no_tree != False:
+        print "\nUnrecognised force_no_tree option"
+        print "Pipeline Stopped: please check 'force_no_tree' in the config file\n"
+        sys.exit()
+except:
+    force_no_tree = False
 
 full_sequence_list = []
 if outMerge == '':
@@ -897,6 +922,7 @@ if outMerge != '':
     print "Remember: this output folder will be deleted at the end of the run\n"
     print "Merge new sets with the following folder ('out_merge_target'):"
     print outMerge
+    print "\nRAxMl output ext: " + raxExt
 
 start_run = False
 start_count = 0
@@ -1837,23 +1863,49 @@ if refGenbank == True:
         # generate tree
         if conservation != 0.95:
             @follows(parseSNPs_95)
-            @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+            @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + "RAxML_bestTree." + r"\2_alleles_var_cons"+str(conservation)+raxExt+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
             def makeTree(inputs, outputs):
                 output, flagFile = outputs
+                (dir_out, name, ext) = splitPath(output)
                 input, _success = inputs
+                (prefix, name2, ext2) = splitPath(input)
+                out = name2 + raxExt + ext
                 input = input[:-4] + ".mfasta"
-                runStageCheck('makeTree', flagFile, input, output)
+                (isolate_count, snp_count) = getFastaDetails(input)
+                do_tree = False
+                if not force_no_tree and (isolate_count > 3 and snp_count >= 2):
+                    if isolate_count <= 200:
+                        do_tree = True
+                    if isolate_count > 200 and force_tree:
+                        do_tree = True
+                if do_tree:
+                    runStageCheck('makeTree', flagFile, dir_out, input, out)
+                else:
+                    runStageCheck('makeNoTree', flagFile, dir_out, input, out)
             if runType == "phylogeny":
                 stage_count += len(replicons)
             else:
                 stage_count += len(core_replicons)
         else:
-            @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+            @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + "RAxML_bestTree." + r"\2_alleles_var_cons"+str(conservation)+raxExt+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
             def makeTree(inputs, outputs):
                 output, flagFile = outputs
+                (dir_out, name, ext) = splitPath(output)
                 input, _success = inputs
+                (prefix, name2, ext2) = splitPath(input)
+                out = name2 + raxExt + ext
                 input = input[:-4] + ".mfasta"
-                runStageCheck('makeTree', flagFile, input, output)
+                (isolate_count, snp_count) = getFastaDetails(input)
+                do_tree = False
+                if not force_no_tree and (isolate_count > 3 and snp_count >= 2):
+                    if isolate_count <= 200:
+                        do_tree = True
+                    if isolate_count > 200 and force_tree:
+                        do_tree = True
+                if do_tree:
+                    runStageCheck('makeTree', flagFile, dir_out, input, out)
+                else:
+                    runStageCheck('makeNoTree', flagFile, dir_out, input, out)
             if runType == "phylogeny":
                 stage_count += len(replicons)
             else:
@@ -2027,23 +2079,49 @@ if refGenbank == True:
         if conservation != 0.95:
         # generate tree
             @follows(parseSNPs_95)
-            @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+            @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + "RAxML_bestTree." + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
             def makeTree(inputs, outputs):
                 output, flagFile = outputs
+                (dir_out, name, ext) = splitPath(output)
                 input, _success = inputs
+                (prefix, name2, ext2) = splitPath(input)
+                out = name2 + ext
                 input = input[:-4] + ".mfasta"
-                runStageCheck('makeTree', flagFile, input, output)
+                (isolate_count, snp_count) = getFastaDetails(input)
+                do_tree = False
+                if not force_no_tree and (isolate_count > 3 and snp_count >= 2):
+                    if isolate_count <= 200:
+                        do_tree = True
+                    if isolate_count > 200 and force_tree:
+                        do_tree = True
+                if do_tree:
+                    runStageCheck('makeTree', flagFile, dir_out, input, out)
+                else:
+                    runStageCheck('makeNoTree', flagFile, dir_out, input, out)
             if runType == "phylogeny":
                 stage_count += len(replicons)
             else:
                 stage_count += len(core_replicons)
         else:
-            @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+            @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + "RAxML_bestTree." + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
             def makeTree(inputs, outputs):
                 output, flagFile = outputs
+                (dir_out, name, ext) = splitPath(output)
                 input, _success = inputs
+                (prefix, name2, ext2) = splitPath(input)
+                out = name2 + ext
                 input = input[:-4] + ".mfasta"
-                runStageCheck('makeTree', flagFile, input, output)
+                (isolate_count, snp_count) = getFastaDetails(input)
+                do_tree = False
+                if not force_no_tree and (isolate_count > 3 and snp_count >= 2):
+                    if isolate_count <= 200:
+                        do_tree = True
+                    if isolate_count > 200 and force_tree:
+                        do_tree = True
+                if do_tree:
+                    runStageCheck('makeTree', flagFile, dir_out, input, out)
+                else:
+                    runStageCheck('makeNoTree', flagFile, dir_out, input, out)
             if runType == "phylogeny":
                 stage_count += len(replicons)
             else:
@@ -2208,23 +2286,49 @@ else: # refGenbank == False
         # generate tree
         if conservation != 0.95:
             @follows(parseSNPsNoGBK_95)
-            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + "RAxML_bestTree." + r"\2_alleles_var_cons"+str(conservation)+raxExt+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
             def makeTree(inputs, outputs):
                 output, flagFile = outputs
+                (dir_out, name, ext) = splitPath(output)
                 input, _success = inputs
+                (prefix, name2, ext2) = splitPath(input)
+                out = name2 + raxExt + ext
                 input = input[:-4] + ".mfasta"
-                runStageCheck('makeTree', flagFile, input, output)
+                (isolate_count, snp_count) = getFastaDetails(input)
+                do_tree = False
+                if not force_no_tree and (isolate_count > 3 and snp_count >= 2):
+                    if isolate_count <= 200:
+                        do_tree = True
+                    if isolate_count > 200 and force_tree:
+                        do_tree = True
+                if do_tree:
+                    runStageCheck('makeTree', flagFile, dir_out, input, out)
+                else:
+                    runStageCheck('makeNoTree', flagFile, dir_out, input, out)
             if runType == "phylogeny":
                 stage_count += len(replicons)
             else:
                 stage_count += len(core_replicons)
         else:
-            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + "RAxML_bestTree." + r"\2_alleles_var_cons"+str(conservation)+raxExt+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
             def makeTree(inputs, outputs):
                 output, flagFile = outputs
+                (dir_out, name, ext) = splitPath(output)
                 input, _success = inputs
+                (prefix, name2, ext2) = splitPath(input)
+                out = name2 + raxExt + ext
                 input = input[:-4] + ".mfasta"
-                runStageCheck('makeTree', flagFile, input, output)
+                (isolate_count, snp_count) = getFastaDetails(input)
+                do_tree = False
+                if not force_no_tree and (isolate_count > 3 and snp_count >= 2):
+                    if isolate_count <= 200:
+                        do_tree = True
+                    if isolate_count > 200 and force_tree:
+                        do_tree = True
+                if do_tree:
+                    runStageCheck('makeTree', flagFile, dir_out, input, out)
+                else:
+                    runStageCheck('makeNoTree', flagFile, dir_out, input, out)
             if runType == "phylogeny":
                 stage_count += len(replicons)
             else:
@@ -2369,23 +2473,49 @@ else: # refGenbank == False
         # generate tree
         if conservation != 0.95:
             @follows(parseSNPsNoGBK_95)
-            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + "RAxML_bestTree." + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
             def makeTree(inputs, outputs):
                 output, flagFile = outputs
+                (dir_out, name, ext) = splitPath(output)
                 input, _success = inputs
+                (prefix, name2, ext2) = splitPath(input)
+                out = name2 + ext
                 input = input[:-4] + ".mfasta"
-                runStageCheck('makeTree', flagFile, input, output)
+                (isolate_count, snp_count) = getFastaDetails(input)
+                do_tree = False
+                if not force_no_tree and (isolate_count > 3 and snp_count >= 2):
+                    if isolate_count <= 200:
+                        do_tree = True
+                    if isolate_count > 200 and force_tree:
+                        do_tree = True
+                if do_tree:
+                    runStageCheck('makeTree', flagFile, dir_out, input, out)
+                else:
+                    runStageCheck('makeNoTree', flagFile, dir_out, input, out)
             if runType == "phylogeny":
                 stage_count += len(replicons)
             else:
                 stage_count += len(core_replicons)
         else:
-            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + "RAxML_bestTree." + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
             def makeTree(inputs, outputs):
                 output, flagFile = outputs
+                (dir_out, name, ext) = splitPath(output)
                 input, _success = inputs
+                (prefix, name2, ext2) = splitPath(input)
+                out = name2 + ext
                 input = input[:-4] + ".mfasta"
-                runStageCheck('makeTree', flagFile, input, output)
+                (isolate_count, snp_count) = getFastaDetails(input)
+                do_tree = False
+                if not force_no_tree and (isolate_count > 3 and snp_count >= 2):
+                    if isolate_count <= 200:
+                        do_tree = True
+                    if isolate_count > 200 and force_tree:
+                        do_tree = True
+                if do_tree:
+                    runStageCheck('makeTree', flagFile, dir_out, input, out)
+                else:
+                    runStageCheck('makeNoTree', flagFile, dir_out, input, out)
             if runType == "phylogeny":
                 stage_count += len(replicons)
             else:
