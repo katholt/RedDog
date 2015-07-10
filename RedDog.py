@@ -1873,7 +1873,7 @@ if refGenbank == True:
                 input = input[:-4] + ".mfasta"
                 (isolate_count, snp_count) = getFastaDetails(input)
                 do_tree = False
-                if not force_no_tree and (isolate_count > 3 and snp_count >= 1):
+                if not force_no_tree and (isolate_count > 3 and snp_count >= 2):
                     if isolate_count <= 200:
                         do_tree = True
                     if isolate_count > 200 and force_tree:
@@ -1897,7 +1897,7 @@ if refGenbank == True:
                 input = input[:-4] + ".mfasta"
                 (isolate_count, snp_count) = getFastaDetails(input)
                 do_tree = False
-                if not force_no_tree and (isolate_count > 3 and snp_count >= 1):
+                if not force_no_tree and (isolate_count > 3 and snp_count >= 2):
                     if isolate_count <= 200:
                         do_tree = True
                     if isolate_count > 200 and force_tree:
@@ -2089,7 +2089,7 @@ if refGenbank == True:
                 input = input[:-4] + ".mfasta"
                 (isolate_count, snp_count) = getFastaDetails(input)
                 do_tree = False
-                if not force_no_tree and (isolate_count > 3 and snp_count >= 1):
+                if not force_no_tree and (isolate_count > 3 and snp_count >= 2):
                     if isolate_count <= 200:
                         do_tree = True
                     if isolate_count > 200 and force_tree:
@@ -2113,7 +2113,7 @@ if refGenbank == True:
                 input = input[:-4] + ".mfasta"
                 (isolate_count, snp_count) = getFastaDetails(input)
                 do_tree = False
-                if not force_no_tree and (isolate_count > 3 and snp_count >= 1):
+                if not force_no_tree and (isolate_count > 3 and snp_count >= 2):
                     if isolate_count <= 200:
                         do_tree = True
                     if isolate_count > 200 and force_tree:
@@ -2296,7 +2296,7 @@ else: # refGenbank == False
                 input = input[:-4] + ".mfasta"
                 (isolate_count, snp_count) = getFastaDetails(input)
                 do_tree = False
-                if not force_no_tree and (isolate_count > 3 and snp_count >= 1):
+                if not force_no_tree and (isolate_count > 3 and snp_count >= 2):
                     if isolate_count <= 200:
                         do_tree = True
                     if isolate_count > 200 and force_tree:
@@ -2320,7 +2320,7 @@ else: # refGenbank == False
                 input = input[:-4] + ".mfasta"
                 (isolate_count, snp_count) = getFastaDetails(input)
                 do_tree = False
-                if not force_no_tree and (isolate_count > 3 and snp_count >= 1):
+                if not force_no_tree and (isolate_count > 3 and snp_count >= 2):
                     if isolate_count <= 200:
                         do_tree = True
                     if isolate_count > 200 and force_tree:
@@ -2483,7 +2483,7 @@ else: # refGenbank == False
                 input = input[:-4] + ".mfasta"
                 (isolate_count, snp_count) = getFastaDetails(input)
                 do_tree = False
-                if not force_no_tree and (isolate_count > 3 and snp_count >= 1):
+                if not force_no_tree and (isolate_count > 3 and snp_count >= 2):
                     if isolate_count <= 200:
                         do_tree = True
                     if isolate_count > 200 and force_tree:
@@ -2507,7 +2507,7 @@ else: # refGenbank == False
                 input = input[:-4] + ".mfasta"
                 (isolate_count, snp_count) = getFastaDetails(input)
                 do_tree = False
-                if not force_no_tree and (isolate_count > 3 and snp_count >= 1):
+                if not force_no_tree and (isolate_count > 3 and snp_count >= 2):
                     if isolate_count <= 200:
                         do_tree = True
                     if isolate_count > 200 and force_tree:
