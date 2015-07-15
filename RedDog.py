@@ -2044,7 +2044,7 @@ if refGenbank == True:
                 input,_success = inputs
                 (prefix, name, ext) = splitPath(input)
                 replicon = name[len(refName)+1:-8]
-                conservation_temp = 1.0
+                conservation_temp = 0.95
                 runStageCheck('parseSNPs', flagFile, input, str(conservation_temp), genbank, replicon, outPrefix)
             if runType == "phylogeny":
                 stage_count += len(replicons)
