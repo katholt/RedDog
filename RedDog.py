@@ -1,7 +1,7 @@
 #!/bin/env python
 
 '''
-RedDog V1beta.3 290615
+RedDog V1beta.4 240715
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
@@ -58,7 +58,7 @@ from pipe_utils import (isGenbank, isFasta, chromInfoFasta, chromInfoGenbank, ge
                         getCover, make_sequence_list, getSuccessCount, make_run_report, 
                         get_run_report_data, getFastaDetails)
 
-version = "V1beta.3"
+version = "V1beta.4"
 
 modules = pipeline_options.stageDefaults['modules']
 
@@ -211,6 +211,11 @@ else:
     print "\nUnrecognised read type"
     print "Pipeline Stopped: please check 'readType' in the config file\n"
     sys.exit()
+
+if readType = 'SE':
+    readPattern = '.fastq.gz'
+elif readType = 'IT':
+    readPattern = '_in.iontor.fastq.gz'
 
 mapping_out = ""
 try:
@@ -1038,9 +1043,22 @@ if mapping == 'bowtie':
             seq1, [seq2] = inputs
             base = outTempPrefix + refName
             runStageCheck('alignBowtiePE', flagFile, bowtie_map_type, base, seq1, seq2, bowtie_X_value, out)
-        stage_count += len(sequence_list) 
+        stage_count += len(sequence_list)
+
+        @transform(alignBowtiePE, regex(r"(.*)\/(.+).bam"), [r'\1/\2.bam', outSuccessPrefix + r'\2.checkBam.Success'])
+        def checkBam(inputs, outputs):
+            output, flagFile = outputs
+            bamFile, _success = inputs
+            (prefix, name, ext) = splitPath(bamFile)
+            read_set = ""
+            for seq in sequences:
+                if seq.find(name+'_1.fastq'):
+                    read_set = seq
+            runStageCheck('checkBam', flagFile, bamFile, readType, read_set)
+        stage_count += len(sequence_list)        
 
         # Index sorted BAM alignments using samtools
+        @follows(checkBam)
         @transform(alignBowtiePE, regex(r"(.*)\/(.+).bam"), [r'\1/\2.bam.bai', outSuccessPrefix + r'\2.indexBam.Success'])
         def indexBam(inputs, outputs):
             output, flagFile = outputs
@@ -1100,7 +1118,20 @@ if mapping == 'bowtie':
                 runStageCheck('alignBowtie', flagFile, bowtie_map_type, base, input, out)
             stage_count += len(sequence_list) 
 
+        @transform(alignBowtie, regex(r"(.*)\/(.+).bam"), [r'\1/\2.bam', outSuccessPrefix + r'\2.checkBam.Success'])
+        def checkBam(inputs, outputs):
+            output, flagFile = outputs
+            bamFile, _success = inputs
+            (prefix, name, ext) = splitPath(bamFile)
+            read_set = ""
+            for seq in sequences:
+                if seq.find(name+readPattern):
+                    read_set = seq
+            runStageCheck('checkBam', flagFile, bamFile, readType, read_set)
+        stage_count += len(sequence_list)        
+
         # Index sorted BAM alignments using samtools
+        @follows(checkBam)
         @transform(alignBowtie, regex(r"(.*)\/(.+).bam"), [r'\1/\2.bam.bai', outSuccessPrefix + r'\2.indexBam.Success'])
         def indexBam(inputs, outputs):
             output, flagFile = outputs
@@ -1174,7 +1205,20 @@ else: # mapping = 'BWA'
             runStageCheck('alignBWAPE', flagFile, reference, align1, align2, seq1, seq2, out)
         stage_count += len(sequence_list) 
 
+        @transform(alignBWAPE, regex(r"(.*)\/(.+).bam"), [r'\1/\2.bam', outSuccessPrefix + r'\2.checkBam.Success'])
+        def checkBam(inputs, outputs):
+            output, flagFile = outputs
+            bamFile, _success = inputs
+            (prefix, name, ext) = splitPath(bamFile)
+            read_set = ""
+            for seq in sequences:
+                if seq.find(name+'_1.fastq'):
+                    read_set = seq
+            runStageCheck('checkBam', flagFile, bamFile, readType, read_set)
+        stage_count += len(sequence_list)        
+
         # Index sorted BAM alignments using samtools
+        @follows(checkBam)
         @transform(alignBWAPE, regex(r"(.*)\/(.+).bam"), [r'\1/\2.bam.bai', outSuccessPrefix + r'\2.indexBam.Success'])
         def indexBam(inputs, outputs):
             output, flagFile = outputs
@@ -1235,7 +1279,20 @@ else: # mapping = 'BWA'
             runStageCheck('alignBWASE', flagFile, reference, align, seq, out)
         stage_count += len(sequence_list) 
 
+        @transform(alignBWASE, regex(r"(.*)\/(.+).bam"), [r'\1/\2.bam', outSuccessPrefix + r'\2.checkBam.Success'])
+        def checkBam(inputs, outputs):
+            output, flagFile = outputs
+            bamFile, _success = inputs
+            (prefix, name, ext) = splitPath(bamFile)
+            read_set = ""
+            for seq in sequences:
+                if seq.find(name+readPattern):
+                    read_set = seq
+            runStageCheck('checkBam', flagFile, bamFile, readType, read_set)
+        stage_count += len(sequence_list)        
+
         # Index sorted BAM alignments using samtools
+        @follows(checkBam)
         @transform(alignBWASE, regex(r"(.*)\/(.+).bam"), [r'\1/\2.bam.bai', outSuccessPrefix + r'\2.indexBam.Success'])
         def indexBam(inputs, outputs):
             output, flagFile = outputs

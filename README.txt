@@ -1,4 +1,4 @@
-RedDog V1beta.3 030715
+RedDog V1beta.4 240715
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
@@ -35,9 +35,7 @@ Note: for Illumina paired-end or single reads, or Ion Torrent single reads.
 IMPORTANT: See config file/instructions for input options/requirements
 
 current version:
-V1beta.3    changed fasttree to raxml (DE)
-            added option to stop tree generation,
-            or force tree if > 200 isolates (DE)
+V1beta.4    added simple check for correct BAM generation (DE)
 
 previous versions:
 V0.1        converted to vcf output via mpileup instead of depreciated pileup (DE)
@@ -182,6 +180,9 @@ V1.0b       Any fixes from final testing (DE)
             update parseGeneContent.py (P/A matrix based on cover and depth) (DE)
 V1beta.1    fix for parseSNPTable - reported position of snp in non-coding feature (DE)
 V1beta.2    fix for parseSNPTable - improved speed of reading and parsing snp table (DE)
+V1beta.3    changed fasttree to raxml (DE)
+            added option to stop tree generation,
+            or force tree if > 200 isolates (DE)
 
 next planned updates
 V1.0        Offical Public Release of RedDog (on acceptance of paper) 
