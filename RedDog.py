@@ -212,9 +212,9 @@ else:
     print "Pipeline Stopped: please check 'readType' in the config file\n"
     sys.exit()
 
-if readType = 'SE':
+if readType == 'SE':
     readPattern = '.fastq.gz'
-elif readType = 'IT':
+elif readType == 'IT':
     readPattern = '_in.iontor.fastq.gz'
 
 mapping_out = ""
