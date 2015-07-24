@@ -1052,7 +1052,7 @@ if mapping == 'bowtie':
             (prefix, name, ext) = splitPath(bamFile)
             read_set = ""
             for seq in sequences:
-                if seq.find(name+'_1.fastq'):
+                if seq.find(name+'_1.fastq') != -1:
                     read_set = seq
             runStageCheck('checkBam', flagFile, bamFile, readType, read_set)
         stage_count += len(sequence_list)        
@@ -1124,8 +1124,9 @@ if mapping == 'bowtie':
             bamFile, _success = inputs
             (prefix, name, ext) = splitPath(bamFile)
             read_set = ""
+            test = name+readPattern
             for seq in sequences:
-                if seq.find(name+readPattern):
+                if seq.find(test) != -1:
                     read_set = seq
             runStageCheck('checkBam', flagFile, bamFile, readType, read_set)
         stage_count += len(sequence_list)        
@@ -1212,7 +1213,7 @@ else: # mapping = 'BWA'
             (prefix, name, ext) = splitPath(bamFile)
             read_set = ""
             for seq in sequences:
-                if seq.find(name+'_1.fastq'):
+                if seq.find(name+'_1.fastq') != -1:
                     read_set = seq
             runStageCheck('checkBam', flagFile, bamFile, readType, read_set)
         stage_count += len(sequence_list)        
@@ -1286,7 +1287,7 @@ else: # mapping = 'BWA'
             (prefix, name, ext) = splitPath(bamFile)
             read_set = ""
             for seq in sequences:
-                if seq.find(name+readPattern):
+                if seq.find(name+readPattern) != -1:
                     read_set = seq
             runStageCheck('checkBam', flagFile, bamFile, readType, read_set)
         stage_count += len(sequence_list)        
