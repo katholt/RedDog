@@ -30,7 +30,7 @@ All rights reserved. (see README.txt for more details)
 # Example command on barcoo:
 '''
 module load python-gcc/2.7.5
-python /vlsci/VR0082/shared/code/holtlab/parseSNPtable_multigbk.py -s snps.csv -p prefix -r genbank -q queryseq -m aln,coding,rax
+python parseSNPtable.py -s snps.csv -p prefix -r genbank -q queryseq -m aln,coding,vcf
 '''
 #
 # Last modified - May 22, 2015
