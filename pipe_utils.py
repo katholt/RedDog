@@ -300,7 +300,7 @@ def make_run_report(out_directory,
             (prefix, name, ext) = splitPath(sequence)
             output += name + ext + "\t" + prefix + "\t" + timestamp + "\t" + read_type + "\t" + mapping + "\t" + version +"\n"
     elif merge_run and read_history == "-":
-        output += "Read History:\nreads\tfull path\tdate/time\tread type\tmapping\n"
+        output += "Read History:\nreads\tfull path\tdate/time\tread type\tmapping\tversion\n"
         output += "Note: prior run information unavailable\n"
         for sequence in sequence_list:
             (prefix, name, ext) = splitPath(sequence)
