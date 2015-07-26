@@ -1,7 +1,5 @@
-RedDog V1beta.4 240715
+RedDog V1beta.4 260715
 ====== 
-Authors: David Edwards, Bernie Pope, Kat Holt
-
 Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt
 All rights reserved.
 
@@ -36,6 +34,7 @@ IMPORTANT: See config file/instructions for input options/requirements
 
 current version:
 V1beta.4    added simple check for correct BAM generation (DE)
+            added checkpoint for consensus calling (DE)
 
 previous versions:
 V0.1        converted to vcf output via mpileup instead of depreciated pileup (DE)
@@ -190,7 +189,6 @@ V1.0        Offical Public Release of RedDog (on acceptance of paper)
 (Post-release)
     changes to input sequences pattern recognition
     extend parseGeneContent functions 
-    add merging of bams for both pangenome and phylogenetic mapping
     reanalysis without mapping
         with/without a GenBank file,
         restore of read sets removed by user,

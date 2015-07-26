@@ -1,7 +1,7 @@
 #!/bin/env python
 
 '''
-RedDog V1beta.4 240715
+RedDog V1beta.4 260715
 ====== 
 Authors: David Edwards, Bernie Pope, Kat Holt
 
@@ -927,7 +927,7 @@ if outMerge != '':
     print "Remember: this output folder will be deleted at the end of the run\n"
     print "Merge new sets with the following folder ('out_merge_target'):"
     print outMerge
-    print "\nRAxMl output ext: " + raxExt
+#    print "\nRAxML output ext: " + raxExt
 
 start_run = False
 start_count = 0
@@ -1312,7 +1312,7 @@ else: # mapping = 'BWA'
 
 # checkpoint_getSamStats
         @merge(getSamStats, [outTempPrefix+'checkpoint.txt', outSuccessPrefix + "getSamStats.checkpoint.Success"])
-        def checkpoint_callRepSNPs(inputs,outputs):
+        def checkpoint_getSamStats(inputs,outputs):
             output, flagFile = outputs
             runStageCheck('checkpoint', flagFile, outTempPrefix, 'getSamStats')
         stage_count += 1
@@ -1345,6 +1345,13 @@ def getConsensus(inputs, outputs):
     bamFile, _success = inputs
     runStageCheck('getConsensus', flagFile, reference, bamFile, output)
 stage_count += len(sequence_list) 
+
+# checkpoint_getConsensus
+@merge(getConsensus, [outTempPrefix+'checkpoint.txt', outSuccessPrefix + "getConsensus.checkpoint.Success"])
+def checkpoint_getConsensus(inputs,outputs):
+    output, flagFile = outputs
+    runStageCheck('checkpoint', flagFile, outTempPrefix, 'getConsensus')
+stage_count += 1
 
 # Get coverage from BAM
 @follows(indexFilteredBam)
@@ -1794,7 +1801,7 @@ if refGenbank == True:
                         merge_prefix = outMerge
                         yield([input, [output, flagFile], replicon, consensus,repliconStats, merge_prefix])
 
-            @follows(getConsensus, checkpoint_getMergeConsensus)
+            @follows(checkpoint_getConsensus, checkpoint_getMergeConsensus)
             @follows(checkpoint_getRepSNPList)
             @files(matrixEntryByCoreRep)
             def deriveRepAlleleMatrix(input, outputs, replicon, consensus, repliconStats, merge_prefix):
@@ -1837,7 +1844,7 @@ if refGenbank == True:
                         merge_prefix = outMerge
                         yield([input, [output, flagFile], replicon, consensus,repliconStats, merge_prefix])
 
-            @follows(getConsensus, checkpoint_getMergeConsensus)
+            @follows(checkpoint_getConsensus, checkpoint_getMergeConsensus)
             @follows(checkpoint_getRepSNPList)
             @files(matrixEntryByRep)
             def deriveRepAlleleMatrix(input, outputs, replicon, consensus, repliconStats, merge_prefix):
@@ -2010,7 +2017,7 @@ if refGenbank == True:
                         merge_prefix = '-'
                         yield([input, [output, flagFile], replicon, consensus,repliconStats, merge_prefix])
 
-            @follows(getConsensus)
+            @follows(checkpoint_getConsensus)
             @follows(checkpoint_getRepSNPList)
             @files(matrixEntryByCoreRep)
             def deriveRepAlleleMatrix(input, outputs, replicon, consensus, repliconStats, merge_prefix):
@@ -2053,7 +2060,7 @@ if refGenbank == True:
                         merge_prefix = '-'
                         yield([input, [output, flagFile], replicon, consensus,repliconStats, merge_prefix])
 
-            @follows(getConsensus)
+            @follows(checkpoint_getConsensus)
             @follows(checkpoint_getRepSNPList)
             @files(matrixEntryByRep)
             def deriveRepAlleleMatrix(input, outputs, replicon, consensus, repliconStats, merge_prefix):
@@ -2221,7 +2228,7 @@ else: # refGenbank == False
                         merge_prefix = outMerge
                         yield([input, [output, flagFile], replicon, consensus,repliconStats, merge_prefix])
 
-            @follows(getConsensus, checkpoint_getMergeConsensus)
+            @follows(checkpoint_getConsensus, checkpoint_getMergeConsensus)
             @follows(checkpoint_getRepSNPList)
             @files(matrixEntryByCoreRep)
             def deriveRepAlleleMatrix(input, outputs, replicon, consensus, repliconStats, merge_prefix):
@@ -2264,7 +2271,7 @@ else: # refGenbank == False
                         merge_prefix = outMerge
                         yield([input, [output, flagFile], replicon, consensus,repliconStats, merge_prefix])
 
-            @follows(getConsensus, checkpoint_getMergeConsensus)
+            @follows(checkpoint_getConsensus, checkpoint_getMergeConsensus)
             @follows(checkpoint_getRepSNPList)
             @files(matrixEntryByRep)
             def deriveRepAlleleMatrix(input, outputs, replicon, consensus, repliconStats, merge_prefix):
@@ -2408,7 +2415,7 @@ else: # refGenbank == False
                         merge_prefix = '-'
                         yield([input, [output, flagFile], replicon, consensus,repliconStats, merge_prefix])
 
-            @follows(getConsensus)
+            @follows(checkpoint_getConsensus)
             @follows(checkpoint_getRepSNPList)
             @files(matrixEntryByCoreRep)
             def deriveRepAlleleMatrix(input, outputs, replicon, consensus, repliconStats, merge_prefix):
@@ -2451,7 +2458,7 @@ else: # refGenbank == False
                         merge_prefix = '-'
                         yield([input, [output, flagFile], replicon, consensus,repliconStats, merge_prefix])
 
-            @follows(getConsensus)
+            @follows(checkpoint_getConsensus)
             @follows(checkpoint_getRepSNPList)
             @files(matrixEntryByRep)
             def deriveRepAlleleMatrix(input, outputs, replicon, consensus, repliconStats, merge_prefix):
