@@ -1,10 +1,8 @@
 #!/bin/env python
 
 '''
-RedDog V1beta.3 290615
+RedDog V1beta.4 260715
 ====== 
-Authors: David Edwards, Bernie Pope, Kat Holt
-
 Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt
 All rights reserved.
 
@@ -58,7 +56,7 @@ from pipe_utils import (isGenbank, isFasta, chromInfoFasta, chromInfoGenbank, ge
                         getCover, make_sequence_list, getSuccessCount, make_run_report, 
                         get_run_report_data, getFastaDetails)
 
-version = "V1beta.3"
+version = "V1beta.4"
 
 modules = pipeline_options.stageDefaults['modules']
 
@@ -211,6 +209,11 @@ else:
     print "\nUnrecognised read type"
     print "Pipeline Stopped: please check 'readType' in the config file\n"
     sys.exit()
+
+if readType == 'SE':
+    readPattern = '.fastq.gz'
+elif readType == 'IT':
+    readPattern = '_in.iontor.fastq.gz'
 
 mapping_out = ""
 try:
@@ -922,7 +925,7 @@ if outMerge != '':
     print "Remember: this output folder will be deleted at the end of the run\n"
     print "Merge new sets with the following folder ('out_merge_target'):"
     print outMerge
-    print "\nRAxMl output ext: " + raxExt
+#    print "\nRAxML output ext: " + raxExt
 
 start_run = False
 start_count = 0
@@ -1038,9 +1041,21 @@ if mapping == 'bowtie':
             seq1, [seq2] = inputs
             base = outTempPrefix + refName
             runStageCheck('alignBowtiePE', flagFile, bowtie_map_type, base, seq1, seq2, bowtie_X_value, out)
-        stage_count += len(sequence_list) 
+        stage_count += len(sequence_list)
+
+        @transform(alignBowtiePE, regex(r"(.*)\/(.+).bam"), outSuccessPrefix + r'\2.checkBam.Success')
+        def checkBam(inputs, flagFile):
+            bamFile, _success = inputs
+            (prefix, name, ext) = splitPath(bamFile)
+            read_set = ""
+            for seq in sequences:
+                if seq.find(name+'_1.fastq') != -1:
+                    read_set = seq
+            runStageCheck('checkBam', flagFile, bamFile, readType, read_set)
+        stage_count += len(sequence_list)        
 
         # Index sorted BAM alignments using samtools
+        @follows(checkBam)
         @transform(alignBowtiePE, regex(r"(.*)\/(.+).bam"), [r'\1/\2.bam.bai', outSuccessPrefix + r'\2.indexBam.Success'])
         def indexBam(inputs, outputs):
             output, flagFile = outputs
@@ -1100,7 +1115,20 @@ if mapping == 'bowtie':
                 runStageCheck('alignBowtie', flagFile, bowtie_map_type, base, input, out)
             stage_count += len(sequence_list) 
 
+        @transform(alignBowtie, regex(r"(.*)\/(.+).bam"), outSuccessPrefix + r'\2.checkBam.Success')
+        def checkBam(inputs, flagFile):
+            bamFile, _success = inputs
+            (prefix, name, ext) = splitPath(bamFile)
+            read_set = ""
+            test = name+readPattern
+            for seq in sequences:
+                if seq.find(test) != -1:
+                    read_set = seq
+            runStageCheck('checkBam', flagFile, bamFile, readType, read_set)
+        stage_count += len(sequence_list)        
+
         # Index sorted BAM alignments using samtools
+        @follows(checkBam)
         @transform(alignBowtie, regex(r"(.*)\/(.+).bam"), [r'\1/\2.bam.bai', outSuccessPrefix + r'\2.indexBam.Success'])
         def indexBam(inputs, outputs):
             output, flagFile = outputs
@@ -1174,7 +1202,19 @@ else: # mapping = 'BWA'
             runStageCheck('alignBWAPE', flagFile, reference, align1, align2, seq1, seq2, out)
         stage_count += len(sequence_list) 
 
+        @transform(alignBWAPE, regex(r"(.*)\/(.+).bam"), outSuccessPrefix + r'\2.checkBam.Success')
+        def checkBam(inputs, flagFile):
+            bamFile, _success = inputs
+            (prefix, name, ext) = splitPath(bamFile)
+            read_set = ""
+            for seq in sequences:
+                if seq.find(name+'_1.fastq') != -1:
+                    read_set = seq
+            runStageCheck('checkBam', flagFile, bamFile, readType, read_set)
+        stage_count += len(sequence_list)        
+
         # Index sorted BAM alignments using samtools
+        @follows(checkBam)
         @transform(alignBWAPE, regex(r"(.*)\/(.+).bam"), [r'\1/\2.bam.bai', outSuccessPrefix + r'\2.indexBam.Success'])
         def indexBam(inputs, outputs):
             output, flagFile = outputs
@@ -1235,7 +1275,19 @@ else: # mapping = 'BWA'
             runStageCheck('alignBWASE', flagFile, reference, align, seq, out)
         stage_count += len(sequence_list) 
 
+        @transform(alignBWASE, regex(r"(.*)\/(.+).bam"), outSuccessPrefix + r'\2.checkBam.Success')
+        def checkBam(inputs, flagFile):
+            bamFile, _success = inputs
+            (prefix, name, ext) = splitPath(bamFile)
+            read_set = ""
+            for seq in sequences:
+                if seq.find(name+readPattern) != -1:
+                    read_set = seq
+            runStageCheck('checkBam', flagFile, bamFile, readType, read_set)
+        stage_count += len(sequence_list)        
+
         # Index sorted BAM alignments using samtools
+        @follows(checkBam)
         @transform(alignBWASE, regex(r"(.*)\/(.+).bam"), [r'\1/\2.bam.bai', outSuccessPrefix + r'\2.indexBam.Success'])
         def indexBam(inputs, outputs):
             output, flagFile = outputs
@@ -1254,7 +1306,7 @@ else: # mapping = 'BWA'
 
 # checkpoint_getSamStats
         @merge(getSamStats, [outTempPrefix+'checkpoint.txt', outSuccessPrefix + "getSamStats.checkpoint.Success"])
-        def checkpoint_callRepSNPs(inputs,outputs):
+        def checkpoint_getSamStats(inputs,outputs):
             output, flagFile = outputs
             runStageCheck('checkpoint', flagFile, outTempPrefix, 'getSamStats')
         stage_count += 1
@@ -1287,6 +1339,13 @@ def getConsensus(inputs, outputs):
     bamFile, _success = inputs
     runStageCheck('getConsensus', flagFile, reference, bamFile, output)
 stage_count += len(sequence_list) 
+
+# checkpoint_getConsensus
+@merge(getConsensus, [outTempPrefix+'checkpoint.txt', outSuccessPrefix + "getConsensus.checkpoint.Success"])
+def checkpoint_getConsensus(inputs,outputs):
+    output, flagFile = outputs
+    runStageCheck('checkpoint', flagFile, outTempPrefix, 'getConsensus')
+stage_count += 1
 
 # Get coverage from BAM
 @follows(indexFilteredBam)
@@ -1736,7 +1795,7 @@ if refGenbank == True:
                         merge_prefix = outMerge
                         yield([input, [output, flagFile], replicon, consensus,repliconStats, merge_prefix])
 
-            @follows(getConsensus, checkpoint_getMergeConsensus)
+            @follows(checkpoint_getConsensus, checkpoint_getMergeConsensus)
             @follows(checkpoint_getRepSNPList)
             @files(matrixEntryByCoreRep)
             def deriveRepAlleleMatrix(input, outputs, replicon, consensus, repliconStats, merge_prefix):
@@ -1779,7 +1838,7 @@ if refGenbank == True:
                         merge_prefix = outMerge
                         yield([input, [output, flagFile], replicon, consensus,repliconStats, merge_prefix])
 
-            @follows(getConsensus, checkpoint_getMergeConsensus)
+            @follows(checkpoint_getConsensus, checkpoint_getMergeConsensus)
             @follows(checkpoint_getRepSNPList)
             @files(matrixEntryByRep)
             def deriveRepAlleleMatrix(input, outputs, replicon, consensus, repliconStats, merge_prefix):
@@ -1952,7 +2011,7 @@ if refGenbank == True:
                         merge_prefix = '-'
                         yield([input, [output, flagFile], replicon, consensus,repliconStats, merge_prefix])
 
-            @follows(getConsensus)
+            @follows(checkpoint_getConsensus)
             @follows(checkpoint_getRepSNPList)
             @files(matrixEntryByCoreRep)
             def deriveRepAlleleMatrix(input, outputs, replicon, consensus, repliconStats, merge_prefix):
@@ -1995,7 +2054,7 @@ if refGenbank == True:
                         merge_prefix = '-'
                         yield([input, [output, flagFile], replicon, consensus,repliconStats, merge_prefix])
 
-            @follows(getConsensus)
+            @follows(checkpoint_getConsensus)
             @follows(checkpoint_getRepSNPList)
             @files(matrixEntryByRep)
             def deriveRepAlleleMatrix(input, outputs, replicon, consensus, repliconStats, merge_prefix):
@@ -2163,7 +2222,7 @@ else: # refGenbank == False
                         merge_prefix = outMerge
                         yield([input, [output, flagFile], replicon, consensus,repliconStats, merge_prefix])
 
-            @follows(getConsensus, checkpoint_getMergeConsensus)
+            @follows(checkpoint_getConsensus, checkpoint_getMergeConsensus)
             @follows(checkpoint_getRepSNPList)
             @files(matrixEntryByCoreRep)
             def deriveRepAlleleMatrix(input, outputs, replicon, consensus, repliconStats, merge_prefix):
@@ -2206,7 +2265,7 @@ else: # refGenbank == False
                         merge_prefix = outMerge
                         yield([input, [output, flagFile], replicon, consensus,repliconStats, merge_prefix])
 
-            @follows(getConsensus, checkpoint_getMergeConsensus)
+            @follows(checkpoint_getConsensus, checkpoint_getMergeConsensus)
             @follows(checkpoint_getRepSNPList)
             @files(matrixEntryByRep)
             def deriveRepAlleleMatrix(input, outputs, replicon, consensus, repliconStats, merge_prefix):
@@ -2350,7 +2409,7 @@ else: # refGenbank == False
                         merge_prefix = '-'
                         yield([input, [output, flagFile], replicon, consensus,repliconStats, merge_prefix])
 
-            @follows(getConsensus)
+            @follows(checkpoint_getConsensus)
             @follows(checkpoint_getRepSNPList)
             @files(matrixEntryByCoreRep)
             def deriveRepAlleleMatrix(input, outputs, replicon, consensus, repliconStats, merge_prefix):
@@ -2393,7 +2452,7 @@ else: # refGenbank == False
                         merge_prefix = '-'
                         yield([input, [output, flagFile], replicon, consensus,repliconStats, merge_prefix])
 
-            @follows(getConsensus)
+            @follows(checkpoint_getConsensus)
             @follows(checkpoint_getRepSNPList)
             @files(matrixEntryByRep)
             def deriveRepAlleleMatrix(input, outputs, replicon, consensus, repliconStats, merge_prefix):

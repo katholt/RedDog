@@ -1,7 +1,5 @@
-RedDog V1beta.3 030715
+RedDog V1beta.4 260715
 ====== 
-Authors: David Edwards, Bernie Pope, Kat Holt
-
 Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt
 All rights reserved.
 
@@ -35,9 +33,8 @@ Note: for Illumina paired-end or single reads, or Ion Torrent single reads.
 IMPORTANT: See config file/instructions for input options/requirements
 
 current version:
-V1beta.3    changed fasttree to raxml (DE)
-            added option to stop tree generation,
-            or force tree if > 200 isolates (DE)
+V1beta.4    added simple check for correct BAM generation (DE)
+            added checkpoint for consensus calling (DE)
 
 previous versions:
 V0.1        converted to vcf output via mpileup instead of depreciated pileup (DE)
@@ -182,6 +179,9 @@ V1.0b       Any fixes from final testing (DE)
             update parseGeneContent.py (P/A matrix based on cover and depth) (DE)
 V1beta.1    fix for parseSNPTable - reported position of snp in non-coding feature (DE)
 V1beta.2    fix for parseSNPTable - improved speed of reading and parsing snp table (DE)
+V1beta.3    changed fasttree to raxml (DE)
+            added option to stop tree generation,
+            or force tree if > 200 isolates (DE)
 
 next planned updates
 V1.0        Offical Public Release of RedDog (on acceptance of paper) 
@@ -189,7 +189,6 @@ V1.0        Offical Public Release of RedDog (on acceptance of paper)
 (Post-release)
     changes to input sequences pattern recognition
     extend parseGeneContent functions 
-    add merging of bams for both pangenome and phylogenetic mapping
     reanalysis without mapping
         with/without a GenBank file,
         restore of read sets removed by user,

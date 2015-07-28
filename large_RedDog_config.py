@@ -1,5 +1,5 @@
 '''
-Configuration file for RedDog.py V1beta.3
+Configuration file for RedDog.py V1beta.4
 -------------------------------
 Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt
 All rights reserved. (see README.txt for more details)
@@ -395,6 +395,10 @@ stages = {
     "alignBWASE": {
         "walltime": "06:00:00",
         "command": "bwa samse %ref %align %seq | samtools view -ubS - | samtools sort - %out"
+    },
+    "checkBam": {
+        "walltime": "00:10:00",
+        "command": "python checkBam.py %type %bam %seq"
     },
     "indexBam": {
         "walltime": "00:10:00",
