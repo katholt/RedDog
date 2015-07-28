@@ -3,8 +3,6 @@
 '''
 RedDog V1beta.4 260715
 ====== 
-Authors: David Edwards, Bernie Pope, Kat Holt
-
 Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt
 All rights reserved.
 
@@ -1045,9 +1043,8 @@ if mapping == 'bowtie':
             runStageCheck('alignBowtiePE', flagFile, bowtie_map_type, base, seq1, seq2, bowtie_X_value, out)
         stage_count += len(sequence_list)
 
-        @transform(alignBowtiePE, regex(r"(.*)\/(.+).bam"), [r'\1/\2.bam', outSuccessPrefix + r'\2.checkBam.Success'])
-        def checkBam(inputs, outputs):
-            output, flagFile = outputs
+        @transform(alignBowtiePE, regex(r"(.*)\/(.+).bam"), outSuccessPrefix + r'\2.checkBam.Success')
+        def checkBam(inputs, flagFile):
             bamFile, _success = inputs
             (prefix, name, ext) = splitPath(bamFile)
             read_set = ""
@@ -1118,9 +1115,8 @@ if mapping == 'bowtie':
                 runStageCheck('alignBowtie', flagFile, bowtie_map_type, base, input, out)
             stage_count += len(sequence_list) 
 
-        @transform(alignBowtie, regex(r"(.*)\/(.+).bam"), [r'\1/\2.bam', outSuccessPrefix + r'\2.checkBam.Success'])
-        def checkBam(inputs, outputs):
-            output, flagFile = outputs
+        @transform(alignBowtie, regex(r"(.*)\/(.+).bam"), outSuccessPrefix + r'\2.checkBam.Success')
+        def checkBam(inputs, flagFile):
             bamFile, _success = inputs
             (prefix, name, ext) = splitPath(bamFile)
             read_set = ""
@@ -1206,9 +1202,8 @@ else: # mapping = 'BWA'
             runStageCheck('alignBWAPE', flagFile, reference, align1, align2, seq1, seq2, out)
         stage_count += len(sequence_list) 
 
-        @transform(alignBWAPE, regex(r"(.*)\/(.+).bam"), [r'\1/\2.bam', outSuccessPrefix + r'\2.checkBam.Success'])
-        def checkBam(inputs, outputs):
-            output, flagFile = outputs
+        @transform(alignBWAPE, regex(r"(.*)\/(.+).bam"), outSuccessPrefix + r'\2.checkBam.Success')
+        def checkBam(inputs, flagFile):
             bamFile, _success = inputs
             (prefix, name, ext) = splitPath(bamFile)
             read_set = ""
@@ -1280,9 +1275,8 @@ else: # mapping = 'BWA'
             runStageCheck('alignBWASE', flagFile, reference, align, seq, out)
         stage_count += len(sequence_list) 
 
-        @transform(alignBWASE, regex(r"(.*)\/(.+).bam"), [r'\1/\2.bam', outSuccessPrefix + r'\2.checkBam.Success'])
-        def checkBam(inputs, outputs):
-            output, flagFile = outputs
+        @transform(alignBWASE, regex(r"(.*)\/(.+).bam"), outSuccessPrefix + r'\2.checkBam.Success')
+        def checkBam(inputs, flagFile):
             bamFile, _success = inputs
             (prefix, name, ext) = splitPath(bamFile)
             read_set = ""
