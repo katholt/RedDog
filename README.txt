@@ -1,4 +1,4 @@
-RedDog V1beta.4 260715
+RedDog V1beta.5 020915
 ====== 
 Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt
 All rights reserved.
@@ -33,8 +33,7 @@ Note: for Illumina paired-end or single reads, or Ion Torrent single reads.
 IMPORTANT: See config file/instructions for input options/requirements
 
 current version:
-V1beta.4    added simple check for correct BAM generation (DE)
-            added checkpoint for consensus calling (DE)
+V1beta.5    added further filter of SNPS in finalFilter (DE)
 
 previous versions:
 V0.1        converted to vcf output via mpileup instead of depreciated pileup (DE)
@@ -182,6 +181,8 @@ V1beta.2    fix for parseSNPTable - improved speed of reading and parsing snp ta
 V1beta.3    changed fasttree to raxml (DE)
             added option to stop tree generation,
             or force tree if > 200 isolates (DE)
+V1beta.4    added simple check for correct BAM generation (DE)
+            added checkpoint for consensus calling (DE)
 
 next planned updates
 V1.0        Offical Public Release of RedDog (on acceptance of paper) 

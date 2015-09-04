@@ -1,5 +1,5 @@
 '''
-Configuration file for RedDog.py V1beta.4
+Configuration file for RedDog.py V1beta.5
 -------------------------------
 
 Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt
@@ -19,7 +19,18 @@ output = ""
 
 out_merge_target = ""
 #out_merge_target = "/full_path_to/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
+'''
+force_tree and force_no_tree
+The pipeline can produce a quick RAXML tree as long as there are more than three isolates and
+one or more SNPs. If there are more than 200 isolates, the tree generation will be switched 
+off. If you want a tree for larger data sets, set force_tree to 'True'. If you want to turn
+off the tree entirely, set force_no_tree to 'True'. (this overrides force_tree)
+'''
+force_tree = False
+#force_tree = True
 
+force_no_tree = False
+#force_no_tree = True
 
 '''
 Notes:
@@ -293,18 +304,6 @@ To get the difference matrix, set the following to 'True'.
 DifferenceMatrix = False
 #DifferenceMatrix = True
 
-'''
-force_tree and force_no_tree
-The pipeline can produce a quick RAXML tree as long as there are more than three isolates and
-one or more SNPs. If there are more than 200 isolates, the tree generation will be switched 
-off. If you want a tree for larger data sets, set force_tree to 'True'. If you want to turn
-off the tree entirely, set force_no_tree to 'True'. (this overrides force_tree)
-'''
-force_tree = False
-#force_tree = True
-
-force_no_tree = False
-#force_no_tree = True
 
 '''
 ########################
