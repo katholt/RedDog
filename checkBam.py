@@ -19,7 +19,7 @@ python checkBam.py <bam> <read_type> <sequence_mapped>
 [only need one of the pair for PE reads]
 
 Created:    24/07/2015
-Modified:   
+Modified:   27/10/2015  - tweaked minimum bam size
 author: David Edwards
 '''
 import os, sys
@@ -33,12 +33,12 @@ except:
 	sys.exit(1)
 seq_info = os.stat(sequence_mapped)
 if read_type == 'PE':
-	if bam_info.st_size < seq_info.st_size:
+	if bam_info.st_size < (seq_info.st_size*0.8):
 		os.remove(bam_to_check)
 		print "BAM too small: deleted"
 		sys.exit(1)
 else:
-	if bam_info.st_size < (seq_info.st_size*0.5):
+	if bam_info.st_size < (seq_info.st_size*0.4):
 		os.remove(bam_to_check)
 		print "BAM too small: deleted"
 		sys.exit(1)

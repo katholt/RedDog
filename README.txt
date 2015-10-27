@@ -1,4 +1,4 @@
-RedDog V1beta.5 020915
+RedDog V1beta.6 271015
 ====== 
 Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt
 All rights reserved.
@@ -33,7 +33,9 @@ Note: for Illumina paired-end or single reads, or Ion Torrent single reads.
 IMPORTANT: See config file/instructions for input options/requirements
 
 current version:
-V1beta.5    added further filter of SNPS in finalFilter (DE)
+V1beta.6    changed back to FastTree - precision error in RAxML -m ASC_GTRCAT (DE)
+            changed maximum isolates for tree to 500 (DE)
+            changed chackBam to pass BAMs from simulated reads (DE)
 
 previous versions:
 V0.1        converted to vcf output via mpileup instead of depreciated pileup (DE)
@@ -183,6 +185,7 @@ V1beta.3    changed fasttree to raxml (DE)
             or force tree if > 200 isolates (DE)
 V1beta.4    added simple check for correct BAM generation (DE)
             added checkpoint for consensus calling (DE)
+V1beta.5    added further filter of SNPS in finalFilter (DE)
 
 next planned updates
 V1.0        Offical Public Release of RedDog (on acceptance of paper) 
