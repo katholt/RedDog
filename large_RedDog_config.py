@@ -1,5 +1,5 @@
 '''
-Configuration file for RedDog.py V1beta.5
+Configuration file for RedDog.py V1beta.6
 -------------------------------
 Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt
 All rights reserved. (see README.txt for more details)
@@ -21,10 +21,10 @@ out_merge_target = ""
 
 '''
 force_tree and force_no_tree
-The pipeline can produce a quick RAXML tree as long as there are more than two isolates and
-one or more SNPs. If there are more than 200 isolates, the tree generation will be switched 
-off. If you want a tree for larger data sets, set force_tree to 'True'. If you want to turn
-off the tree entirely, set force_no_tree to 'True'. (this overrides force_tree)
+The pipeline can produce a FastTree. If there are more than 500 isolates, the tree generation 
+will be switched off. If you want a tree for larger data sets, set force_tree to 'True'. 
+If you want to turnoff the tree entirely, set force_no_tree to 'True'. 
+(this overrides force_tree)
 '''
 force_tree = False
 #force_tree = True
@@ -352,8 +352,8 @@ stageDefaults = {
         "samtools-intel/1.1",
         "bcftools-intel/1.1",
         "eautils-gcc/1.1.2",
-        "raxml-intel/8.1.23",
-        "bowtie2-intel/2.2.3"
+        "bowtie2-intel/2.2.3",
+        "fasttree-gcc/2.1.7dp"
     ]
 }
 stages = {
@@ -514,10 +514,10 @@ stages = {
     "makeTree": {
         "walltime": "06:00:00",
         "memInGB": 8,
-        "command": "cd %dir && raxmlHPC -f a -s %input -x 98765 -p 12345 -N 100 -m ASC_GTRCAT -n %out --asc-corr=lewis"
+        "command": "FastTree -gtr -gamma -nt %input > %output"
     },
     "makeNoTree": {
-        "command": "python make_no_tree.py %dir %input %out"
+        "command": "python make_no_tree.py %input %out"
     },
     "deleteDir": {
         "walltime": "00:10:00",

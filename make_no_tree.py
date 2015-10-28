@@ -12,19 +12,14 @@ example:
 python make_no_tree.py <output_directory> <input_file> <out_name> 
 
 Created:    30/06/2015
-Modified:   
+Modified:   27/10/2015 (change back to FastTree)
 author: David Edwards
 '''
 import os, sys
-out_directory = sys.argv[1]
-input_file = sys.argv[2]
-out_name = sys.argv[3]
+input_file = sys.argv[1]
+output_file = sys.argv[2]
 
-if out_directory[-1] != "/":
-	out_directory += "/"
-output_file = out_directory + "RAxML_bestTree." + out_name
 output = open(output_file, "w")
-
 output.write("No Tree\n")
 output.close()
 
