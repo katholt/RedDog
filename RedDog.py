@@ -2330,7 +2330,7 @@ else: # refGenbank == False
         # generate tree
         if conservation != 0.95:
             @follows(parseSNPsNoGBK_95)
-            @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
             def makeTree(inputs, outputs):
                 output, flagFile = outputs
                 input, _success = inputs
@@ -2351,7 +2351,7 @@ else: # refGenbank == False
             else:
                 stage_count += len(core_replicons)
         else:
-            @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outMerge + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
             def makeTree(inputs, outputs):
                 output, flagFile = outputs
                 input, _success = inputs
@@ -2511,7 +2511,7 @@ else: # refGenbank == False
         # generate tree
         if conservation != 0.95:
             @follows(parseSNPsNoGBK_95)
-            @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
             def makeTree(inputs, outputs):
                 output, flagFile = outputs
                 input, _success = inputs
@@ -2532,7 +2532,7 @@ else: # refGenbank == False
             else:
                 stage_count += len(core_replicons)
         else:
-            @transform(parseSNPs, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
+            @transform(parseSNPsNoGBK, regex(r"(.*)\/(.+)_alleles_var_cons"+str(conservation)+".csv"), [outPrefix + r"\2_alleles_var_cons"+str(conservation)+".tree", outSuccessPrefix + r"\2_alleles.makeTree.Success"])
             def makeTree(inputs, outputs):
                 output, flagFile = outputs
                 input, _success = inputs
