@@ -1,5 +1,5 @@
 '''
-Configuration file for RedDog.py V1beta.6
+Configuration file for RedDog.py V1beta.7 (BlackCat)
 -------------------------------
 Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt
 All rights reserved. (see README.txt for more details)

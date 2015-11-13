@@ -15,7 +15,7 @@ example:
 python finalFilter.py <raw>.vfc <q30>.vcf <outHetFile> <HetsVCF>
 
 Created:	24/01/2013
-Modified:	02/09/2015
+Modified:	13/11/2015
 author: David Edwards
 '''
 import sys
@@ -45,7 +45,7 @@ for line in vcfIn:
         	hetVcfOut.write(line)
     else:
         element = line.split("\t")
-        if element[5] >= 30:       
+        if int(element[5]) >= 30:       
             if (element[7].find("AF1=1") != -1 or element[-1].startswith("0") != True) and element[4].find(",") == -1:
                 vcfOut.write(line)    
             elif element[7].startswith("IND") != True:
