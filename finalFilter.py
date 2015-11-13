@@ -45,13 +45,13 @@ for line in vcfIn:
         	hetVcfOut.write(line)
     else:
         element = line.split("\t")
-        if int(element[5]) >= 30:       
+        if float(element[5]) >= 30:       
             if (element[7].find("AF1=1") != -1 or element[-1].startswith("0") != True) and element[4].find(",") == -1:
                 vcfOut.write(line)    
             elif element[7].startswith("IND") != True:
                 hetCount += 1
                 if HetsVCF:
-                    hetVcfOut.write(line)
+                    hetVcsfOut.write(line)
 
 hetOut.write(str(hetCount))
 hetOut.close()
