@@ -51,7 +51,7 @@ for line in vcfIn:
             elif element[7].startswith("IND") != True:
                 hetCount += 1
                 if HetsVCF:
-                    hetVcsfOut.write(line)
+                    hetVcfOut.write(line)
 
 hetOut.write(str(hetCount))
 hetOut.close()
