@@ -1,7 +1,7 @@
 '''
-Configuration file for RedDog.py V1beta.7 (BlackCat)
+Configuration file for RedDog.py V1beta.8
 -------------------------------
-Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt
+Copyright (c) 2016 David Edwards, Bernie Pope, Kat Holt
 All rights reserved. (see README.txt for more details)
 
 Essential pipeline variables.
