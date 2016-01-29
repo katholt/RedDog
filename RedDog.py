@@ -1,9 +1,9 @@
 #!/bin/env python
 
 '''
-RedDog V1beta.7 131115 (BlackCat)
+RedDog V1beta.8 290116
 ====== 
-Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt
+Copyright (c) 2016 David Edwards, Bernie Pope, Kat Holt
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, 
@@ -56,7 +56,7 @@ from pipe_utils import (isGenbank, isFasta, chromInfoFasta, chromInfoGenbank, ge
                         getCover, make_sequence_list, getSuccessCount, make_run_report, 
                         get_run_report_data, getFastaDetails)
 
-version = "V1beta.7 (BlackCat)"
+version = "V1beta.8"
 
 modules = pipeline_options.stageDefaults['modules']
 
@@ -894,7 +894,7 @@ if continuity_test:
 #Phew! Now that's all set up, we can begin...
 #but first, output run conditions to user and get confirmation to run
 print "\nRedDog " + version + " - " + runType + " run\n"
-print "Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt"
+print "Copyright (c) 2016 David Edwards, Bernie Pope, Kat Holt"
 print "All rights reserved. (see README.txt for more details)\n"
 
 print "Mapping: " + mapping_out
