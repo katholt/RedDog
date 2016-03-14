@@ -1,6 +1,7 @@
 '''
-Configuration file for RedDog.py V1beta.8
+Configuration file for RedDog.py V1beta.9
 -------------------------------
+
 Copyright (c) 2016 David Edwards, Bernie Pope, Kat Holt
 All rights reserved. (see README.txt for more details)
 
@@ -18,7 +19,6 @@ output = ""
 
 out_merge_target = ""
 #out_merge_target = "/full_path_to/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
-
 '''
 force_tree and force_no_tree
 The pipeline can produce a FastTree. If there are more than 500 isolates, the tree generation 
@@ -61,9 +61,9 @@ to be generated, enter a fasta format reference instead.
 'output' directory:
 full path name including final "/"
 
-For large data sets run the output to a scratch disk area (if you have access) 
-and save the final output to your directory  
-e.g. output = "/full_path_to/your_scratch_directory/a_folder/<ref>_<version>_<date>/"
+For large data sets run the output to the scratch disk area and save the final output to
+your shared directory (or contagion if you have access) 
+e.g. output = "/scratch/VR0082/a_folder/<ref>_<version>_<date>/"
 '''
 #output = "/full_path_to/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
 
@@ -196,15 +196,14 @@ http://bowtie-bio.sourceforge.net/bowtie2/manual.shtml
 #bowtie_map_type = "--fast-local"
 bowtie_map_type = "--sensitive-local"
 #bowtie_map_type = "--very-sensitive-local"
-
 '''
-The default maximum length for bowtie2 to consider pair-ended reads discontinuous
-is 2000 - you can change this with bowite_X_value
+The default maximum length for bowtie2 to consider pair-ended reads contiguous
+is 2000 - you can change this with bowtie_X_value
 '''
 bowtie_X_value = 2000
 
 '''
-bcftools SNP calling
+BCFtools SNP calling
 
 consensus caller ["c"] (original) or multiallelic caller ["m"] (new bcftools v1+) 
 
@@ -234,7 +233,6 @@ Default value:
 
 '''
 minimum_depth = 5
-
 '''
 HetsVCF
 The pipeline filters out heterozygous SNP calls.
@@ -346,14 +344,15 @@ stageDefaults = {
     "walltime": "01:00:00",
     "memInGB": 4,
     "queue": None,
+    "jobscript": "-p sysgen",
     "modules": [
-        "python-gcc/2.7.5",
-        "bwa-intel/0.6.2",
-        "samtools-intel/1.1",
-        "bcftools-intel/1.1",
-        "eautils-gcc/1.1.2",
-        "bowtie2-intel/2.2.3",
-        "fasttree-gcc/2.1.7dp"
+         "Python/2.7.10-vlsci_intel-2015.08.25",
+         "BWA/0.6.2-vlsci_intel-2015.08.25",
+         "SAMtools/1.2-vlsci_intel-2015.08.25-HTSlib-1.2.1",
+         "BCFtools/1.2-vlsci_intel-2015.08.25",
+         "ea-utils/1.1.2-537-GCC-4.9.2",
+         "Bowtie2/2.2.5-vlsci_intel-2015.08.25",
+         "FastTree/2.1.8-vlsci_intel-2015.08.25"
     ]
 }
 stages = {
@@ -374,11 +373,15 @@ stages = {
         "command": "bowtie2-build %ref %base"
     },
     "alignBowtiePE": {
-        "walltime": "06:00:00",
+        "walltime": "03:00:00",
+# large file size (any read set >800MB)
+#        "walltime": "06:00:00",
         "command": "bowtie2 %type -x %ref_base -1 %seq1 -2 %seq2 -X %Xvalue | samtools view -ubS - | samtools sort - %out"
     },
     "alignBowtie": {
-        "walltime": "06:00:00",
+        "walltime": "03:00:00",
+# large file size (any read set >800MB)
+#        "walltime": "06:00:00",
         "command": "bowtie2 %type -x %ref_base -U %seq | samtools view -ubS - | samtools sort - %out"
     },
     "buildBWAIndex": {
@@ -386,15 +389,20 @@ stages = {
         "command": "bwa index -a is %ref"
     },
     "alignSequence": {
-        "walltime": "03:00:00",
+# large file size (any read set >800MB)
+#        "walltime": "06:00:00",
         "command": "bwa aln %ref %seq > %out"
     },
     "alignBWAPE": {
-        "walltime": "06:00:00",
+        "walltime": "03:00:00",
+# large file size (any read set >800MB)
+#        "walltime": "06:00:00",
         "command": "bwa sampe %ref %align1 %align2 %seq1 %seq2 | samtools view -ubS - | samtools sort - %out"
     },
     "alignBWASE": {
-        "walltime": "06:00:00",
+        "walltime": "03:00:00",
+# large file size (any read set >800MB)
+#        "walltime": "06:00:00",
         "command": "bwa samse %ref %align %seq | samtools view -ubS - | samtools sort - %out"
     },
     "checkBam": {
@@ -418,7 +426,9 @@ stages = {
         "command": "samtools faidx %ref"
     },
     "callRepSNPs": {
-        "walltime": "03:00:00",
+        "walltime": "01:00:00",
+# large file size (any read set >800MB)
+#        "walltime": "03:00:00",
         "command": "samtools mpileup -u -t DP -f %ref %bam -r %replicon | bcftools call -O b %option - > %out"
     },
     "checkpoint": {
@@ -426,11 +436,15 @@ stages = {
         "command": "python checkpoint.py %outTemp %stage"
     },
     "getConsensus": {
-        "walltime": "06:00:00",
+        "walltime": "01:00:00",
+# large file size (any read set >800MB)
+#        "walltime": "06:00:00",
         "command": "samtools mpileup -q 20 -ugB -f %ref %bam | bcftools call -c - | vcfutils.pl vcf2fq > %output"
     },
     "getCoverage": {
-        "walltime": "06:00:00",
+        "walltime": "01:00:00",
+# large file size (any read set >800MB)
+#        "walltime": "06:00:00",
         "command": "time samtools mpileup %bam | cut - -f 1-4 > %out"
     },
     "getCoverByRep": {
@@ -481,41 +495,54 @@ stages = {
        "command": "python deriveAllRepGeneCover.py %outDir %genbank %in"
     },
     "collateAllRepGeneCover": {
-        "walltime": "03:00:00",
+        "walltime": "00:10:00",
+# large data sets (more than 150 samples)
+#        "walltime": "03:00:00",
         "command": "python collateAllRepGeneCover.py %inDir %outDir %refName %sequence_list"
     },
     "mergeAllRepGeneCover": {
-        "walltime": "03:00:00",
+        "walltime": "00:10:00",
+# large data sets
+#        "walltime": "03:00:00",
         "command": "python mergeAllRepGeneCover.py %inDir %outDir %refName %sequence_list"
     },
     "parseGeneContent": {
-        "walltime": "01:00:00",
+        "walltime": "00:10:00",
+# large data sets
+#        "walltime": "01:00:00",
         "command": "python parseGeneContent.py -g %input -d %input2 -s %out -o %out2"
     },
     "deriveRepAlleleMatrix": {
-        "walltime": "02:00:00",
+# large number of SNPs (20000+)
+#        "walltime": "02:00:00",
         "command": "python deriveRepAlleleMatrix.py %in %out %ref %replicon %consensus %repStats %merge_prefix"
     },
     "collateRepAlleleMatrix": {
         "command": "python collateRepAlleleMatrix.py %in %out %sequence_list %rep_name"
     },
     "getDifferenceMatrix": {
-        "walltime": "06:00:00",
+        "walltime": "00:10:00",
+# large data sets
+#        "walltime": "04:00:00",
         "command": "python make_distance_matrix.py -i %in"
     },
     "parseSNPs": {
-        "memInGB": 8,
+# large data sets
+#        "memInGB": 8,
         "command": "python parseSNPtable.py -m cons,aln,coding -s %input -c %conservation -r %genbank -q %replicon -d %dir"
     },
     "parseSNPsNoGBK": {
-        "memInGB": 8,
+# large data sets
+#        "memInGB": 8,
         "command": "python parseSNPtable.py -m cons,aln -s %input -c %conservation -d %dir"
     },
     "makeTree": {
-        "walltime": "06:00:00",
-        "memInGB": 8,
+        "walltime": "01:00:00",
+# large data sets
+#        "walltime": "06:00:00",
+#        "memInGB": 8,
         "command": "FastTree -gtr -gamma -nt %input > %output"
-    },
+   },
     "makeNoTree": {
         "command": "python make_no_tree.py %input %out"
     },
