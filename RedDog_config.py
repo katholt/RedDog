@@ -1,5 +1,5 @@
 '''
-Configuration file for RedDog.py V1beta.8
+Configuration file for RedDog.py V1beta.9
 -------------------------------
 
 Copyright (c) 2016 David Edwards, Bernie Pope, Kat Holt
@@ -389,7 +389,7 @@ stages = {
     },
     "alignSequence": {
 # large file size (any read set >800MB)
-#        "walltime": "02:00:00",
+#        "walltime": "06:00:00",
         "command": "bwa aln %ref %seq > %out"
     },
     "alignBWAPE": {
@@ -444,7 +444,7 @@ stages = {
         "walltime": "01:00:00",
 # large file size (any read set >800MB)
 #        "walltime": "06:00:00",
-        "command": "time samtools mpileup %bam | cut - -f 1-4 > %out"
+        "command": "samtools mpileup %bam | cut - -f 1-4 > %out"
     },
     "getCoverByRep": {
         "command": "python getCoverByRep.py %ref %coverage %out"
@@ -512,6 +512,8 @@ stages = {
         "command": "python parseGeneContent.py -g %input -d %input2 -s %out -o %out2"
     },
     "deriveRepAlleleMatrix": {
+# large number of SNPs (20000+)
+#        "walltime": "02:00:00",
         "command": "python deriveRepAlleleMatrix.py %in %out %ref %replicon %consensus %repStats %merge_prefix"
     },
     "collateRepAlleleMatrix": {
