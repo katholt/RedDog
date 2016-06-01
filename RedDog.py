@@ -1,7 +1,7 @@
 #!/bin/env python
 
 '''
-RedDog V1beta.9 090316
+RedDog V1beta.10 010616
 ====== 
 Copyright (c) 2016 David Edwards, Bernie Pope, Kat Holt
 All rights reserved.
@@ -56,7 +56,7 @@ from pipe_utils import (isGenbank, isFasta, chromInfoFasta, chromInfoGenbank, ge
                         getCover, make_sequence_list, getSuccessCount, make_run_report, 
                         get_run_report_data, getFastaDetails)
 
-version = "V1beta.9"
+version = "V1beta.10"
 
 modules = pipeline_options.stageDefaults['modules']
 
@@ -338,6 +338,11 @@ try:
     sdOutgroupMultiplier = pipeline_options.sd_out
 except:
     sdOutgroupMultiplier = 2
+
+try:
+    strand_bias_cutoff = pipeline_options.strand_bias_cutoff
+except:
+    strand_bias_cutoff = 0.8
 
 try:
     check_reads_mapped = pipeline_options.check_reads_mapped
@@ -1427,7 +1432,7 @@ if runType == "pangenome":
     def q30VarFilter(rawBCF, outputs, coverFile, repliconName):
         output, flagFile = outputs
         cover = getCover(coverFile, repliconName)
-        runStageCheck('q30VarFilter', flagFile, rawBCF, minDepth, cover, output)
+        runStageCheck('q30VarFilter', flagFile, strand_bias_cutoff,rawBCF, minDepth, cover, output)
     stage_count += (len(sequence_list)*len(core_replicons)) 
 
     # Filter out simple hets
@@ -1541,7 +1546,7 @@ else: # runType == "phylogeny"
     def q30VarFilter(rawBCF, outputs, coverFile, replicon):
         output, flagFile = outputs
         cover = getCover(coverFile, replicon)
-        runStageCheck('q30VarFilter', flagFile, rawBCF, minDepth, cover, output)
+        runStageCheck('q30VarFilter', flagFile, strand_bias_cutoff,rawBCF, minDepth, cover, output)
     stage_count += (len(sequence_list)*len(replicons)) 
 
     # Filter out simple hets
