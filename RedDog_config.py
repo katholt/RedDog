@@ -1,5 +1,5 @@
 '''
-Configuration file for RedDog.py V1beta.10
+Configuration file for RedDog.py V1beta.10.1
 -------------------------------
 
 Copyright (c) 2016 David Edwards, Bernie Pope, Kat Holt
@@ -458,7 +458,7 @@ stages = {
     },
     "q30VarFilter": {
         "walltime": "00:10:00",
-        "command": "bcftools view -i 'ABS(DP4[2]-DP4[3])/(DP4[2]+DP4[3]) < %bias_cutoff' %bcfFile | vcfutils.pl varFilter -d %min -D %cover -Q 30 > %out"
+        "command": "bcftools view -i 'ABS(DP4[2]-DP4[3])/(DP4[2]+DP4[3]) < %bias_cutoff ' %bcfFile | vcfutils.pl varFilter -d %min -D %cover -Q 30 > %out"
     },
     "finalFilter": {
         "walltime": "00:10:00",
