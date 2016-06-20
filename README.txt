@@ -1,4 +1,4 @@
-RedDog V1beta.10 010616
+RedDog V1beta.10.1 200616
 ====== 
 Copyright (c) 2016 David Edwards, Bernie Pope, Kat Holt
 All rights reserved.
@@ -33,6 +33,7 @@ Note: for Illumina paired-end or single reads, or Ion Torrent single reads.
 IMPORTANT: See config file/instructions for input options/requirements
 
 current version:
+V1beta.10.1 fix for minor error (q30VarFilter)
 V1beta.10   added strand bias test
 
 previous versions:
