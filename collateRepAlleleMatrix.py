@@ -13,7 +13,7 @@ example:
 python collateRepAlleleMatrix.py <temp_dir> <output> sequences_string rep_name 
 
 Created:	27/2/2014
-Modified:	21/7/2014
+Modified:	21/6/2016 - changed splitPath origin
 author: David Edwards
 '''
 from Bio import SeqIO
@@ -21,7 +21,7 @@ from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio.Alphabet import IUPAC
 import sys, glob
-from rubra.utils import splitPath
+from pipe_utils import splitPath
 
 prefix = sys.argv[1]
 output_file = sys.argv[2]

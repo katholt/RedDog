@@ -1,7 +1,7 @@
-'''
-Copyright (c) 2015, Kat Holt
-All rights reserved. (see README.txt for more details)
-'''
+#
+#Copyright (c) 2015, Kat Holt
+#All rights reserved. (see README.txt for more details)
+#
 # read  data and convert to data frame
 readMatrix<-function(heatmapData){
 if (is.matrix(heatmapData)) {
