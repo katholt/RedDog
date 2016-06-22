@@ -1,7 +1,7 @@
-'''
-Copyright (c) 2015, David Edwards, Kat Holt
-All rights reserved. (see README.txt for more details)
-'''
+#'''
+#Copyright (c) 2015, David Edwards, Kat Holt
+#All rights reserved. (see README.txt for more details)
+#'''
 
 getRecombHeatmap<-function(snps,ref,w=NULL,g=NULL,offset=0) {
 
