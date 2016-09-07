@@ -1,5 +1,5 @@
 '''
-Configuration file for RedDog.py V1beta.10.2
+Configuration file for RedDog.py V1beta.10.3
 -------------------------------
 
 Copyright (c) 2016 David Edwards, Bernie Pope, Kat Holt
@@ -8,17 +8,10 @@ All rights reserved. (see README.txt for more details)
 Essential pipeline variables.
 '''
 reference = ""
-#reference = "/full_path_to/pipeline_test_sets/reference/NC_007384_with_plasmid.gbk"
-
 sequences = ""
-#sequences = "/full_path_to/pipeline_test_sets/*.fastq.gz"
-#sequences = "/full_path_to/pipeline_test_sets/*.fastq.gz"
-
 output = ""
-#output = "/full_path_to/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
-
 out_merge_target = ""
-#out_merge_target = "/full_path_to/<your_directory>/RedDog_output/<ref>_<version>_<date>/"
+
 '''
 force_tree and force_no_tree
 The pipeline can produce a FastTree. If there are more than 500 isolates, the tree generation 
@@ -136,8 +129,6 @@ core_replicon = ""
 #core_replicon = "NC_007384, NC_007385"
 #core_replicon = "AM412236_4_168118-212711"
 #core_replicon = "AM412236_4_168118-212711, ParatyphiA_AKU1"
-#Salmonella Typhimurium STm135
-#core_replicon = "NC_016810, NC_017720"
 
 '''
 Mapping To Use:
@@ -237,10 +228,10 @@ minimum_depth = 5
 HetsVCF
 The pipeline filters out heterozygous SNP calls.
 To capture these SNPs in the form of a VCF (one per isolate),
-set the following to 'True'
+set the following to 'True' (Now default behaviour)
 '''
-HetsVCF = False
-#HetsVCF = True
+#HetsVCF = False
+HetsVCF = True
 
 '''
 Values for calling the pass/fail and ingroup/outgroup status of strains
@@ -353,13 +344,13 @@ stageDefaults = {
     "queue": None,
     "jobscript": "-p sysgen",
     "modules": [
-         "Python/2.7.10-vlsci_intel-2015.08.25",
+         "Python/2.7.10-vlsci_intel-2015.08.25-SG",
          "BWA/0.6.2-vlsci_intel-2015.08.25",
-         "SAMtools/1.2-vlsci_intel-2015.08.25-HTSlib-1.2.1",
-         "BCFtools/1.2-vlsci_intel-2015.08.25",
-         "ea-utils/1.1.2-537-GCC-4.9.2",
-         "Bowtie2/2.2.5-vlsci_intel-2015.08.25",
-         "FastTree/2.1.8-vlsci_intel-2015.08.25"
+         "SAMtools/1.3.1-vlsci_intel-2015.08.25-HTSlib-1.3.1",
+         "BCFtools/1.3.1-vlsci_intel-2015.08.25",
+         "ea-utils/r805-GCC-4.9.2",
+         "FastTree/2.1.9-vlsci_intel-2015.08.25",
+         "Bowtie2/2.2.9-vlsci_intel-2015.08.25"
     ]
 }
 stages = {
@@ -382,14 +373,14 @@ stages = {
     "alignBowtiePE": {
         "walltime": "03:00:00",
 # large file size (any read set >800MB)
-#        "walltime": "06:00:00",
-        "command": "bowtie2 %type -x %ref_base -1 %seq1 -2 %seq2 -X %Xvalue | samtools view -ubS - | samtools sort - %out"
+#        "walltime": "08:00:00",
+        "command": "bowtie2 %type -x %ref_base -1 %seq1 -2 %seq2 -X %Xvalue | samtools view -ubS - | samtools sort - -o %out"
     },
     "alignBowtie": {
         "walltime": "03:00:00",
 # large file size (any read set >800MB)
 #        "walltime": "06:00:00",
-        "command": "bowtie2 %type -x %ref_base -U %seq | samtools view -ubS - | samtools sort - %out"
+        "command": "bowtie2 %type -x %ref_base -U %seq | samtools view -ubS - | samtools sort - -o %out"
     },
     "buildBWAIndex": {
         "walltime": "00:10:00",
@@ -404,13 +395,13 @@ stages = {
         "walltime": "03:00:00",
 # large file size (any read set >800MB)
 #        "walltime": "06:00:00",
-        "command": "bwa sampe %ref %align1 %align2 %seq1 %seq2 | samtools view -ubS - | samtools sort - %out"
+        "command": "bwa sampe %ref %align1 %align2 %seq1 %seq2 | samtools view -ubS - | samtools sort - -o %out"
     },
     "alignBWASE": {
         "walltime": "03:00:00",
 # large file size (any read set >800MB)
 #        "walltime": "06:00:00",
-        "command": "bwa samse %ref %align %seq | samtools view -ubS - | samtools sort - %out"
+        "command": "bwa samse %ref %align %seq | samtools view -ubS - | samtools sort - -o %out"
     },
     "checkBam": {
         "walltime": "00:10:00",
@@ -422,7 +413,7 @@ stages = {
     },
     "filterUnmapped": {
         "walltime": "00:15:00",
-        "command": "samtools view -hub -F 4 %bam | samtools sort - %out"
+        "command": "samtools view -hub -F 4 %bam | samtools sort - -o %out"
     },
     "getSamStats": {
         "walltime": "00:20:00",
@@ -435,7 +426,7 @@ stages = {
     "callRepSNPs": {
         "walltime": "01:00:00",
 # large file size (any read set >800MB)
-#        "walltime": "03:00:00",
+#        "walltime": "06:00:00",
         "command": "samtools mpileup -u -t DP -f %ref %bam -r %replicon | bcftools call -O b %option - > %out"
     },
     "checkpoint": {
@@ -452,14 +443,18 @@ stages = {
         "walltime": "01:00:00",
 # large file size (any read set >800MB)
 #        "walltime": "06:00:00",
-        "command": "time samtools mpileup %bam | cut - -f 1-4 > %out"
+        "command": "samtools mpileup %bam | cut - -f 1-4 > %out"
     },
     "getCoverByRep": {
         "command": "python getCoverByRep.py %ref %coverage %out"
     },
-    "q30VarFilter": {
+    "q30VarFilterPE": {
         "walltime": "00:10:00",
         "command": "bcftools view -i 'ABS(DP4[2]-DP4[3])/(DP4[2]+DP4[3]) < %bias_cutoff ' %bcfFile | vcfutils.pl varFilter -d %min -D %cover -Q 30 > %out"
+    },
+    "q30VarFilter": {
+        "walltime": "00:10:00",
+        "command": "bcftools view %bcfFile | vcfutils.pl varFilter -d %min -D %cover -Q 30 > %out"
     },
     "finalFilter": {
         "walltime": "00:10:00",
@@ -502,7 +497,6 @@ stages = {
        "command": "python deriveAllRepGeneCover.py %outDir %genbank %in"
     },
     "collateAllRepGeneCover": {
-        "walltime": "00:10:00",
 # large data sets (more than 150 samples)
 #        "walltime": "03:00:00",
         "command": "python collateAllRepGeneCover.py %inDir %outDir %refName %sequence_list"

@@ -1,7 +1,7 @@
 #!/bin/env python
 
 '''
-RedDog V1beta.10.2 230616
+RedDog V1beta.10.3 (Calico Cat) 070916 
 ====== 
 Copyright (c) 2016 David Edwards, Bernie Pope, Kat Holt
 All rights reserved.
@@ -56,7 +56,7 @@ from pipe_utils import (isGenbank, isFasta, chromInfoFasta, chromInfoGenbank, ge
                         getCover, make_sequence_list, getSuccessCount, make_run_report, 
                         get_run_report_data, getFastaDetails)
 
-version = "V1beta.10.2"
+version = "V1beta.10.3"
 
 modules = pipeline_options.stageDefaults['modules']
 
@@ -229,7 +229,7 @@ if mapping == 'bwa' and readType == 'SE':
 elif mapping == 'bwa' and readType == 'PE':
     mapping_out = 'BWA V0.6.2 sampe'
 elif mapping == 'bowtie':
-    mapping_out = 'Bowtie2 V2.2.3'
+    mapping_out = 'Bowtie2 V2.2.9'
 else:
     print "\nUnrecognised mapping option"
     print "Pipeline Stopped: please check 'mapping' in the config file\n"
@@ -317,7 +317,7 @@ try:
         print "Pipeline Stopped: please check 'HetsVCF' in the config file\n"
         sys.exit()
 except:
-    HetsVCF = False
+    HetsVCF = True
 
 try:
     coverFail = pipeline_options.cover_fail
@@ -1038,11 +1038,11 @@ if mapping == 'bowtie':
         @transform(sequences, regex(input), add_inputs(extraInput), [outTempPrefix + r'\2/\2.bam', outSuccessPrefix + r'\2.alignBowtiePE.Success'])
         def alignBowtiePE(inputs, outputs):
             output, flagFile = outputs
-            (prefix, name, ext) = splitPath(output)
-            out = prefix + '/' + name
+#            (prefix, name, ext) = splitPath(output)
+#            out = prefix + '/' + name
             seq1, [seq2] = inputs
             base = outTempPrefix + refName
-            runStageCheck('alignBowtiePE', flagFile, bowtie_map_type, base, seq1, seq2, bowtie_X_value, out)
+            runStageCheck('alignBowtiePE', flagFile, bowtie_map_type, base, seq1, seq2, bowtie_X_value, output)
         stage_count += len(sequence_list)
 
         @transform(alignBowtiePE, regex(r"(.*)\/(.+).bam"), outSuccessPrefix + r'\2.checkBam.Success')
@@ -1087,9 +1087,9 @@ if mapping == 'bowtie':
         def filterUnmapped(inputs, outputs):
             output, flagFile = outputs
             bamFile, _success = inputs
-            (prefix, name, ext) = splitPath(output)
-            out = prefix + '/' + name
-            runStageCheck('filterUnmapped', flagFile, bamFile, out)
+#            (prefix, name, ext) = splitPath(output)
+#            out = prefix + '/' + name
+            runStageCheck('filterUnmapped', flagFile, bamFile, output)
         stage_count += len(sequence_list) 
 
     else:
@@ -1099,10 +1099,10 @@ if mapping == 'bowtie':
             @transform(sequences, regex(r"(.*)\/(.+).fastq.gz"), [outTempPrefix + r'\2/\2.bam', outSuccessPrefix + r'\2.alignBowtie.Success'])
             def alignBowtie(input, outputs):
                 output, flagFile = outputs
-                (prefix, name, ext) = splitPath(output)
-                out = prefix + '/' + name
+#                (prefix, name, ext) = splitPath(output)
+#                out = prefix + '/' + name
                 base = outTempPrefix + refName
-                runStageCheck('alignBowtie', flagFile, bowtie_map_type, base, input, out)
+                runStageCheck('alignBowtie', flagFile, bowtie_map_type, base, input, output)
             stage_count += len(sequence_list) 
      
         else: #readType == "IT"
@@ -1111,10 +1111,10 @@ if mapping == 'bowtie':
             @transform(sequences, regex(r"(.*)\/(.+)_in.iontor.fastq.gz"), [outTempPrefix + r'\2/\2.bam', outSuccessPrefix + r'\2.alignBowtie.Success'])
             def alignBowtie(input, outputs):
                 output, flagFile = outputs
-                (prefix, name, ext) = splitPath(output)
-                out = prefix + '/' + name
+#                (prefix, name, ext) = splitPath(output)
+#                out = prefix + '/' + name
                 base = outTempPrefix + refName
-                runStageCheck('alignBowtie', flagFile, bowtie_map_type, base, input, out)
+                runStageCheck('alignBowtie', flagFile, bowtie_map_type, base, input, output)
             stage_count += len(sequence_list) 
 
         @transform(alignBowtie, regex(r"(.*)\/(.+).bam"), outSuccessPrefix + r'\2.checkBam.Success')
@@ -1160,9 +1160,9 @@ if mapping == 'bowtie':
         def filterUnmapped(inputs, outputs):
             output, flagFile = outputs
             bamFile, _success = inputs
-            (prefix, name, ext) = splitPath(output)
-            out = prefix + '/' + name
-            runStageCheck('filterUnmapped', flagFile, bamFile, out)
+#            (prefix, name, ext) = splitPath(output)
+#            out = prefix + '/' + name
+            runStageCheck('filterUnmapped', flagFile, bamFile, output)
         stage_count += len(sequence_list) 
 
 else: # mapping = 'BWA'
@@ -1199,9 +1199,9 @@ else: # mapping = 'BWA'
             name = seqPrefix + "/" + name[:-2]
             seq1 = name + '_1.fastq.gz'
             seq2 = name + '_2.fastq.gz'
-            (prefix, name, ext) = splitPath(output)
-            out = prefix + '/' + name
-            runStageCheck('alignBWAPE', flagFile, reference, align1, align2, seq1, seq2, out)
+#            (prefix, name, ext) = splitPath(output)
+#            out = prefix + '/' + name
+            runStageCheck('alignBWAPE', flagFile, reference, align1, align2, seq1, seq2, output)
         stage_count += len(sequence_list) 
 
         @transform(alignBWAPE, regex(r"(.*)\/(.+).bam"), outSuccessPrefix + r'\2.checkBam.Success')
@@ -1246,9 +1246,9 @@ else: # mapping = 'BWA'
         def filterUnmapped(inputs, outputs):
             output, flagFile = outputs
             bamFile, _success = inputs
-            (prefix, name, ext) = splitPath(output)
-            out = prefix + '/' + name
-            runStageCheck('filterUnmapped', flagFile, bamFile, out)
+#            (prefix, name, ext) = splitPath(output)
+#            out = prefix + '/' + name
+            runStageCheck('filterUnmapped', flagFile, bamFile, output)
         stage_count += len(sequence_list) 
 
     else:
@@ -1272,9 +1272,9 @@ else: # mapping = 'BWA'
                 if sequence.find(name) != -1 and seqPrefix == "":
                     (seqPrefix, seqName, seqExt) = splitPath(sequence)
             seq = seqPrefix + "/" + name + '.fastq.gz'
-            (prefix, name, ext) = splitPath(output)
-            out = prefix + '/' + name
-            runStageCheck('alignBWASE', flagFile, reference, align, seq, out)
+#            (prefix, name, ext) = splitPath(output)
+#            out = prefix + '/' + name
+            runStageCheck('alignBWASE', flagFile, reference, align, seq, output)
         stage_count += len(sequence_list) 
 
         @transform(alignBWASE, regex(r"(.*)\/(.+).bam"), outSuccessPrefix + r'\2.checkBam.Success')
@@ -1319,9 +1319,9 @@ else: # mapping = 'BWA'
         def filterUnmapped(inputs, outputs):
             output, flagFile = outputs
             bamFile, _success = inputs
-            (prefix, name, ext) = splitPath(output)
-            out = prefix + '/' + name
-            runStageCheck('filterUnmapped', flagFile, bamFile, out)
+#            (prefix, name, ext) = splitPath(output)
+#            out = prefix + '/' + name
+            runStageCheck('filterUnmapped', flagFile, bamFile, output)
         stage_count += len(sequence_list) 
 
 # Index sorted BAM alignments using samtools
@@ -1432,7 +1432,11 @@ if runType == "pangenome":
     def q30VarFilter(rawBCF, outputs, coverFile, repliconName):
         output, flagFile = outputs
         cover = getCover(coverFile, repliconName)
-        runStageCheck('q30VarFilter', flagFile, strand_bias_cutoff,rawBCF, minDepth, cover, output)
+        if runType == "PE":
+            runStageCheck('q30VarFilterPE', flagFile, strand_bias_cutoff,rawBCF, minDepth, cover, output)
+        else:
+            runStageCheck('q30VarFilter', flagFile, rawBCF, minDepth, cover, output)
+
     stage_count += (len(sequence_list)*len(core_replicons)) 
 
     # Filter out simple hets
@@ -1546,7 +1550,10 @@ else: # runType == "phylogeny"
     def q30VarFilter(rawBCF, outputs, coverFile, replicon):
         output, flagFile = outputs
         cover = getCover(coverFile, replicon)
-        runStageCheck('q30VarFilter', flagFile, strand_bias_cutoff,rawBCF, minDepth, cover, output)
+        if runType == "PE":
+            runStageCheck('q30VarFilterPE', flagFile, strand_bias_cutoff,rawBCF, minDepth, cover, output)
+        else:
+            runStageCheck('q30VarFilter', flagFile, rawBCF, minDepth, cover, output)
     stage_count += (len(sequence_list)*len(replicons)) 
 
     # Filter out simple hets
