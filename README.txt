@@ -33,7 +33,8 @@ Note: for Illumina paired-end or single reads, or Ion Torrent single reads.
 IMPORTANT: See config file/instructions for input options/requirements
 
 current version:
-V1beta.10.3 fix for SE and IT reads (no stand bias calling atm - need to validate b4 adding)
+V1beta.10.3 (Calico Cat)
+            fix for SE and IT reads (no stand bias calling atm - need to validate b4 adding)
             update to many programs used (local Helix installation)
             User Manual update
 V1beta.10.2 minor corrections for local install and R scripts
