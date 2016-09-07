@@ -1,0 +1,6 @@
+# Mac stuff
+.DS_Store
+
+# Byte-compiled / optimized / DLL files
+*.pyc
+
