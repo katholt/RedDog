@@ -347,11 +347,11 @@ stageDefaults = {
 # You will need to change these for distributed (queuing) installation
         "python-gcc/2.7.5",
         "bwa-intel/0.6.2",
-        "samtools-intel/1.1",
-        "bcftools-intel/1.1",
+        "samtools-intel/1.2",
+        "bcftools-intel/1.2",
         "eautils-gcc/1.1.2",
-        "bowtie2-intel/2.2.3",
-        "fasttree-gcc/2.1.7dp"
+        "bowtie2-intel/2.2.9",
+        "fasttree-gcc/2.1.8dp"
     ]
 }
 stages = {
