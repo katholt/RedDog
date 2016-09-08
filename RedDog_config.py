@@ -351,7 +351,7 @@ stageDefaults = {
         "bcftools-intel/1.2",
         "eautils-gcc/1.1.2",
         "bowtie2-gcc/2.2.9",
-        "fasttree-gcc/2.1.8dp"
+        "fasttree-gcc/2.1.7dp"
     ]
 }
 stages = {
