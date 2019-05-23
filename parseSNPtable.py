@@ -1,6 +1,6 @@
 #!/bin/env python
 '''
-Copyright (c) 2015, David Edwards, Bernie Pope, Kat Holt
+Copyright (c) 2015,2019 David Edwards, Bernie Pope, Kat Holt, Stephen Watts
 All rights reserved. (see README.txt for more details)
 '''
 #
@@ -24,16 +24,17 @@ All rights reserved. (see README.txt for more details)
 # It is also quicker generating coding consequences, and now uses much less memory (about twice the size of the allele table) 
 
 #
-# Authors - Kat Holt (kholt@unimelb.edu.au)
-#         - David Edwards (d.edwards2@student.unimelb.edu.au) 
+# Authors - Kat Holt (Kathryn.Holt@monash.edu)
+#         - David Edwards (David.Edwards@monash.edu)
+#		  - Stephen Watts (- added handling for ambiguous calls and helped with indexing problem)
 #
-# Example command on barcoo:
+# Example command:
 '''
-module load python-gcc/2.7.5
+module load python
 python parseSNPtable.py -s snps.csv -p prefix -r genbank -q queryseq -m aln,coding,vcf
 '''
 #
-# Last modified - May 22, 2015
+# Last modified - May 23, 2019
 # Changes:
 #	 15/10/13 - added strain subset option
 #    25/03/14 - added multiple sequence genbank file handling 
@@ -48,6 +49,9 @@ python parseSNPtable.py -s snps.csv -p prefix -r genbank -q queryseq -m aln,codi
 #    07/10/14 - added filtering for core SNPs as specified by Gene Coverage table from RedDog
 #    08/03/15 - fixed reported position of SNP in non-coding feature
 #    22/05/15 - changed way variable snps are assessed during reading in snp table
+#    23/05/19 - fixed indexing (from half open to closed) in parseSNPtable 
+#	(may have misidentified last base in 'forward' genes as intergenic, or first base in 'reverse' genes)
+#			  - also added handling for ambigous codon calls.
 
 import os, sys, subprocess, string, re, random
 import collections
@@ -56,6 +60,8 @@ from optparse import OptionParser
 from Bio import SeqIO
 from Bio.SeqFeature import SeqFeature, FeatureLocation
 from Bio.Seq import Seq
+from Bio.Seq import _dna_complement_table as dna_complement_table
+from Bio.Data.CodonTable import TranslationError
 from Bio.Alphabet import IUPAC
 from Bio.SeqRecord import SeqRecord
 from Bio.Alphabet import generic_dna
@@ -230,7 +236,7 @@ if __name__ == "__main__":
 		o.close()
 		print "\n... done"
 
-	def getCodons(genestart,genestop,genestrand,snp,derived,ancestral,sequence,complement):
+	def getCodons(genestart,genestop,genestrand,snp,derived,ancestral,sequence):
 		codon = ()
 		posincodon = 0
 		# determine coordinates of codon within genome
@@ -262,24 +268,37 @@ if __name__ == "__main__":
 		codonseq = [ str(sequence[codon[0]-1]), str(sequence[codon[1]-1]) , str(sequence[codon[2]-1]) ] # codon sequence
 		if genestrand == -1:
 			# complement the reverse strand
-			codonseq = [ complement[codonseq[0]], complement[codonseq[1]] , complement[codonseq[2]] ] # codon sequence
+			codonseq = [s.translate(dna_complement_table) for s in codonseq]
 		# insert ancestral base
 		if genestrand == 1:
 			codonseq[posincodon-1] = ancestral # replace snp within codon
 		elif genestrand == -1:
-			codonseq[posincodon-1] = complement[ancestral] # replace snp within codon
+			codonseq[posincodon-1] = ancestral.translate(dna_complement_table)  # replace snp within codon
+
+
 		ancestral_codon = Seq(''.join(codonseq),IUPAC.unambiguous_dna)
 		# mutate with current SNP
+
 		if genestrand == 1:
 			codonseq[posincodon-1] = derived # replace snp within codon
 		elif genestrand == -1:
-			codonseq[posincodon-1] = complement[derived] # replace snp within codon
+			codonseq[posincodon-1] = derived.translate(dna_complement_table) # replace snp within codon
+
 		derived_codon = Seq(''.join(codonseq),IUPAC.unambiguous_dna)
-		ancestralAA = ancestral_codon.translate()
-		derivedAA = derived_codon.translate()
+		# Translate codons; codons containing ambigous bases cannot always be translated, in these
+		# cases set amino acid product to 'None'
+		try:
+			ancestralAA = ancestral_codon.translate()
+		except TranslationError:
+			ancestralAA = None
+		try:
+			derivedAA = derived_codon.translate()
+		except TranslationError:
+			derivedAA = None
+
 		return(ancestral_codon,derived_codon,ancestralAA,derivedAA,posingene,posincodon)
 
-	def runCoding(pre, snptable, options, complement):
+	def runCoding(pre, snptable, options):
 		if options.refseq=="":
 			print "\nNo reference genbank file specified (-r), can't do coding analysis"
 		else:
@@ -323,10 +342,16 @@ if __name__ == "__main__":
 				# first make index for features
 				feature_list = []
 				feature_count = 0
+
 				for feature in geneannot:
-					if feature.type != "source" and feature.type not in excludefeatures:
-						start = feature.location.nofuzzy_start
-						stop = feature.location.nofuzzy_end
+					if feature.type != "source" and feature.type not in excludefeatures and feature.type in genefeatures:
+						strand = feature.location.strand
+						if strand:
+							start = feature.location.nofuzzy_start
+							stop = feature.location.nofuzzy_end + 1
+						else:
+							start = feature.location.nofuzzy_start + 1
+							stop = feature.location.nofuzzy_end                
 						feature_list.append([start,stop,feature_count])
 					feature_count += 1
 				feature_slice = []
@@ -352,6 +377,7 @@ if __name__ == "__main__":
 				intergenic_count = 0
 				ns_count = 0
 				syn_count = 0
+				ambiguous_count = 0
 				other_feature_count = 0
 				for snp in snp_list_ordered:
 					ref_allele = sequence[int(snptable[snp][0])-1]
@@ -369,7 +395,7 @@ if __name__ == "__main__":
 							snp_slice = int(snptable[snp][0])/slice_size
 							if feature_slice[snp_slice] != []:
 								for feature_index in feature_slice[snp_slice]:
-									if int(snptable[snp][0]) in geneannot[feature_index[2]]:
+									if int(snptable[snp][0]) > geneannot[feature_index[2]].location.nofuzzy_start and int(snptable[snp][0]) <= geneannot[feature_index[2]].location.nofuzzy_end:
 										hit = 1
 										start = int(geneannot[feature_index[2]].location.nofuzzy_start) # feature start
 										stop = int(geneannot[feature_index[2]].location.nofuzzy_end) # feature stop
@@ -381,13 +407,17 @@ if __name__ == "__main__":
 											product = geneannot[feature_index[2]].qualifiers['product'][0]
 										if geneannot[feature_index[2]].type in genefeatures:
 											# get coding effect of coding features
-											(ancestral_codon,derived_codon,ancestralAA,derivedAA,posingene,posincodon)=getCodons(start,stop,geneannot[feature_index[2]].strand,int(snptable[snp][0]),alt_allele,ref_allele,sequence,complement)
-											change = "ns"
-											if str(ancestralAA) == str(derivedAA):
+											(ancestral_codon,derived_codon,ancestralAA,derivedAA,posingene,posincodon)=getCodons(start,stop,geneannot[feature_index[2]].strand,int(snptable[snp][0]),alt_allele,ref_allele,sequence)
+											change = None
+											if isinstance(ancestralAA, Seq) and ancestralAA == derivedAA:
 												change = "s"
 												syn_count += 1
+											elif ancestralAA and derivedAA:
+												change = "ns"
+ 												ns_count += 1
 											else:
-												ns_count += 1
+												change = 'ambiguous'
+												ambiguous_count += 1											
 											# add SNP to genbank
 											codon_number = posingene / 3
 											if posincodon != 3:
@@ -411,7 +441,7 @@ if __name__ == "__main__":
 								record.features.append(SeqFeature(FeatureLocation(int(snptable[snp][0])-1,int(snptable[snp][0])), type="variation", strand=1, qualifiers = {'note' : ["intergenic SNP " + ref_allele + "->" + alt_allele]}))
 				o.close()
 				SeqIO.write(record, pre + ".gbk", "genbank")
-				print "\n... " + str(ns_count) + " nonsyonymous, " + str(syn_count) + " synonymous, " + str(other_feature_count) + " in other features, " + str(intergenic_count) + " in non-coding regions"
+				print "\n... " + str(ns_count) + " nonsyonymous, " + str(syn_count) + " synonymous, " + str(ambiguous_count) + " ambiguous, " + str(other_feature_count) + " in other features, " + str(intergenic_count) + " in non-coding regions"
 				print "... coding consequences written to file " + pre + "_consequences.txt"
 				print "... SNP loci annotated in genbank file " + pre + ".gbk"
 			
@@ -940,7 +970,7 @@ if __name__ == "__main__":
 
 	# run module and return updated values for snptable, strains and pre
 	# aln,fasttree,filter,rax,coding
-	def runModule(m, snptable, strains, pre, options, complement, outgroups, add_vcf, vcf_to_add):
+	def runModule(m, snptable, strains, pre, options, outgroups, add_vcf, vcf_to_add):
 		if m == "aln":
 			# print mfasta alignment of the current table
 			printFasta(snptable, strains, pre + ".mfasta")
@@ -962,32 +992,24 @@ if __name__ == "__main__":
 			else:
 				printVCF(snptable, strains, pre, options, add_vcf)
 		elif m == "coding":
-			runCoding(pre, snptable, options, complement)
+			runCoding(pre, snptable, options)
 		return pre, snptable, vcf_to_add
 		
 	### MAIN PROCESS
-		
-	complement = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A', '-': '-'} 
-	
 	# set up variables
 	(dir,filename) = os.path.split(options.snptable)
 	(pre,ext) = os.path.splitext(filename) # pre = current file prefix, updated if file is filtered to exclude SNPs
-	
 	pre = options.prefix + pre # add user specified prefix
-
 	if options.directory != "":
 		if options.directory[:-1] != '/':		
 			pre = options.directory + '/' + pre
 		else:
 			pre = options.directory + pre
-
 	outgroups = [] # list of outgroups provided
 	if options.outgroup != "":
 		outgroups = options.outgroup.split(",")
-
 	# read in raw SNP table
 	snptable, strains, pre = readSNPTable(options.snptable,options.outgroup,options.subset,pre)
-
 	#create vcf of raw SNP table if needed
 	vcf_to_add = []
 	add_vcf = options.add_vcf
@@ -998,10 +1020,9 @@ if __name__ == "__main__":
 		else:
 			print "\nFirst VCF not added; 'add_vcf' set to 'False': check -v option"
 			add_vcf = False
-	
-	# run modules in order
+		# run modules in order
 	for m in options.modules.split(","):
-		pre, snptable, vcf_to_add = runModule(m, snptable, strains, pre, options, complement, outgroups, add_vcf, vcf_to_add)
+		pre, snptable, vcf_to_add = runModule(m, snptable, strains, pre, options, outgroups, add_vcf, vcf_to_add)
 
 	#create combined VCF of with PASS/FAIL if needed
 	if add_vcf and len(vcf_to_add) == 1:
