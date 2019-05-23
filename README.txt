@@ -1,4 +1,4 @@
-RedDog V1beta.10.3 070916 (Calico Cat - in memory of Jemimah)
+RedDog V1beta.10.3.1 230519 (Calico Cat - in memory of Jemimah)
 ====== 
 Copyright (c) 2016 David Edwards, Bernie Pope, Kat Holt
 All rights reserved.
@@ -33,6 +33,8 @@ Note: for Illumina paired-end or single reads, or Ion Torrent single reads.
 IMPORTANT: See config file/instructions for input options/requirements
 
 current version:
+V1beta.10.3.1 (Calico Cat)
+            fix for parseSNPtabe
 V1beta.10.3 (Calico Cat)
             fix for SE and IT reads (no stand bias calling atm - need to validate b4 adding)
             update to many programs used (local Helix installation)

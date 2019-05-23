@@ -1,7 +1,7 @@
 #!/bin/env python
 
 '''
-RedDog V1beta.10.3 (Calico Cat) 070916 
+RedDog V1beta.10.3.1 (Calico Cat) 230519 
 ====== 
 Copyright (c) 2016 David Edwards, Bernie Pope, Kat Holt
 All rights reserved.
