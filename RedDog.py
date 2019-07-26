@@ -1,7 +1,7 @@
 #!/bin/env python
 
 '''
-RedDog V1beta.10.3.1 (Calico Cat) 230519 
+RedDog V1beta.10.4 ("StopBreakingItStephen") 260719 
 ====== 
 Copyright (c) 2016 David Edwards, Bernie Pope, Kat Holt
 All rights reserved.
@@ -54,9 +54,9 @@ from rubra.utils import pipeline_options
 from rubra.utils import (runStageCheck, splitPath)
 from pipe_utils import (isGenbank, isFasta, chromInfoFasta, chromInfoGenbank, getValue, 
                         getCover, make_sequence_list, getSuccessCount, make_run_report, 
-                        get_run_report_data, getFastaDetails)
+                        get_run_report_data, getFastaDetails, checkBases)
 
-version = "V1beta.10.3"
+version = "V1beta.10.4"
 
 modules = pipeline_options.stageDefaults['modules']
 
@@ -84,10 +84,12 @@ if not os.path.exists(reference):
 #check whether reference is in FASTA or GenBank format
 if isFasta(reference):
     refGenbank = False
+    checkBases(reference, 'fasta')
     replicons = chromInfoFasta(reference)
 
 elif isGenbank(reference):
     refGenbank = True
+    checkBases(reference, 'genbank')
     replicons = chromInfoGenbank(reference)
 else:
     print "\nReference not in GenBank or FASTA format"
@@ -929,7 +931,10 @@ if outMerge != '':
     print "Merge new sets with the following folder ('out_merge_target'):"
     print outMerge
 
-start_run = False
+if pipeline_options.no_check:
+    start_run = True
+else:
+    start_run = False
 start_count = 0
 while start_run == False:
     keyboard_entry = raw_input('\nStart Pipeline? (y/n) ')

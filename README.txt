@@ -1,4 +1,4 @@
-RedDog V1beta.10.3.1 230519 (Calico Cat - in memory of Jemimah)
+RedDog V1beta.10.4 260719 ("StopBreakingItStephen")
 ====== 
 Copyright (c) 2016 David Edwards, Bernie Pope, Kat Holt
 All rights reserved.
@@ -33,6 +33,10 @@ Note: for Illumina paired-end or single reads, or Ion Torrent single reads.
 IMPORTANT: See config file/instructions for input options/requirements
 
 current version:
+V1beta.10.4 ("StopBreakingItStephen") Various fixes including stopping mapping to 
+            references with ambiguous base calls
+            
+previous versions:
 V1beta.10.3.1 (Calico Cat)
             fix for parseSNPtabe
 V1beta.10.3 (Calico Cat)
@@ -42,8 +46,6 @@ V1beta.10.3 (Calico Cat)
 V1beta.10.2 minor corrections for local install and R scripts
 V1beta.10.1 fix for minor error in q30VarFilter
 V1beta.10   added strand bias test
-
-previous versions:
 V0.1        converted to vcf output via mpileup instead of depreciated pileup 
 ..
 V0.2        tested version V0.1.1 
@@ -201,18 +203,3 @@ V1beta.8    tutorial update
 V1beta.9    local system update 
             manual update 
 
-next planned updates
-V1.0        Offical Public Release of RedDog (on acceptance of paper) 
-
-(Post-release)
-    changes to input sequences pattern recognition
-    extend parseGeneContent functions 
-    reanalysis without mapping
-        with/without a GenBank file,
-        restore of read sets removed by user,
-        merging of prior runs,
-        recalculated/user-edited 'stats.txt' option 
-        merging of bams
-    further analysis options 
-
-Our thanks to the "alpha-testers" for their feedback and patience.

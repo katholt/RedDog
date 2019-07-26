@@ -1,5 +1,5 @@
 '''
-Configuration file for RedDog.py V1beta.10.3.1
+Configuration file for RedDog.py V1beta.10.4
 -------------------------------
 
 Copyright (c) 2016 David Edwards, Bernie Pope, Kat Holt
@@ -7,6 +7,7 @@ All rights reserved. (see README.txt for more details)
 
 Essential pipeline variables.
 '''
+no_check = False
 reference = ""
 sequences = ""
 output = ""
@@ -27,6 +28,9 @@ force_no_tree = False
 
 '''
 Notes:
+
+'no_check' is for switching off the user check during the start of the run. This enables 
+the pipeline to be run as a single job (with lots of cpus) on a distributed system
 
 'reference' and 'sequences'
 
