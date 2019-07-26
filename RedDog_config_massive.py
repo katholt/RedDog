@@ -342,7 +342,7 @@ pipeline = {
     "rebuild" : "fromstart"
 }
 stageDefaults = {
-    "distributed": True,
+    "distributed": False,
     "walltime": "01:00:00",
     "memInGB": 4,
     "queue": "normal",
