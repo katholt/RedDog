@@ -1,7 +1,7 @@
 #!/bin/env python
 
 '''
-RedDog V1beta.10.4 ("StopBreakingItStephen") 260719 
+RedDog V1beta.10.4 ("StopBreakingIt") 260719 
 ====== 
 Copyright (c) 2016 David Edwards, Bernie Pope, Kat Holt
 All rights reserved.
