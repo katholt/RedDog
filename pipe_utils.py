@@ -450,3 +450,19 @@ def getFastaDetails(mfasta):
         snp_count = 0
     mfasta_file.close()
     return (isolate_count, snp_count)
+
+def checkBases(refFile, fileformat):
+    # Read in data
+    if fileformat in {'genbank', 'fasta'}:
+        seqs = [(record.name, record.seq) for record in SeqIO.parse(refFile, fileformat)]
+    else:
+        raise ValueError("fileFormat must be either genbank or fasta")
+    # Check for nucleotides other than ATGCN
+    for desc, seq in seqs:
+        nucleotides = set(seq.upper())
+        nucleotides_ambiguous = nucleotides - {'A', 'G', 'T', 'C', 'N'}
+        if nucleotides_ambiguous:
+            sys.stdout.write('error: found ambiguous nucleotides (')
+            sys.stdout.write(', '.join(nucleotides_ambiguous))
+            sys.stdout.write(') in reference contig ' + desc + '\n')
+            sys.exit(1)

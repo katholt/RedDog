@@ -1,5 +1,5 @@
 '''
-Configuration file for RedDog.py V1beta.10.3.1
+Configuration file for RedDog.py V1beta.11
 -------------------------------
 
 Copyright (c) 2016 David Edwards, Bernie Pope, Kat Holt
@@ -7,6 +7,7 @@ All rights reserved. (see README.txt for more details)
 
 Essential pipeline variables.
 '''
+no_check = False
 reference = ""
 sequences = ""
 output = ""
@@ -28,6 +29,12 @@ force_no_tree = False
 '''
 Notes:
 
+'no_check' is for switching off the user check at the start of the run. 
+This enables the pipeline to be run as a single job (with lots of cpus) on a distributed system. 
+IMPORTANT: DO NOT CHANGE SETTINGS FOR A ‘MERGE’ RUN – RedDog still checks the previous settings 
+against those in the config file and will ask for confirmation of changes... 
+If you are unsure of your previous settings, check the ‘Run Report’.
+
 'reference' and 'sequences'
 
 Reference can be GenBank or fasta format - if GenBank format, this will be converted
@@ -38,6 +45,10 @@ will not be generated and nor will SNP consequences.
 
 If you don't have the GenBank record, or don't want the above matrices 
 to be generated, enter a fasta format reference instead.
+
+Ambiguous calls in the reference will cause problems for your output – 
+check that the sequence uses only A, C, G, T or N (upper or lower case). 
+RedDog will not run if it finds ambiguous calls (v1b11).
 
 '''
 #Test Sets
