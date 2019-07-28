@@ -1,7 +1,7 @@
 #!/bin/env python
 
 '''
-RedDog V1beta.10.4 ("StopBreakingIt") 260719 
+RedDog V1beta.11 ("StopBreakingIt") 260719 
 ====== 
 Copyright (c) 2016 David Edwards, Bernie Pope, Kat Holt
 All rights reserved.
@@ -56,7 +56,7 @@ from pipe_utils import (isGenbank, isFasta, chromInfoFasta, chromInfoGenbank, ge
                         getCover, make_sequence_list, getSuccessCount, make_run_report, 
                         get_run_report_data, getFastaDetails, checkBases)
 
-version = "V1beta.10.4"
+version = "V1beta.11"
 
 modules = pipeline_options.stageDefaults['modules']
 

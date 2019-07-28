@@ -1,4 +1,4 @@
-RedDog V1beta.10.4 260719 ("StopBreakingIt")
+RedDog V1beta.11 260719 ("StopBreakingIt")
 ====== 
 Copyright (c) 2016 David Edwards, Bernie Pope, Kat Holt
 All rights reserved.
@@ -33,9 +33,10 @@ Note: for Illumina paired-end or single reads, or Ion Torrent single reads.
 IMPORTANT: See config file/instructions for input options/requirements
 
 current version:
-V1beta.10.4 ("StopBreakingItStephen") Various fixes including stopping mapping to 
-            references with ambiguous base calls
-            
+V1beta.11   ("StopBreakingIt")
+            Added check for ambiguous base calls in reference
+            Added ‘no_check’ option for running as single job on cluster
+           
 previous versions:
 V1beta.10.3.1 (Calico Cat)
             fix for parseSNPtabe
