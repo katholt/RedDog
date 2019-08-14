@@ -31,9 +31,9 @@ Notes:
 
 'no_check' is for switching off the user check at the start of the run. 
 This enables the pipeline to be run as a single job (with lots of cpus) on a distributed system. 
-IMPORTANT: DO NOT CHANGE SETTINGS FOR A ‘MERGE’ RUN – RedDog still checks the previous settings 
-against those in the config file and will ask for confirmation of changes... 
-If you are unsure of your previous settings, check the ‘Run Report’.
+IMPORTANT: DO NOT CHANGE SETTINGS FOR A 'MERGE' RUN - RedDog still checks the previous settings 
+against those in the config file and will ask for confirmation of changes. 
+If you are unsure of your previous settings, check the 'Run Report'.
 
 'reference' and 'sequences'
 
