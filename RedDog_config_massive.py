@@ -31,13 +31,13 @@ Notes:
 
 'no_check' is for switching off the user check at the start of the run. 
 This enables the pipeline to be run as a single job (with lots of cpus) on a distributed system. 
-IMPORTANT: DO NOT CHANGE SETTINGS FOR A 'MERGE' RUN - RedDog still checks the previous settings 
+IMPORTANT: DO NOT CHANGE SETTINGS FOR A 'MERGE' RUN: RedDog still checks the previous settings 
 against those in the config file and will ask for confirmation of changes. 
 If you are unsure of your previous settings, check the 'Run Report'.
 
 'reference' and 'sequences'
 
-Reference can be GenBank or fasta format - if GenBank format, this will be converted
+Reference can be GenBank or fasta format: if GenBank format, this will be converted
 to a fasta version for mapping.
 
 If the GenBank file is not given, the gene cover and depth matrices for genes
@@ -46,7 +46,7 @@ will not be generated and nor will SNP consequences.
 If you don't have the GenBank record, or don't want the above matrices
 to be generated, enter a fasta format reference instead.
 
-Ambiguous calls in the reference will cause problems for your output – 
+Ambiguous calls in the reference will cause problems for your output: 
 check that the sequence uses only A, C, G, T or N (upper or lower case). 
 RedDog will not run if it finds ambiguous calls (v1b11).
 
@@ -114,7 +114,7 @@ readType = "PE"
 #readType = "IT"
 
 '''
-Run Type - if set to a null string, the number of replicons in the reference will determine
+Run Type: if set to a null string, the number of replicons in the reference will determine
 the run type:
     1 - 100 replicons (e.g. reference genome + plasmids + phage)   - phylogeny run type
     > 100 replicons (e.g. multifasta pangenome)                    - pangenome run type
@@ -128,7 +128,7 @@ runType = ""
 #runType = "phylogeny"
 
 '''
-For a pangenome run, the SNPs will only be called for the largest replicon - this assumes
+For a pangenome run, the SNPs will only be called for the largest replicon: this assumes
 the core genome is in this replicon. The user can define an alternative replicon
 (or replicons) for the SNP calling.
 
@@ -200,7 +200,7 @@ bowtie_map_type = "--sensitive-local"
 #bowtie_map_type = "--very-sensitive-local"
 '''
 The default maximum length for bowtie2 to consider pair-ended reads contiguous
-is 2000 - you can change this with bowtie_X_value
+is 2000: you can change this with bowtie_X_value
 '''
 bowtie_X_value = 2000
 
@@ -211,7 +211,7 @@ consensus caller ["c"] (original) or multiallelic caller ["m"] (new bcftools v1+
 
 Note: multiallelic caller is used only for calling unique SNPs from the BAM files.
 The consensus sequences used to populate the allele table based on these SNPs are
-still generated using the original consensus caller - this will be changed if/when
+still generated using the original consensus caller: this will be changed if/when
 a vcf2fq program is available for multiallelic-generated VCFs
 '''
 SNPcaller = "c"
@@ -294,8 +294,8 @@ check_reads_mapped = ""
 
 '''
 During allele matrix filtering, you can set the conservation level for missing alleles
-this is a ratio between 1.0 (100% conservation - remove all SNPs with even one missing allele call)
-and 0.0 (0% conservation - remove no SNPs). By default, the pipeline produces the 95% and
+this is a ratio between 1.0 (100% conservation: remove all SNPs with even one missing allele call)
+and 0.0 (0% conservation: remove no SNPs). By default, the pipeline produces the 95% and
 0% conservation matrices, with downstream analysis on the 95% matrix.
 
 By entering a different conservation level (e.g. 0.85), both the 95% and 0% matrices
